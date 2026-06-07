@@ -47,3 +47,7 @@ Every pull request must pass:
 - Data Cloud calculated insights not visible as agent-usable objects.
 - Account augmented fields missing or not mapped.
 - Accidental commit of JWT/private-key material.
+
+## GitHub plan limitation
+
+GitHub returned `403` when applying branch protection to this private repo because protected branches for private repositories require GitHub Pro, Team, Enterprise Cloud, or Enterprise Server. Until the account supports private-repo branch protection, the repo still has CI workflows, CODEOWNERS, PR template gates, Dependabot, and manual production workflow confirmation, but GitHub cannot technically block direct pushes to `main` or `staging`.
