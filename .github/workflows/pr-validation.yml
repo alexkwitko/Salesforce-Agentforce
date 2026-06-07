@@ -50,6 +50,7 @@ jobs:
     env:
       SF_SOURCE_DIR: force-app
       SFDX_AUTH_URL: ${{ secrets.SALESFORCE_VALIDATION_SFDX_AUTH_URL }}
+      EXPECTED_SALESFORCE_ORG_ID: 00DXX0000000000RED
     steps:
       - name: Checkout
         uses: actions/checkout@v4
