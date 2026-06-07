@@ -13,13 +13,20 @@ This repo uses GitHub Actions as the release gate for Salesforce Agentforce, Woo
 
 Do not commit Salesforce auth URLs, JWT private keys, WooCommerce keys, Hostinger keys, or WordPress config snippets.
 
+Current target Salesforce org for this project:
+
+- Org name: `CPQDream`
+- CLI alias: `AgentforceDev`
+- Username: `alexkwitko.cec7e462f3fd@agentforce.com`
+- Org ID: `00Dfj00000QEVrQEAX`
+
 Configure these secrets in GitHub:
 
-- `SALESFORCE_VALIDATION_SFDX_AUTH_URL`: low-risk validation org.
-- `SALESFORCE_STAGING_SFDX_AUTH_URL`: staging org.
-- `SALESFORCE_PRODUCTION_SFDX_AUTH_URL`: production org.
+- `SALESFORCE_VALIDATION_SFDX_AUTH_URL`: CPQDream / `AgentforceDev`.
+- `SALESFORCE_STAGING_SFDX_AUTH_URL`: CPQDream / `AgentforceDev`.
+- `SALESFORCE_PRODUCTION_SFDX_AUTH_URL`: CPQDream / `AgentforceDev`.
 
-Use GitHub environments for `staging` and `production`. Production should require manual approval.
+The workflows also verify the authenticated org ID before any validation or deployment runs. If a secret is accidentally pointed at another org, the job fails before deploy.
 
 ## Required checks
 
