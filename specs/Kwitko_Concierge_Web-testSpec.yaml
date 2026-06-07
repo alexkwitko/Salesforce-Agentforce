@@ -1,0 +1,27 @@
+name: Kwitko_Concierge_Web_Test
+description: "End-to-end checks for the LIVE web concierge (v6) covering the buggy flows - new-shopper preference capture, recommendation, real coupon, add-to-cart link, returning-customer recognition, and no-decaf honoring."
+subjectType: AGENT
+subjectName: Kwitko_Concierge_Web
+testCases:
+  - utterance: "Hi, I'm new. My email is agenttest.web1@example.com and yes, email me offers. I want a dark roast, whole bean, espresso-style blend, no decaf. Recommend a coffee plus gear, give me my discount, and add them to my cart."
+    expectedTopic: concierge
+    expectedActions:
+      - save_preferences
+      - build_strategy
+      - issue_coupon
+      - add_to_cart
+    expectedOutcome: "Saves the preferences, recommends a non-decaf dark-roast blend plus a complementary gear item, issues a real single-use coupon, and returns a clickable add-to-cart link — without ever claiming the items are already in the cart."
+
+  - utterance: "Hi, it's Alex - alexkwitko@gmail.com. What do you recommend for me today?"
+    expectedTopic: concierge
+    expectedActions:
+      - lookup_customer
+      - build_strategy
+    expectedOutcome: "Recognizes Alex as a returning customer, honors his saved preferences (no decaf, single origin), and recommends a coffee with a discount."
+
+  - utterance: "I'm shopping, my email is agenttest.web2@example.com. I really do NOT like decaf. What coffee should I get?"
+    expectedTopic: concierge
+    expectedActions:
+      - save_preferences
+      - build_strategy
+    expectedOutcome: "Records that the shopper dislikes decaf, then recommends a coffee that is NOT decaf."

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <description>Headless growth automation: when a Person Account is flagged Winback_Needed__c=true (after a return), enqueue a confidence-rebuild offer (recommendation excluding the returned item + generous coupon + consent-gated apology email).</description>
+    <environments>Default</environments>
+    <interviewLabel>Winback On Return {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Winback On Return</label>
+    <processType>AutoLaunchedFlow</processType>
+    <actionCalls>
+        <name>Enqueue_Winback</name>
+        <label>Enqueue Win-Back Offer</label>
+        <locationX>176</locationX>
+        <locationY>278</locationY>
+        <actionName>WinbackAutoOffer</actionName>
+        <actionType>apex</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>accountId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>WinbackAutoOffer</nameSegment>
+    </actionCalls>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Enqueue_Winback</targetReference>
+        </connector>
+        <doesRequireRecordChangedToMeetCriteria>true</doesRequireRecordChangedToMeetCriteria>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Winback_Needed__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </filters>
+        <object>Account</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

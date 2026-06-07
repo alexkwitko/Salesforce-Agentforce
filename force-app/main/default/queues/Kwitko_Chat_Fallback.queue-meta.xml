@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Queue xmlns="http://soap.sforce.com/2006/04/metadata">
+    <name>Kwitko Chat Fallback</name>
+    <doesSendEmailToMembers>false</doesSendEmailToMembers>
+    <queueRoutingConfig>Kwitko_Chat_Routing</queueRoutingConfig>
+    <queueSobject>
+        <sobjectType>MessagingSession</sobjectType>
+    </queueSobject>
+    <queueMembers>
+        <users>
+            <user>alexkwitko.cec7e462f3fd@agentforce.com</user>
+        </users>
+    </queueMembers>
+</Queue>

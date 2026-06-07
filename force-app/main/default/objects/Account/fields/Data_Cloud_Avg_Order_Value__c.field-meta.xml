@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Data_Cloud_Avg_Order_Value__c</fullName>
+    <label>Data Cloud Avg Order Value</label>
+    <description>Average order value from Data Cloud calculated insight or CRM fallback.</description>
+    <type>Currency</type>
+    <precision>12</precision>
+    <scale>2</scale>
+</CustomField>

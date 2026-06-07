@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Coupon_Redeemed__c</fullName>
+    <label>Coupon Redeemed</label>
+    <defaultValue>false</defaultValue>
+    <description>True once the issued coupon is used on an ingested WooCommerce order. Set by WooOrderService.</description>
+    <type>Checkbox</type>
+</CustomField>

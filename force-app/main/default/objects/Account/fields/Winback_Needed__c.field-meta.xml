@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Winback_Needed__c</fullName>
+    <label>Winback Needed</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Set true when a return is processed; the Growth agent detects this to start a confidence-rebuild offer.</description>
+</CustomField>

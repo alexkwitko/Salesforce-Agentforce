@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <description>Record-triggered: when an e-commerce Order is activated, RUN the Post_Purchase_Growth agent headlessly via AgentInvoker so the agent's own reasoning builds the offer + email. Kept Draft (the live headless path is the scheduled sweep); this is the Flow-triggers-agent pattern, deployable and ready to activate once running outside the order transaction.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>OfferMessage</name>
+        <dataType>String</dataType>
+        <expression>"Create a personalized buy-again offer for order " &amp; {!$Record.Id} &amp; ". Check consent first, then build the strategy and send the email."</expression>
+    </formulas>
+    <interviewLabel>Auto Invoke Post-Purchase Agent {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Auto Invoke Post-Purchase Agent</label>
+    <processType>AutoLaunchedFlow</processType>
+    <actionCalls>
+        <name>Run_Post_Purchase_Agent</name>
+        <label>Run Post-Purchase Agent</label>
+        <locationX>176</locationX>
+        <locationY>278</locationY>
+        <actionName>AgentInvoker</actionName>
+        <actionType>apex</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>agentApiName</name>
+            <value>
+                <stringValue>Post_Purchase_Growth</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>userMessage</name>
+            <value>
+                <elementReference>OfferMessage</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>AgentInvoker</nameSegment>
+    </actionCalls>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Run_Post_Purchase_Agent</targetReference>
+        </connector>
+        <doesRequireRecordChangedToMeetCriteria>true</doesRequireRecordChangedToMeetCriteria>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Status</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Activated</stringValue>
+            </value>
+        </filters>
+        <filters>
+            <field>Source__c</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Ecommerce</stringValue>
+            </value>
+        </filters>
+        <object>Order</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Draft</status>
+</Flow>

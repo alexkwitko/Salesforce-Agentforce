@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Brew_Style__c</fullName>
+    <label>Brew Style</label>
+    <type>Picklist</type>
+    <description>Recommended brew method for this coffee. Independent of bean type and roast. Backfilled from Family/name; defaults to All-Purpose.</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Espresso</fullName><default>false</default><label>Espresso</label></value>
+            <value><fullName>Cold Brew</fullName><default>false</default><label>Cold Brew</label></value>
+            <value><fullName>All-Purpose</fullName><default>false</default><label>All-Purpose</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

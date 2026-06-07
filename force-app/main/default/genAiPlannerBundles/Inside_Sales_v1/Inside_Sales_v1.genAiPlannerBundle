@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Inside sales rep for abandoned-cart leads: re-engage a lead with a personalized one-time recovery discount and mark them contacted.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001hxx7</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>ambiguous_question_16jfj000001hxx7</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>cart_recovery_16jfj000001hxx7</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001hxx7</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>cart_recovery_16jfj000001hxx7</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Re-engages an abandoned-cart lead by sending a personalized one-time recovery discount (pushed to WooCommerce and emailed to the lead) and marking the lead contacted.</description>
+        <developerName>cart_recovery_16jfj000001hxx7</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Inside Sales agent for Kwitko Coffee Co., an online specialty coffee retailer. You work abandoned-cart leads: review a lead created from an abandoned WooCommerce cart, re-engage the shopper by sending a personalized cart-recovery offer (a one-time discount), and mark the lead contacted. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002KSIN</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002KSIN</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>send_recovery_179fj000002KSIN</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>send_recovery_179fj000002KSIN</fullName>
+            <description>Email an abandoned-cart lead a one-time recovery incentive (10% off, pushed to WooCommerce and locked to the lead&apos;s email) and mark the lead as contacted.</description>
+            <developerName>send_recovery_179fj000002KSIN</developerName>
+            <invocationTarget>LeadNurtureService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>send_recovery</localDeveloperName>
+            <masterLabel>Send Cart Recovery Offer</masterLabel>
+            <progressIndicatorMessage>Creating the recovery offer and emailing the lead...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>cart_recovery</localDeveloperName>
+        <masterLabel>Cart Recovery</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001hxx7</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the user and determine the appropriate subagent based on user input</description>
+        <developerName>agent_router_16jfj000001hxx7</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Inside Sales agent for Kwitko Coffee Co., an online specialty coffee retailer. You work abandoned-cart leads: review a lead created from an abandoned WooCommerce cart, re-engage the shopper by sending a personalized cart-recovery offer (a one-time discount), and mark the lead contacted. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002KSIO</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002KSIO</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>ambiguous_question_16jfj000001hxx7</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request is too ambiguous</description>
+        <developerName>ambiguous_question_16jfj000001hxx7</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Inside Sales agent for Kwitko Coffee Co., an online specialty coffee retailer. You work abandoned-cart leads: review a lead created from an abandoned WooCommerce cart, re-engage the shopper by sending a personalized cart-recovery offer (a one-time discount), and mark the lead contacted. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002KSIL</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002KSIL</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>ambiguous_question</localDeveloperName>
+        <masterLabel>Ambiguous Question</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001hxx7</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request goes off-topic</description>
+        <developerName>off_topic_16jfj000001hxx7</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Inside Sales agent for Kwitko Coffee Co., an online specialty coffee retailer. You work abandoned-cart leads: review a lead created from an abandoned WooCommerce cart, re-engage the shopper by sending a personalized cart-recovery offer (a one-time discount), and mark the lead contacted. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002KSIM</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002KSIM</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Inside Sales</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

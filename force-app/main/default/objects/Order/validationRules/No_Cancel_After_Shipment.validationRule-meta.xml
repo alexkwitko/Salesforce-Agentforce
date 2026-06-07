@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>No_Cancel_After_Shipment</fullName>
+    <active>true</active>
+    <description>Block moving an order to Cancelled once it has shipped or beyond. Cancellations are only valid pre-shipment; after delivery use a return.</description>
+    <errorConditionFormula>AND(
+  ISCHANGED(Fulfillment_Status__c),
+  ISPICKVAL(Fulfillment_Status__c, "Cancelled"),
+  OR(
+    ISPICKVAL(PRIORVALUE(Fulfillment_Status__c), "Shipped"),
+    ISPICKVAL(PRIORVALUE(Fulfillment_Status__c), "In Transit"),
+    ISPICKVAL(PRIORVALUE(Fulfillment_Status__c), "Out for Delivery"),
+    ISPICKVAL(PRIORVALUE(Fulfillment_Status__c), "Delivered")
+  )
+)</errorConditionFormula>
+    <errorMessage>This order has already shipped and can no longer be cancelled. Start a return instead once it is delivered.</errorMessage>
+</ValidationRule>

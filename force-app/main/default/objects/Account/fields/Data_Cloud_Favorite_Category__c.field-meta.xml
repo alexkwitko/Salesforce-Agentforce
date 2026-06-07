@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Data_Cloud_Favorite_Category__c</fullName>
+    <label>Data Cloud Favorite Category</label>
+    <description>Top product category from calculated insight or CRM fallback.</description>
+    <type>Text</type>
+    <length>80</length>
+</CustomField>

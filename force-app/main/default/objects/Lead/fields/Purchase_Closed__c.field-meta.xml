@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName>Purchase_Closed__c</fullName><label>Purchase Closed</label><type>Checkbox</type><defaultValue>false</defaultValue><trackHistory>true</trackHistory><description>Lead closed because the person purchased (custom close).</description></CustomField>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AiEvaluationDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Service subagent: order status, returns, cancellations, and cases. Verifies the agent actually invokes the deterministic actions instead of narrating.</description>
+    <name>Kwitko_Concierge_Web_Service</name>
+    <subjectName>Kwitko_Concierge_Web</subjectName>
+    <subjectType>AGENT</subjectType>
+    <testCase>
+        <expectation>
+            <expectedValue>service</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;get_order_status&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The agent calls the order status action and reports the actual order status (e.g. order number and fulfillment stage). It does NOT merely say it will check or to please hold, and does NOT invent a status.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>Where is my order? My email is alexkwitko@gmail.com. Just check my most recent order.</utterance>
+        </inputs>
+        <number>1</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>service</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;open_case&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>CORRECT behavior: the agent calls open_case and reports the REAL case number the action returns (referencing the complained-about order is fine and expected). PASS as long as a case is opened and a case number is given. The case/order numbers returned by the action are real, not fabricated.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>I have a complaint — my coffee arrived stale and I want to open a case. Email alexkwitko@gmail.com.</utterance>
+        </inputs>
+        <number>2</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>service</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;cancel_order&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The shopper explicitly said to go ahead and cancel, so it is CORRECT for the agent to call cancel_order and report the result. PASS if it either confirms the cancellation + refund that the action performed, OR relays that the order cannot be cancelled (already shipped/delivered) and offers a return. Acting on the explicit confirmation is the right behavior.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>I want to cancel my most recent order, alexkwitko@gmail.com. Yes, go ahead and cancel it.</utterance>
+        </inputs>
+        <number>3</number>
+    </testCase>
+</AiEvaluationDefinition>

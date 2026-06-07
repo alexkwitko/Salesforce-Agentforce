@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Bean_Type__c</fullName>
+    <label>Bean Type</label>
+    <type>Picklist</type>
+    <description>Sourcing axis: a single-origin coffee vs a blend. Independent of brew style and roast. Backfilled from Family.</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Single-Origin</fullName><default>false</default><label>Single-Origin</label></value>
+            <value><fullName>Blend</fullName><default>false</default><label>Blend</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Category__c</fullName>
+    <label>Category</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Order</fullName><default>false</default><label>Order</label></value>
+            <value><fullName>Shipping</fullName><default>false</default><label>Shipping</label></value>
+            <value><fullName>Returns</fullName><default>false</default><label>Returns</label></value>
+            <value><fullName>Refund</fullName><default>false</default><label>Refund</label></value>
+            <value><fullName>Product</fullName><default>false</default><label>Product</label></value>
+            <value><fullName>Billing</fullName><default>false</default><label>Billing</label></value>
+            <value><fullName>Account</fullName><default>false</default><label>Account</label></value>
+            <value><fullName>Escalation</fullName><default>false</default><label>Escalation</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

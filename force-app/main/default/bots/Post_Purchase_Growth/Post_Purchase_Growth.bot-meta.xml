@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Post-Purchase Growth</label>
+        <name>Post_Purchase_Growth</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <botUser>post_purchase_growth@00dxx00000xxxxx1227134584.ext</botUser>
+    <description>Post-purchase growth specialist: analyze a completed order, recommend an in-stock product, issue a personalized one-time discount coupon, and email the customer a 30-day buy-again offer.</description>
+    <label>Post-Purchase Growth</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

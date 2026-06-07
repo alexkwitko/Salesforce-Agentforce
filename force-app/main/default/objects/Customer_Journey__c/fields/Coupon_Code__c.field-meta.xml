@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Coupon_Code__c</fullName>
+    <label>Coupon Code</label>
+    <description>The personalized single-use WooCommerce coupon issued to this shopper in chat.</description>
+    <type>Text</type>
+    <length>60</length>
+    <required>false</required>
+</CustomField>

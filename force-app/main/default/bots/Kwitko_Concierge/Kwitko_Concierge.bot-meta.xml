@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Kwitko Concierge</label>
+        <name>Kwitko_Concierge</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <botUser>inside_sales@00dxx00000xxxxx2116470045.ext</botUser>
+    <description>Concierge orchestrator: greet, capture lead + consent, recognize returning customers, and build a personalized, buyer-aware recommendation via the shared strategy engine.</description>
+    <label>Kwitko Concierge</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

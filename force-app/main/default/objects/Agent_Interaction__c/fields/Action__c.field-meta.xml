@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Action__c</fullName>
+    <label>Action</label>
+    <type>Text</type>
+    <length>120</length>
+    <description>What the agent did (e.g. recommend, add_to_cart, post_purchase_offer, cart_recovery).</description>
+</CustomField>

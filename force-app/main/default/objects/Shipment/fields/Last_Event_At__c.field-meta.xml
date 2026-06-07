@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Last_Event_At__c</fullName>
+    <label>Last Event At</label>
+    <type>DateTime</type>
+    <required>false</required>
+    <description>Most recent carrier event timestamp.</description>
+</CustomField>

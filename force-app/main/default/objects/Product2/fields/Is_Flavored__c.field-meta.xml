@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Flavored__c</fullName>
+    <label>Is Flavored</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Flavored (e.g. vanilla, hazelnut) vs unflavored coffee. Independent axis. Backfilled from Family.</description>
+</CustomField>

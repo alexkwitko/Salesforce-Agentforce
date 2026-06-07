@@ -1,0 +1,12 @@
+name: Kwitko_Concierge_Test
+description: Verifies the Concierge recognizes the customer, captures a consented lead, and builds a recommendation.
+subjectType: AGENT
+subjectName: Kwitko_Concierge
+testCases:
+  - utterance: "Hi, I'm Jane. My email is jane.doe@example.com and I consent to marketing. I love single-origin coffee - what do you recommend?"
+    expectedTopic: concierge
+    expectedActions:
+      - lookup_customer
+      - capture_lead
+      - build_strategy
+    expectedOutcome: "The concierge recognizes the shopper, saves a consented lead, and recommends a coffee with a discount."

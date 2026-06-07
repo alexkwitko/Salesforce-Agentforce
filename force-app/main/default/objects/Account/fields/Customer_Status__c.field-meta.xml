@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Customer_Status__c</fullName>
+    <label>Customer Status</label>
+    <type>Picklist</type>
+    <description>Buyer vs non-buyer indicator. Set to Customer on first order ingestion; Prospect by default. Drives returning-customer personalization.</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Prospect</fullName><default>true</default><label>Prospect</label></value>
+            <value><fullName>Customer</fullName><default>false</default><label>Customer</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

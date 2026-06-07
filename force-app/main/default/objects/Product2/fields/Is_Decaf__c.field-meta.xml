@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Decaf__c</fullName>
+    <label>Is Decaf</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Caffeine axis: decaf vs regular. Cross-cuts brew style and bean type (e.g. Decaf Espresso). Backfilled from Family/name.</description>
+</CustomField>

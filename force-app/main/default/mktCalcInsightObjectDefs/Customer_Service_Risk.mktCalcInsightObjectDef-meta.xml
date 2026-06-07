@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MktCalcInsightObjectDef xmlns="http://soap.sforce.com/2006/04/metadata">
+    <creationType>Custom</creationType>
+    <expression>SELECT Case_Home__dlm.AccountId__c AS AccountId__c, Case_Home__dlm.Status__c AS CaseStatus__c, Case_Home__dlm.Priority__c AS Priority__c, count(Case_Home__dlm.Id__c) AS CaseCount__c, max(Case_Home__dlm.CreatedDate__c) AS LastCaseDate__c FROM Case_Home__dlm GROUP BY Case_Home__dlm.AccountId__c, Case_Home__dlm.Status__c, Case_Home__dlm.Priority__c</expression>
+    <masterLabel>Customer Service Risk</masterLabel>
+</MktCalcInsightObjectDef>

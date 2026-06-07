@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Post-purchase growth specialist: analyze a completed order, recommend an in-stock product, issue a personalized one-time discount coupon, and email the customer a 30-day buy-again offer.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001hxtt</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>ambiguous_question_16jfj000001hxtt</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001hxtt</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>post_purchase_offer_16jfj000001hxtt</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>post_purchase_offer_16jfj000001hxtt</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Analyzes a completed order, recommends an in-stock product, generates a personalized one-time discount coupon in WooCommerce, and emails the customer a 30-day buy-again offer.</description>
+        <developerName>post_purchase_offer_16jfj000001hxtt</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Post-Purchase Growth agent for Kwitko Coffee Co., an online specialty coffee retailer. You analyze a customer&apos;s completed order, identify their favorite coffee category, recommend a complementary in-stock product, issue a personalized one-time discount coupon, and email the customer a buy-again offer valid for 30 days. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002KSF9</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002KSF9</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>generate_offer_179fj000002KSF9</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>generate_offer_179fj000002KSF9</fullName>
+            <description>Analyze a customer&apos;s order, find their favorite coffee category, recommend an in-stock product, create a personalized one-time discount coupon in WooCommerce, and email the customer a 30-day buy-again offer.</description>
+            <developerName>generate_offer_179fj000002KSF9</developerName>
+            <invocationTarget>PostPurchaseService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>generate_offer</localDeveloperName>
+            <masterLabel>Generate Post-Purchase Offer</masterLabel>
+            <progressIndicatorMessage>Analyzing the order and preparing a personalized offer...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>post_purchase_offer</localDeveloperName>
+        <masterLabel>Post Purchase Offer</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001hxtt</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the user and determine the appropriate subagent based on user input</description>
+        <developerName>agent_router_16jfj000001hxtt</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Post-Purchase Growth agent for Kwitko Coffee Co., an online specialty coffee retailer. You analyze a customer&apos;s completed order, identify their favorite coffee category, recommend a complementary in-stock product, issue a personalized one-time discount coupon, and email the customer a buy-again offer valid for 30 days. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002KSF7</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002KSF7</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001hxtt</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request goes off-topic</description>
+        <developerName>off_topic_16jfj000001hxtt</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Post-Purchase Growth agent for Kwitko Coffee Co., an online specialty coffee retailer. You analyze a customer&apos;s completed order, identify their favorite coffee category, recommend a complementary in-stock product, issue a personalized one-time discount coupon, and email the customer a buy-again offer valid for 30 days. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002KSF8</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002KSF8</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>ambiguous_question_16jfj000001hxtt</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request is too ambiguous</description>
+        <developerName>ambiguous_question_16jfj000001hxtt</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Post-Purchase Growth agent for Kwitko Coffee Co., an online specialty coffee retailer. You analyze a customer&apos;s completed order, identify their favorite coffee category, recommend a complementary in-stock product, issue a personalized one-time discount coupon, and email the customer a buy-again offer valid for 30 days. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002KSFA</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002KSFA</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>ambiguous_question</localDeveloperName>
+        <masterLabel>Ambiguous Question</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Post-Purchase Growth</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

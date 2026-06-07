@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Product Advisor</label>
+        <name>Product_Advisor</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <botUser>inside_sales@00dxx00000xxxxx2116470045.ext</botUser>
+    <description>Recommendation strategy brain: profile the buyer, recommend products and quantities, and resolve the discount deterministically; propose grounded extras.</description>
+    <label>Product Advisor</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

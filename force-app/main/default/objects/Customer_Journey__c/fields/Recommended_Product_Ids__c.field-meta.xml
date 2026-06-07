@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Recommended_Product_Ids__c</fullName>
+    <label>Recommended Product Ids</label>
+    <type>LongTextArea</type>
+    <length>32768</length>
+    <visibleLines>3</visibleLines>
+    <description>Comma-separated Product2 ids already recommended to this customer (do not repeat).</description>
+</CustomField>

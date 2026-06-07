@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MktCalcInsightObjectDef xmlns="http://soap.sforce.com/2006/04/metadata">
+    <creationType>Custom</creationType>
+    <expression>SELECT Shipment_Home__dll.Carrier_c__c AS Carrier__c, Shipment_Home__dll.Shipment_Status_c__c AS ShipmentStatus__c, count(Shipment_Home__dll.Id__c) AS ShipmentCount__c, max(Shipment_Home__dll.LastModifiedDate__c) AS LastShipmentUpdate__c FROM Shipment_Home__dll GROUP BY Shipment_Home__dll.Carrier_c__c, Shipment_Home__dll.Shipment_Status_c__c</expression>
+    <masterLabel>Shipment Delivery Health</masterLabel>
+</MktCalcInsightObjectDef>

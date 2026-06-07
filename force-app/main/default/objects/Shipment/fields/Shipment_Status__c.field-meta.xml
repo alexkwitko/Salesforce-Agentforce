@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Shipment_Status__c</fullName>
+    <label>Shipment Status</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Label Created</fullName><default>true</default><label>Label Created</label></value>
+            <value><fullName>Shipped</fullName><default>false</default><label>Shipped</label></value>
+            <value><fullName>In Transit</fullName><default>false</default><label>In Transit</label></value>
+            <value><fullName>Out for Delivery</fullName><default>false</default><label>Out for Delivery</label></value>
+            <value><fullName>Delivered</fullName><default>false</default><label>Delivered</label></value>
+            <value><fullName>Exception</fullName><default>false</default><label>Exception</label></value>
+            <value><fullName>Returned</fullName><default>false</default><label>Returned</label></value>
+        </valueSetDefinition>
+    </valueSet>
+    <description>Carrier/shipping lifecycle. Delivered must come from carrier/shipment event, not Woo order status.</description>
+</CustomField>

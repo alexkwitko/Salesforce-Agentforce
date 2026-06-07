@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Concierge orchestrator: greet, capture lead + consent, recognize returning customers, and build a personalized, buyer-aware recommendation via the shared strategy engine.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001iZCn</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>concierge_16jfj000001iZCn</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001iZCn</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>concierge_16jfj000001iZCn</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Captures the shopper (name, email, consent), recognizes returning customers, and builds a personalized recommendation.</description>
+        <developerName>concierge_16jfj000001iZCn</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You greet the shopper, capture their name, email, and marketing consent, recognize returning customers from their history, and build a personalized recommendation by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic and only market to shoppers who have given consent. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002LM4P</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002LM4P</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>add_to_cart_179fj000002LM4P</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>save_preferences_179fj000002LM4P</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>issue_coupon_179fj000002LM4P</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>capture_lead_179fj000002LM4P</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>lookup_customer_179fj000002LM4P</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>build_strategy_179fj000002LM4P</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>save_preferences_179fj000002LM4P</fullName>
+            <description>Persist a stated coffee preference (a like, a dislike, roast level, format, or brew method) to the customer&apos;s profile and unified profile. Call this WHENEVER the shopper states or implies a preference, especially a dislike or a rejection of a recommendation.</description>
+            <developerName>save_preferences_179fj000002LM4P</developerName>
+            <invocationTarget>CustomerPreferenceService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>save_preferences</localDeveloperName>
+            <masterLabel>Save Customer Preferences</masterLabel>
+            <progressIndicatorMessage>Updating your preferences...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>lookup_customer_179fj000002LM4P</fullName>
+            <description>Look up whether this email is a returning customer and summarize their history.</description>
+            <developerName>lookup_customer_179fj000002LM4P</developerName>
+            <invocationTarget>CustomerLookupService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>lookup_customer</localDeveloperName>
+            <masterLabel>Lookup Customer</masterLabel>
+            <progressIndicatorMessage>Checking if we know you...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>issue_coupon_179fj000002LM4P</fullName>
+            <description>Create a REAL, single-use, personalized discount coupon for this shopper in the store and return its code. Call this once after recommending, before add_to_cart, so the discount can be auto-applied.</description>
+            <developerName>issue_coupon_179fj000002LM4P</developerName>
+            <invocationTarget>CouponService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>issue_coupon</localDeveloperName>
+            <masterLabel>Issue Personalized Coupon</masterLabel>
+            <progressIndicatorMessage>Creating your personal discount...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>capture_lead_179fj000002LM4P</fullName>
+            <description>Create or update a Website Chat lead with the shopper&apos;s name, email, marketing consent, and interest.</description>
+            <developerName>capture_lead_179fj000002LM4P</developerName>
+            <invocationTarget>ChatLeadService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>capture_lead</localDeveloperName>
+            <masterLabel>Capture Lead</masterLabel>
+            <progressIndicatorMessage>Saving your details...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>add_to_cart_179fj000002LM4P</fullName>
+            <description>Build a REAL working add-to-cart link for the recommended products. Call this when the shopper asks to add items to their cart or check out. You CANNOT add items yourself — this returns a link the shopper clicks to add them.</description>
+            <developerName>add_to_cart_179fj000002LM4P</developerName>
+            <invocationTarget>CartLinkService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>add_to_cart</localDeveloperName>
+            <masterLabel>Build Add-to-Cart Links</masterLabel>
+            <progressIndicatorMessage>Preparing your cart link...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>build_strategy_179fj000002LM4P</fullName>
+            <description>Build the deterministic, buyer-aware recommendation: primary coffee, complementary gear, quantities, and discount from the matrix.</description>
+            <developerName>build_strategy_179fj000002LM4P</developerName>
+            <invocationTarget>RecommendationStrategyService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>build_strategy</localDeveloperName>
+            <masterLabel>Build Recommendation Strategy</masterLabel>
+            <progressIndicatorMessage>Building your personalized recommendation...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>concierge</localDeveloperName>
+        <masterLabel>Concierge</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001iZCn</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the shopper and route to the concierge subagent.</description>
+        <developerName>agent_router_16jfj000001iZCn</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You greet the shopper, capture their name, email, and marketing consent, recognize returning customers from their history, and build a personalized recommendation by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic and only market to shoppers who have given consent. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002LM4Q</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002LM4Q</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001iZCn</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when the request goes off-topic.</description>
+        <developerName>off_topic_16jfj000001iZCn</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You greet the shopper, capture their name, email, and marketing consent, recognize returning customers from their history, and build a personalized recommendation by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic and only market to shoppers who have given consent. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002LM4R</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002LM4R</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Kwitko Concierge Web</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

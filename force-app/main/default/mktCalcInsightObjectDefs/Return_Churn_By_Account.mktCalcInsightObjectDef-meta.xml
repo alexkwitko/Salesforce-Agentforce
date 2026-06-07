@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MktCalcInsightObjectDef xmlns="http://soap.sforce.com/2006/04/metadata">
+    <creationType>Custom</creationType>
+    <expression>SELECT ReturnOrder_Home__dll.AccountId__c AS AccountId__c, ReturnOrder_Home__dll.Status__c AS ReturnStatus__c, count(ReturnOrder_Home__dll.Id__c) AS ReturnCount__c, max(ReturnOrder_Home__dll.CreatedDate__c) AS LastReturnDate__c FROM ReturnOrder_Home__dll GROUP BY ReturnOrder_Home__dll.AccountId__c, ReturnOrder_Home__dll.Status__c</expression>
+    <masterLabel>Return Churn by Account</masterLabel>
+</MktCalcInsightObjectDef>

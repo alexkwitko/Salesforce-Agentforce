@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Woo_Sync_Status__c</fullName>
+    <label>Woo Sync Status</label>
+    <type>Picklist</type>
+    <description>Status of the Salesforce -> WooCommerce push for this product.</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Not Synced</fullName><default>true</default><label>Not Synced</label></value>
+            <value><fullName>Synced</fullName><default>false</default><label>Synced</label></value>
+            <value><fullName>Failed</fullName><default>false</default><label>Failed</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

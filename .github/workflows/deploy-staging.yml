@@ -1,0 +1,62 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: salesforce-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Validate and deploy to staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: staging
+    env:
+      SF_SOURCE_DIR: force-app
+      SFDX_AUTH_URL: ${{ secrets.SALESFORCE_STAGING_SFDX_AUTH_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Salesforce CLI
+        run: npm install --global @salesforce/cli
+
+      - name: Static validation
+        run: npm run ci:static
+
+      - name: Secret guard
+        run: npm run ci:secret-scan
+
+      - name: Authenticate staging org
+        run: ./scripts/ci/authenticate-salesforce.sh staging
+
+      - name: Deploy to staging with local tests
+        run: |
+          sf project deploy start \
+            --source-dir "$SF_SOURCE_DIR" \
+            --target-org staging \
+            --test-level RunLocalTests \
+            --coverage-formatters json-summary \
+            --junit \
+            --results-dir test-results/staging-deploy \
+            --wait 60
+
+      - name: Post-deploy smoke
+        run: ./scripts/ci/salesforce-post-deploy-smoke.sh staging

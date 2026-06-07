@@ -1,0 +1,16 @@
+name: Inside_Sales_Test
+description: Verifies the Inside Sales agent checks email consent FIRST and only sends a cart-recovery offer when consent exists.
+subjectType: AGENT
+subjectName: Inside_Sales
+testCases:
+  - utterance: "Send a cart recovery offer to lead 00Qfj00000V9p7uEAB."
+    expectedTopic: cart_recovery
+    expectedActions:
+      - check_consent
+      - send_recovery
+    expectedOutcome: "The agent verifies the lead has email consent, then sends a recovery coupon and marks the lead contacted."
+  - utterance: "Send a cart recovery offer to lead 00Qfj00000V9p7vEAB."
+    expectedTopic: cart_recovery
+    expectedActions:
+      - check_consent
+    expectedOutcome: "The agent checks consent first, finds the lead has NOT granted email consent, and stops without sending a recovery offer."

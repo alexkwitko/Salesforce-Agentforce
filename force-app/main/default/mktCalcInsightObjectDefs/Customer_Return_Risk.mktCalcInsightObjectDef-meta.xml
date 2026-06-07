@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MktCalcInsightObjectDef xmlns="http://soap.sforce.com/2006/04/metadata">
+    <creationType>Custom</creationType>
+    <expression>SELECT ReturnOrder_Home__dll.AccountId__c AS AccountId__c, &apos;USD&apos; AS CurrencyCode__c, count(ReturnOrder_Home__dll.Id__c) AS ReturnCount__c, sum(TRY_CONVERT_CURRENCY(ReturnOrder_Home__dll.Refund_Amount_c__c, &apos;USD&apos;, &apos;USD&apos;)) AS RefundAmount__c, max(ReturnOrder_Home__dll.CreatedDate__c) AS LastReturnDate__c FROM ReturnOrder_Home__dll GROUP BY ReturnOrder_Home__dll.AccountId__c, &apos;USD&apos;</expression>
+    <masterLabel>Customer Return Risk</masterLabel>
+</MktCalcInsightObjectDef>

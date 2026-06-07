@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Fulfillment_Order__c</fullName>
+    <label>Fulfillment Order</label>
+    <type>Lookup</type>
+    <referenceTo>FulfillmentOrder</referenceTo>
+    <relationshipLabel>Kwitko Shipments</relationshipLabel>
+    <relationshipName>Kwitko_Shipments</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <required>false</required>
+    <description>Fulfillment order this shipment fulfills.</description>
+</CustomField>
