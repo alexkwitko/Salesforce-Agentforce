@@ -31,6 +31,8 @@ Every pull request must pass:
 - Agentforce smoke checks for runtime users and web messaging config;
 - Data Cloud smoke checks for visible calculated insight entities and Account augmented fields.
 
+Dependabot pull requests run the static controls only because GitHub does not expose normal Actions secrets to Dependabot-triggered pull-request workflows. Salesforce org validation still runs for human-authored pull requests.
+
 ## Promotion rules
 
 1. Feature branch to `staging` through pull request only.
