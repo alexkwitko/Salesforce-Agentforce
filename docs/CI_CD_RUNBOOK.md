@@ -4,10 +4,10 @@ This repo uses GitHub Actions as the release gate for Salesforce Agentforce, Woo
 
 ## Branch model
 
-- `main`: protected release branch.
-- `staging`: protected integration branch that deploys to the staging Salesforce org.
+- `main`: release branch that deploys automatically to production.
+- `staging`: integration branch that deploys automatically to the staging Salesforce org.
 - Feature branches: open pull requests into `staging`.
-- Production deploys: manual GitHub Actions workflow from `main` with the `production` environment approval gate.
+- Production deploys: automatic GitHub Actions workflow on push to `main`, after validation and smoke checks.
 
 ## Required GitHub secrets
 
@@ -36,7 +36,7 @@ Every pull request must pass:
 1. Feature branch to `staging` through pull request only.
 2. `staging` branch deploys to staging with tests and smoke checks.
 3. After staging certification, merge to `main`.
-4. Run `Deploy Production` manually and type `DEPLOY`.
+4. GitHub Actions automatically validates and deploys `main` to production.
 5. Confirm post-deploy smoke before continuing with live Wohoo/Embedded Messaging changes.
 
 ## Current known blockers the pipeline is designed to catch
@@ -50,4 +50,4 @@ Every pull request must pass:
 
 ## GitHub plan limitation
 
-GitHub returned `403` when applying branch protection to this private repo because protected branches for private repositories require GitHub Pro, Team, Enterprise Cloud, or Enterprise Server. Until the account supports private-repo branch protection, the repo still has CI workflows, CODEOWNERS, PR template gates, Dependabot, and manual production workflow confirmation, but GitHub cannot technically block direct pushes to `main` or `staging`.
+GitHub returned `403` when applying branch protection to this private repo because protected branches for private repositories require GitHub Pro, Team, Enterprise Cloud, or Enterprise Server. Until the account supports private-repo branch protection, the repo still has CI workflows, CODEOWNERS, PR template gates, Dependabot, and automatic staging/production deployment workflows, but GitHub cannot technically block direct pushes to `main` or `staging`.

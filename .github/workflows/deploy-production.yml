@@ -1,11 +1,10 @@
 name: Deploy Production
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      confirm:
-        description: Type DEPLOY to confirm production deployment.
-        required: true
 
 permissions:
   contents: read
@@ -17,7 +16,6 @@ concurrency:
 jobs:
   deploy:
     name: Validate and deploy to production
-    if: ${{ inputs.confirm == 'DEPLOY' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     environment: production
