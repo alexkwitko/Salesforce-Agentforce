@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QueueRoutingConfig xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Kwitko Chat Routing</label>
+    <isAttributeBased>false</isAttributeBased>
+    <pushTimeout>20</pushTimeout>
+    <routingModel>LeastActive</routingModel>
+    <routingPriority>1</routingPriority>
+</QueueRoutingConfig>

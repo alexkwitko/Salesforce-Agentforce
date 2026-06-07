@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Delivered_At__c</fullName>
+    <label>Delivered At</label>
+    <type>DateTime</type>
+    <required>false</required>
+    <description>Timestamp when carrier/shipping provider confirmed delivery. Required proof before agent can call an order delivered.</description>
+</CustomField>

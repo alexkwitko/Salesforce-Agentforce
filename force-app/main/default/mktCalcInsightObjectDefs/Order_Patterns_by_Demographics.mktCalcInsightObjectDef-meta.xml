@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MktCalcInsightObjectDef xmlns="http://soap.sforce.com/2006/04/metadata">
+    <creationType>Custom</creationType>
+    <expression>SELECT Order_Analytics_c_Home__dlm.Age_Group_c__c AS AgeGroup__c, Order_Analytics_c_Home__dlm.Gender_c__c AS Gender__c, Order_Analytics_c_Home__dlm.State_c__c AS UsState__c, &apos;USD&apos; AS CurrencyCode__c, count(Order_Analytics_c_Home__dlm.Age_Group_c__c) AS OrderCount__c, avg(TRY_CONVERT_CURRENCY(Order_Analytics_c_Home__dlm.Order_Amount_c__c, &apos;USD&apos;, &apos;USD&apos;)) AS AvgOrderValue__c, sum(TRY_CONVERT_CURRENCY(Order_Analytics_c_Home__dlm.Order_Amount_c__c, &apos;USD&apos;, &apos;USD&apos;)) AS TotalRevenue__c FROM Order_Analytics_c_Home__dlm GROUP BY Order_Analytics_c_Home__dlm.Age_Group_c__c, Order_Analytics_c_Home__dlm.Gender_c__c, Order_Analytics_c_Home__dlm.State_c__c, &apos;USD&apos;</expression>
+    <masterLabel>Order Patterns by Demographics</masterLabel>
+</MktCalcInsightObjectDef>

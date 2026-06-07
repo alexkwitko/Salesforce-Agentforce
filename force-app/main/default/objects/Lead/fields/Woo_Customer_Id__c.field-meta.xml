@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Woo_Customer_Id__c</fullName>
+    <label>Woo Customer Id</label>
+    <type>Text</type>
+    <length>50</length>
+    <externalId>true</externalId>
+    <unique>false</unique>
+    <description>WooCommerce customer/visitor ID.</description>
+</CustomField>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Code__c</fullName><label>Code</label><type>Text</type><length>50</length>
+    <externalId>true</externalId><unique>true</unique>
+    <description>Coupon code customer enters at WooCommerce checkout.</description>
+</CustomField>

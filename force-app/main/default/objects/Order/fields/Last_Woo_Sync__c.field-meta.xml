@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName>Last_Woo_Sync__c</fullName><label>Last Woo Sync</label><type>DateTime</type><required>false</required></CustomField>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Personalized coupons issued by the Post-Purchase Growth agent. Pushed to WooCommerce for enforcement.</description>
+    <label>Coupon</label>
+    <pluralLabel>Coupons</pluralLabel>
+    <nameField><label>Coupon Name</label><type>Text</type></nameField>
+    <sharingModel>ReadWrite</sharingModel>
+    <enableActivities>true</enableActivities>
+    <enableHistory>true</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+</CustomObject>

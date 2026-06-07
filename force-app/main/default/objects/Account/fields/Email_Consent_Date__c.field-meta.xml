@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Email_Consent_Date__c</fullName><label>Email Consent Date</label><type>DateTime</type>
+    <description>When the customer granted email consent.</description>
+</CustomField>

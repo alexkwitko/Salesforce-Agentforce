@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Return_Requires_Delivered_Order</fullName>
+    <active>true</active>
+    <description>A return can only be created for a source order that has been delivered (or already returned/refunded).</description>
+    <errorConditionFormula>AND(
+  NOT(ISBLANK(Order__c)),
+  NOT(ISPICKVAL(Order__r.Fulfillment_Status__c, "Delivered")),
+  NOT(ISPICKVAL(Order__r.Fulfillment_Status__c, "Returned")),
+  NOT(ISPICKVAL(Order__r.Fulfillment_Status__c, "Refunded"))
+)</errorConditionFormula>
+    <errorMessage>Returns are only allowed once the order has been delivered.</errorMessage>
+</ValidationRule>

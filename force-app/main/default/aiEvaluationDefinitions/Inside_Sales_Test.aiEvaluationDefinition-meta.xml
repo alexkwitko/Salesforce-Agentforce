@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AiEvaluationDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Verifies the Inside Sales agent checks email consent FIRST and only sends a cart-recovery offer when consent exists.</description>
+    <name>Inside_Sales_Test</name>
+    <subjectName>Inside_Sales</subjectName>
+    <subjectType>AGENT</subjectType>
+    <testCase>
+        <expectation>
+            <expectedValue>cart_recovery</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;check_consent&apos;,&apos;send_recovery&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The agent verifies the lead has email consent, then sends a recovery coupon and marks the lead contacted.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>Send a cart recovery offer to lead 00Qfj00000V9p7uEAB.</utterance>
+        </inputs>
+        <number>1</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>cart_recovery</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;check_consent&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The agent checks consent first, finds the lead has NOT granted email consent, and stops without sending a recovery offer.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>Send a cart recovery offer to lead 00Qfj00000V9p7vEAB.</utterance>
+        </inputs>
+        <number>2</number>
+    </testCase>
+</AiEvaluationDefinition>

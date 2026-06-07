@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Agent Interaction</label>
+    <pluralLabel>Agent Interactions</pluralLabel>
+    <nameField>
+        <label>Interaction Number</label>
+        <type>AutoNumber</type>
+        <displayFormat>AI-{00000}</displayFormat>
+    </nameField>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <sharingModel>ReadWrite</sharingModel>
+    <enableActivities>false</enableActivities>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <description>Append-only log of every agent invocation in a customer journey (which agent, what action, products, order, result).</description>
+</CustomObject>

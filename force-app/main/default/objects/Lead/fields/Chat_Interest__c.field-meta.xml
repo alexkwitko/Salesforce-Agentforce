@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Chat_Interest__c</fullName>
+    <label>Chat Interest</label>
+    <type>Text</type>
+    <length>255</length>
+    <description>Product or category of interest the visitor expressed in the website chat.</description>
+</CustomField>

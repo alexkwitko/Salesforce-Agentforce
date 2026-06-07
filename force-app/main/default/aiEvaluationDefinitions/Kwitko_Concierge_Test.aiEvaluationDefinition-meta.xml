@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AiEvaluationDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Verifies the Concierge recognizes the customer, captures a consented lead, and builds a recommendation.</description>
+    <name>Kwitko_Concierge_Test</name>
+    <subjectName>Kwitko_Concierge</subjectName>
+    <subjectType>AGENT</subjectType>
+    <testCase>
+        <expectation>
+            <expectedValue>concierge</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;lookup_customer&apos;,&apos;capture_lead&apos;,&apos;build_strategy&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The concierge recognizes the shopper, saves a consented lead, and recommends a coffee with a discount.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>Hi, I&apos;m Jane. My email is jane.doe@example.com and I consent to marketing. I love single-origin coffee - what do you recommend?</utterance>
+        </inputs>
+        <number>1</number>
+    </testCase>
+</AiEvaluationDefinition>

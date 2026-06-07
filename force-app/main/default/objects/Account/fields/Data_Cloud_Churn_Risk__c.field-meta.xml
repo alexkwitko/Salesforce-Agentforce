@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Data_Cloud_Churn_Risk__c</fullName>
+    <label>Data Cloud Churn Risk</label>
+    <description>Low, Medium, or High customer risk signal for service and growth agents.</description>
+    <type>Text</type>
+    <length>40</length>
+</CustomField>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Data_Cloud_Segment__c</fullName>
+    <label>Data Cloud Segment</label>
+    <description>Agent-facing customer segment such as New, Lapsed, Occasional, Recurrent, or VIP.</description>
+    <type>Text</type>
+    <length>80</length>
+</CustomField>

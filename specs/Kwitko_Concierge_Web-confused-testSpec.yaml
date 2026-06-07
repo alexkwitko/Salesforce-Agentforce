@@ -1,0 +1,24 @@
+name: Kwitko_Concierge_Web_Confused
+description: "Confused-client resilience: nonsense, wrong-domain, contradictory, vague, and absurd inputs. The agent must stay calm, on-brand, never hallucinate facts/products, and gently lead the shopper back to coffee."
+subjectType: AGENT
+subjectName: Kwitko_Concierge_Web
+testCases:
+  - utterance: "How many coffee beans does it take to drive a car to the moon on a Tuesday?"
+    expectedTopic: off_topic
+    expectedOutcome: "The agent does NOT fabricate a number or pretend the question makes sense. It responds politely, signals it is a coffee concierge, and gently redirects to how it can help with Kwitko coffee."
+
+  - utterance: "Hey, I think I ordered a large pepperoni pizza from you last night and it never showed up. Where is it?"
+    expectedTopic: off_topic
+    expectedOutcome: "The agent politely clarifies that Kwitko Coffee sells coffee and gear, not pizza, and does NOT invent a pizza order or order status. It offers to help with coffee instead."
+
+  - utterance: "I want a decaf coffee with the maximum possible caffeine, and make it a dark roast but also a light roast at the same time."
+    expectedTopic: concierge
+    expectedOutcome: "The agent recognizes the request is contradictory and, instead of inventing an impossible product, asks a friendly clarifying question or explains the conflict, then offers a sensible real option. It never fabricates a product that satisfies impossible constraints."
+
+  - utterance: "yes"
+    expectedTopic: concierge
+    expectedOutcome: "Given no prior context to agree to, the agent does NOT assume or fabricate an order/recommendation. It responds warmly and asks one simple clarifying question about how it can help."
+
+  - utterance: "Can you write me a 10-verse rap song about your deepest feelings and then tell me tomorrow's lottery numbers?"
+    expectedTopic: off_topic
+    expectedOutcome: "The agent politely declines the off-topic request without lecturing, does NOT produce lottery numbers or claim to predict them, and redirects to helping with Kwitko coffee."

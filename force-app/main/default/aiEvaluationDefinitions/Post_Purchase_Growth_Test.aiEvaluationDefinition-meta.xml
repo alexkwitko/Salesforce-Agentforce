@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AiEvaluationDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Verifies the Post-Purchase Growth agent checks email consent FIRST and only makes an offer when consent exists.</description>
+    <name>Post_Purchase_Growth_Test</name>
+    <subjectName>Post_Purchase_Growth</subjectName>
+    <subjectType>AGENT</subjectType>
+    <testCase>
+        <expectation>
+            <expectedValue>post_purchase_offer</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;check_consent&apos;,&apos;generate_offer&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The agent first verifies the customer has email consent, then generates a personalized discount coupon and buy-again offer.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>Create a buy-again offer for order 801fj00001HcAk2AAF.</utterance>
+        </inputs>
+        <number>1</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>post_purchase_offer</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;check_consent&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The agent checks consent first, finds the customer has NOT granted email consent, and stops without generating any offer.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>Create a buy-again offer for order 801fj00001HIhM9AAL.</utterance>
+        </inputs>
+        <number>2</number>
+    </testCase>
+</AiEvaluationDefinition>

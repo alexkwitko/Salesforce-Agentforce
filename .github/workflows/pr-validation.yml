@@ -1,0 +1,62 @@
+name: Salesforce PR Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: salesforce-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate source and metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      SF_SOURCE_DIR: force-app
+      SFDX_AUTH_URL: ${{ secrets.SALESFORCE_VALIDATION_SFDX_AUTH_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Salesforce CLI
+        run: npm install --global @salesforce/cli
+
+      - name: Static validation
+        run: npm run ci:static
+
+      - name: Secret guard
+        run: npm run ci:secret-scan
+
+      - name: Authenticate validation org
+        run: ./scripts/ci/authenticate-salesforce.sh validation
+
+      - name: Validate Salesforce deployment
+        run: |
+          sf project deploy validate \
+            --source-dir "$SF_SOURCE_DIR" \
+            --target-org validation \
+            --test-level RunLocalTests \
+            --coverage-formatters json-summary \
+            --junit \
+            --results-dir test-results/pr-validation \
+            --wait 60
+
+      - name: Agentforce and Data Cloud smoke
+        run: ./scripts/ci/salesforce-post-deploy-smoke.sh validation

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AiEvaluationDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Confused-client resilience: nonsense, wrong-domain, contradictory, vague, and absurd inputs. The agent must stay calm, on-brand, never hallucinate facts/products, and gently lead the shopper back to coffee.</description>
+    <name>Kwitko_Concierge_Web_Confused</name>
+    <subjectName>Kwitko_Concierge_Web</subjectName>
+    <subjectType>AGENT</subjectType>
+    <testCase>
+        <expectation>
+            <expectedValue>off_topic</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The agent does NOT fabricate a number or pretend the question makes sense. It responds politely, signals it is a coffee concierge, and gently redirects to how it can help with Kwitko coffee.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>How many coffee beans does it take to drive a car to the moon on a Tuesday?</utterance>
+        </inputs>
+        <number>1</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>off_topic</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The agent politely clarifies that Kwitko Coffee sells coffee and gear, not pizza, and does NOT invent a pizza order or order status. It offers to help with coffee instead.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>Hey, I think I ordered a large pepperoni pizza from you last night and it never showed up. Where is it?</utterance>
+        </inputs>
+        <number>2</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>concierge</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The agent recognizes the request is contradictory and, instead of inventing an impossible product, asks a friendly clarifying question or explains the conflict, then offers a sensible real option. It never fabricates a product that satisfies impossible constraints.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>I want a decaf coffee with the maximum possible caffeine, and make it a dark roast but also a light roast at the same time.</utterance>
+        </inputs>
+        <number>3</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>concierge</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>Given no prior context to agree to, the agent does NOT assume or fabricate an order/recommendation. It responds warmly and asks one simple clarifying question about how it can help.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>yes</utterance>
+        </inputs>
+        <number>4</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>off_topic</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The agent politely declines the off-topic request without lecturing, does NOT produce lottery numbers or claim to predict them, and redirects to helping with Kwitko coffee.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>Can you write me a 10-verse rap song about your deepest feelings and then tell me tomorrow&apos;s lottery numbers?</utterance>
+        </inputs>
+        <number>5</number>
+    </testCase>
+</AiEvaluationDefinition>

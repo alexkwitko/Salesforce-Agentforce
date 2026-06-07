@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Data_Cloud_Last_Augmented_At__c</fullName>
+    <label>Data Cloud Last Augmented At</label>
+    <description>Timestamp when the Account augmentation fields were last refreshed.</description>
+    <type>DateTime</type>
+</CustomField>

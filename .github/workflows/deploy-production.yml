@@ -1,0 +1,70 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type DEPLOY to confirm production deployment.
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: salesforce-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Validate and deploy to production
+    if: ${{ inputs.confirm == 'DEPLOY' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: production
+    env:
+      SF_SOURCE_DIR: force-app
+      SFDX_AUTH_URL: ${{ secrets.SALESFORCE_PRODUCTION_SFDX_AUTH_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Salesforce CLI
+        run: npm install --global @salesforce/cli
+
+      - name: Static validation
+        run: npm run ci:static
+
+      - name: Secret guard
+        run: npm run ci:secret-scan
+
+      - name: Authenticate production org
+        run: ./scripts/ci/authenticate-salesforce.sh production
+
+      - name: Validate production deployment
+        id: validate
+        run: |
+          sf project deploy validate \
+            --source-dir "$SF_SOURCE_DIR" \
+            --target-org production \
+            --test-level RunLocalTests \
+            --json \
+            --wait 90 > deploy-validation.json
+          cat deploy-validation.json | jq -r '.result.id' > deploy-job-id.txt
+
+      - name: Quick deploy validated package
+        run: |
+          JOB_ID="$(cat deploy-job-id.txt)"
+          test -n "$JOB_ID"
+          sf project deploy quick --job-id "$JOB_ID" --target-org production --wait 60
+
+      - name: Post-deploy smoke
+        run: ./scripts/ci/salesforce-post-deploy-smoke.sh production

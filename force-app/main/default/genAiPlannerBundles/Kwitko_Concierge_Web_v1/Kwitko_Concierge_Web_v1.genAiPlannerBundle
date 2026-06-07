@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Concierge orchestrator: greet, capture lead + consent, recognize returning customers, and build a personalized, buyer-aware recommendation via the shared strategy engine.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001iRqL</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>concierge_16jfj000001iRqL</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001iRqL</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>off_topic_16jfj000001iRqL</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when the request goes off-topic.</description>
+        <developerName>off_topic_16jfj000001iRqL</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You greet the shopper, capture their name, email, and marketing consent, recognize returning customers from their history, and build a personalized recommendation by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic and only market to shoppers who have given consent. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002LAMc</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002LAMc</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001iRqL</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the shopper and route to the concierge subagent.</description>
+        <developerName>agent_router_16jfj000001iRqL</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You greet the shopper, capture their name, email, and marketing consent, recognize returning customers from their history, and build a personalized recommendation by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic and only market to shoppers who have given consent. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002LAMd</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002LAMd</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>concierge_16jfj000001iRqL</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Captures the shopper (name, email, consent), recognizes returning customers, and builds a personalized recommendation.</description>
+        <developerName>concierge_16jfj000001iRqL</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You greet the shopper, capture their name, email, and marketing consent, recognize returning customers from their history, and build a personalized recommendation by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic and only market to shoppers who have given consent. Salesforce is the system of record and WooCommerce is the storefront.</description>
+            <developerName>instruction0_179fj000002LAMb</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002LAMb</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>lookup_customer_179fj000002LAMb</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>capture_lead_179fj000002LAMb</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>build_strategy_179fj000002LAMb</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>lookup_customer_179fj000002LAMb</fullName>
+            <description>Look up whether this email is a returning customer and summarize their history.</description>
+            <developerName>lookup_customer_179fj000002LAMb</developerName>
+            <invocationTarget>CustomerLookupService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>lookup_customer</localDeveloperName>
+            <masterLabel>Lookup Customer</masterLabel>
+            <progressIndicatorMessage>Checking if we know you...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>build_strategy_179fj000002LAMb</fullName>
+            <description>Build the deterministic, buyer-aware recommendation: primary coffee, complementary gear, quantities, and discount from the matrix.</description>
+            <developerName>build_strategy_179fj000002LAMb</developerName>
+            <invocationTarget>RecommendationStrategyService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>build_strategy</localDeveloperName>
+            <masterLabel>Build Recommendation Strategy</masterLabel>
+            <progressIndicatorMessage>Building your personalized recommendation...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>capture_lead_179fj000002LAMb</fullName>
+            <description>Create or update a Website Chat lead with the shopper&apos;s name, email, marketing consent, and interest.</description>
+            <developerName>capture_lead_179fj000002LAMb</developerName>
+            <invocationTarget>ChatLeadService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>capture_lead</localDeveloperName>
+            <masterLabel>Capture Lead</masterLabel>
+            <progressIndicatorMessage>Saving your details...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>concierge</localDeveloperName>
+        <masterLabel>Concierge</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Kwitko Concierge Web</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

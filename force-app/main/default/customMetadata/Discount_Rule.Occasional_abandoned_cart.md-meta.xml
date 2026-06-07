@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" label="Occasional - Abandoned Cart">
+    <values><field>Buyer_Type__c</field><value xsi:type="xsd:string">Occasional</value></values>
+    <values><field>Channel__c</field><value xsi:type="xsd:string">abandoned_cart</value></values>
+    <values><field>Percent__c</field><value xsi:type="xsd:double">20</value></values>
+    <values><field>Adds_Perk__c</field><value xsi:type="xsd:boolean">false</value></values>
+    <values><field>Basket_Bump_Percent__c</field><value xsi:type="xsd:double">5</value></values>
+    <values><field>Min_Basket__c</field><value xsi:type="xsd:double">100</value></values>
+</CustomMetadata>

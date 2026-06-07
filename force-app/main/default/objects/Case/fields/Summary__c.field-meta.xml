@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Summary__c</fullName>
+    <label>Summary</label>
+    <type>LongTextArea</type>
+    <length>4000</length>
+    <visibleLines>4</visibleLines>
+    <required>false</required>
+    <description>Situation summary for the case (what happened, context) so any agent can pick it up.</description>
+</CustomField>

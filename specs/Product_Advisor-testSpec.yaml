@@ -1,0 +1,15 @@
+name: Product_Advisor_Test
+description: Verifies the Product Advisor calls the deterministic strategy engine and presents a recommendation with a discount.
+subjectType: AGENT
+subjectName: Product_Advisor
+testCases:
+  - utterance: "Build a chat recommendation for shopper jane.doe@example.com."
+    expectedTopic: recommend
+    expectedActions:
+      - build_strategy
+    expectedOutcome: "The agent builds a recommendation, naming a primary coffee and a discount percent."
+  - utterance: "Recommend products for the post_purchase channel for shopper jane.doe@example.com."
+    expectedTopic: recommend
+    expectedActions:
+      - build_strategy
+    expectedOutcome: "The agent profiles the buyer and returns a buy-again coffee plus a complementary item with a discount."

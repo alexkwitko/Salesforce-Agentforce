@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Woo_Product_Id__c</fullName>
+    <label>Woo Product Id</label>
+    <type>Text</type>
+    <length>50</length>
+    <externalId>true</externalId>
+    <unique>true</unique>
+    <description>WooCommerce product ID for SF->Woo catalog sync.</description>
+</CustomField>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Cancellation_Source__c</fullName>
+    <label>Cancellation Source</label>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Chat Agent</fullName><default>false</default><label>Chat Agent</label></value>
+            <value><fullName>Customer</fullName><default>false</default><label>Customer</label></value>
+            <value><fullName>Admin</fullName><default>false</default><label>Admin</label></value>
+            <value><fullName>System</fullName><default>false</default><label>System</label></value>
+            <value><fullName>WooCommerce</fullName><default>false</default><label>WooCommerce</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

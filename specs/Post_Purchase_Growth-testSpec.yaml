@@ -1,0 +1,16 @@
+name: Post_Purchase_Growth_Test
+description: Verifies the Post-Purchase Growth agent checks email consent FIRST and only makes an offer when consent exists.
+subjectType: AGENT
+subjectName: Post_Purchase_Growth
+testCases:
+  - utterance: "Create a buy-again offer for order 801fj00001HcAk2AAF."
+    expectedTopic: post_purchase_offer
+    expectedActions:
+      - check_consent
+      - generate_offer
+    expectedOutcome: "The agent first verifies the customer has email consent, then generates a personalized discount coupon and buy-again offer."
+  - utterance: "Create a buy-again offer for order 801fj00001HIhM9AAL."
+    expectedTopic: post_purchase_offer
+    expectedActions:
+      - check_consent
+    expectedOutcome: "The agent checks consent first, finds the customer has NOT granted email consent, and stops without generating any offer."

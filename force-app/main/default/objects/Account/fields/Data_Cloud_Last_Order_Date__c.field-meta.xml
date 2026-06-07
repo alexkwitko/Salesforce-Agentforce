@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Data_Cloud_Last_Order_Date__c</fullName>
+    <label>Data Cloud Last Order Date</label>
+    <description>Most recent order date from Data Cloud calculated insight or CRM fallback.</description>
+    <type>Date</type>
+</CustomField>

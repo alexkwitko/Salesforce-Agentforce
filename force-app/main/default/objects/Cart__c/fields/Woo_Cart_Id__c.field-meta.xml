@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Woo_Cart_Id__c</fullName>
+    <label>Woo Cart Id</label>
+    <type>Text</type>
+    <length>80</length>
+    <externalId>true</externalId>
+    <unique>false</unique>
+    <description>WooCommerce cart/session identifier.</description>
+</CustomField>

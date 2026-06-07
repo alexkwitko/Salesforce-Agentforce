@@ -1,0 +1,70 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "buyerType" : {
+      "title" : "Buyer Type",
+      "description" : "New, Recurrent, or VIP.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "complementaryProductId" : {
+      "title" : "Complementary Product Id",
+      "description" : "Id of the complementary item. Pass with the primary id to add_to_cart.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "complementaryProductName" : {
+      "title" : "Complementary Product",
+      "description" : "The complementary item.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "discountPercent" : {
+      "title" : "Discount Percent",
+      "description" : "The discount percent from the matrix.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "primaryProductId" : {
+      "title" : "Primary Product Id",
+      "description" : "Id of the recommended coffee. Remember this; if the shopper rejects it, pass it back in excludeProductIdsCsv on the next call.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "primaryProductName" : {
+      "title" : "Primary Product",
+      "description" : "The recommended coffee.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "relaxedAxesCsv" : {
+      "title" : "Relaxed Axes",
+      "description" : "Preference axes the engine had to relax to find a match (e.g. 'brew style'). If non-empty, tell the shopper what couldn't be matched.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "summary" : {
+      "title" : "Summary",
+      "description" : "Friendly summary of the recommendation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

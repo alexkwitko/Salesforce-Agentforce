@@ -1,0 +1,14 @@
+{
+  "required" : [ "orderId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "orderId" : {
+      "title" : "Order ID",
+      "description" : "The Salesforce Order record ID to analyze for the post-purchase offer.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

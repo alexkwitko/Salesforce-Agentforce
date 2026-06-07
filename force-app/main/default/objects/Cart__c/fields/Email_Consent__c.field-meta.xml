@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Email_Consent__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Whether the shopper opted in to marketing email earlier in the funnel (account signup / cart opt-in). Carried onto the recovery Lead so Agent 1 only emails consenting shoppers.</description>
+    <externalId>false</externalId>
+    <label>Email Consent</label>
+    <type>Checkbox</type>
+</CustomField>

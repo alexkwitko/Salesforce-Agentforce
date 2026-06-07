@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product_Ids__c</fullName>
+    <label>Product Ids</label>
+    <type>LongTextArea</type>
+    <length>32768</length>
+    <visibleLines>2</visibleLines>
+    <description>Comma-separated Product2 ids involved in this interaction.</description>
+</CustomField>
