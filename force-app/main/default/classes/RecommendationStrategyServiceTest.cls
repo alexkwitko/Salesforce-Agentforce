@@ -168,4 +168,55 @@ private class RecommendationStrategyServiceTest {
         System.assertEquals(0, r.discountPercent, 'blocked strategy must not return a usable discount');
         System.assert(r.discountRationale.contains('Service recovery guardrail'), r.discountRationale);
     }
+
+    @isTest
+    static void testBrowsedProductBeatsGenericAffinity() {
+        // the shopper dwelled on Bean B (not bought, in stock) — the engine must offer exactly that
+        Account a1 = [SELECT Id FROM Account WHERE PersonEmail = 'reco@example.com' LIMIT 1];
+        Product2 beanB = [SELECT Id, Woo_Product_Id__c FROM Product2 WHERE Name = 'Bean B Single' LIMIT 1];
+        insert new List<Web_Event__c>{
+            new Web_Event__c(Account__c = a1.Id, Device_Id__c = 'RT', Event_Type__c = 'catalog',
+                Product_Id__c = beanB.Woo_Product_Id__c, Product_Name__c = 'Bean B Single',
+                Occurred_At__c = System.now().addDays(-1)),
+            new Web_Event__c(Account__c = a1.Id, Device_Id__c = 'RT', Event_Type__c = 'pageEngagement',
+                Product_Id__c = beanB.Woo_Product_Id__c, Product_Name__c = 'Bean B Single',
+                Time_On_Page__c = 95, Occurred_At__c = System.now().addDays(-1))
+        };
+
+        RecommendationStrategyService.Request req = new RecommendationStrategyService.Request();
+        req.email = 'reco@example.com';
+        req.channel = 'chat';
+
+        Test.startTest();
+        RecommendationStrategyService.Result r =
+            RecommendationStrategyService.buildStrategy(new List<RecommendationStrategyService.Request>{ req })[0];
+        Test.stopTest();
+
+        System.assertEquals(true, r.success, r.summary);
+        System.assertEquals(beanB.Id, r.primaryProductId, 'dwelled-on product wins the primary slot');
+        System.assert(String.isNotBlank(r.webSignal), 'web signal surfaced for the agent');
+        System.assert(r.webSignal.contains('Bean B Single'), r.webSignal);
+    }
+
+    @isTest
+    static void testBrowsedButPurchasedProductIsNotReoffered() {
+        // browsing your OWN past purchase must not bring it back — exclusion still wins
+        Account a1 = [SELECT Id FROM Account WHERE PersonEmail = 'reco@example.com' LIMIT 1];
+        Product2 beanA = [SELECT Id, Woo_Product_Id__c FROM Product2 WHERE Name = 'Bean A Single' LIMIT 1];
+        insert new Web_Event__c(Account__c = a1.Id, Device_Id__c = 'RT', Event_Type__c = 'pageEngagement',
+            Product_Id__c = beanA.Woo_Product_Id__c, Product_Name__c = 'Bean A Single',
+            Time_On_Page__c = 120, Occurred_At__c = System.now());
+
+        RecommendationStrategyService.Request req = new RecommendationStrategyService.Request();
+        req.email = 'reco@example.com';
+        req.channel = 'chat';
+
+        Test.startTest();
+        RecommendationStrategyService.Result r =
+            RecommendationStrategyService.buildStrategy(new List<RecommendationStrategyService.Request>{ req })[0];
+        Test.stopTest();
+
+        System.assertEquals(true, r.success, r.summary);
+        System.assertNotEquals(beanA.Id, r.primaryProductId, 'already-purchased product stays excluded even if browsed');
+    }
 }

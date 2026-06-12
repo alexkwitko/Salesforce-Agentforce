@@ -1,12 +1,16 @@
 /**
- * ChurnScoreService — heuristic predictive scoring stand-in for an Einstein Studio
- * (Data Cloud Model Builder) churn/LTV model. Scores Person Accounts from Order
- * history into Churn_Score__c (0-1), Predicted_LTV__c, and a value-at-risk Tier,
- * then adjusts churn with live website engagement (Web_Event__c): a customer who
- * is overdue to buy but actively browsing is far from lost — the engagement damper
+ * ChurnScoreService — daily operational churn/LTV scorer (rule-based features) that
+ * COMPLEMENTS the trained Einstein Studio model "Predicted Churned" (Data Cloud Model
+ * Builder, binary classification, ACTIVE; trained on Churn_Training__c point-in-time
+ * snapshots — see tools/generate_churn_training.apex). This class writes the live
+ * Churn_Score__c (0-1), Predicted_LTV__c, and value-at-risk Tier every night and
+ * adjusts churn with live website engagement (Web_Event__c): a customer who is
+ * overdue to buy but actively browsing is far from lost — the engagement damper
  * keeps them out of the "gone" bucket and the Web_* fields make them segmentable.
- * Swappable later: replace scoreAll() math with a Data Cloud prediction job that
- * writes the same fields. Runs as a batch/scheduled job; bulk-safe.
+ * The Einstein model's batch predictions land in Data_Cloud_Churn_Risk__c via the
+ * Data Cloud prediction job; when both exist, the model score is the strategic
+ * truth and this score is the always-fresh operational signal.
+ * Runs as a scheduled job ("Kwitko Churn Scoring Daily"); bulk-safe.
  */
 public with sharing class ChurnScoreService {
 

@@ -62,6 +62,7 @@ public without sharing class RecommendationStrategyService {
         @InvocableVariable public String discountRationale;
         @InvocableVariable public String excludedIdsCsv;
         @InvocableVariable public String relaxedAxesCsv;   // axes that had to be relaxed to find a match (transparency)
+        @InvocableVariable public String webSignal;        // live browsing signal behind the pick (lets the agent say "you were looking at...")
         @InvocableVariable public String dataCloudSegment;
         @InvocableVariable public String dataCloudChurnRisk;
         @InvocableVariable public String dataCloudNextBestAction;
@@ -141,6 +142,30 @@ public without sharing class RecommendationStrategyService {
             }
         }
 
+        // --- live web engagement (stitched Web_Event__c): what they actually browsed, dwell-weighted ---
+        Map<String, Decimal> webScoreByWooId = new Map<String, Decimal>();
+        if (accountId != null) {
+            Datetime newestAt = null; String newestName = null; Decimal newestDwell = 0;
+            for (Web_Event__c we : [SELECT Event_Type__c, Product_Id__c, Product_Name__c,
+                                           Time_On_Page__c, Occurred_At__c
+                                    FROM Web_Event__c
+                                    WHERE Account__c = :accountId AND Occurred_At__c = LAST_N_DAYS:30
+                                    ORDER BY Occurred_At__c DESC LIMIT 200]) {
+                if (String.isBlank(we.Product_Id__c)) continue;
+                Decimal w = 10 + (we.Time_On_Page__c == null ? 0 : we.Time_On_Page__c); // a view + every dwell second
+                Decimal prev = webScoreByWooId.get(we.Product_Id__c);
+                webScoreByWooId.put(we.Product_Id__c, (prev == null ? 0 : prev) + w);
+                if (newestName == null && String.isNotBlank(we.Product_Name__c)) {
+                    newestAt = we.Occurred_At__c; newestName = we.Product_Name__c;
+                    newestDwell = we.Time_On_Page__c == null ? 0 : we.Time_On_Page__c;
+                }
+            }
+            if (newestName != null) {
+                res.webSignal = 'Browsed "' + newestName + '" on ' + newestAt.date().format()
+                    + (newestDwell >= 30 ? ' (' + newestDwell.intValue() + 's on the page)' : '');
+            }
+        }
+
         // buyer type — recurrence from TRAILING-12-MONTH purchases + lifetime value (not all-time count)
         String buyerType = classifyBuyer(orderCount, ltv, orders12mo);
         res.buyerType = buyerType;
@@ -185,6 +210,31 @@ public without sharing class RecommendationStrategyService {
 
         Set<Id> anchor = (channel == 'abandoned_cart' && !cartIds.isEmpty()) ? cartIds : purchased;
 
+        // resolve browsed Woo product ids -> Product2, best-scored first; browsed products also
+        // strengthen the co-purchase affinity anchors (except abandoned_cart, which stays cart-pure)
+        List<Product2> webBrowsed = new List<Product2>();
+        if (!webScoreByWooId.isEmpty()) {
+            Set<String> wooIds = webScoreByWooId.keySet();
+            Map<Id, Product2> byId = new Map<Id, Product2>();
+            Map<Id, Decimal> score = new Map<Id, Decimal>();
+            for (Product2 p : [SELECT Id, Name, Family, Woo_Product_Id__c, Image_URL__c, Description, Stock_On_Hand__c
+                               FROM Product2
+                               WHERE Woo_Product_Id__c IN :wooIds AND IsActive = true AND Stock_On_Hand__c > 0]) {
+                byId.put(p.Id, p);
+                score.put(p.Id, webScoreByWooId.get(p.Woo_Product_Id__c));
+                if (channel != 'abandoned_cart') anchor.add(p.Id);
+            }
+            List<Id> ordered = new List<Id>(byId.keySet());
+            for (Integer i = 0; i < ordered.size(); i++) {       // tiny set: simple selection sort
+                for (Integer j = i + 1; j < ordered.size(); j++) {
+                    if (score.get(ordered[j]) > score.get(ordered[i])) {
+                        Id tmp = ordered[i]; ordered[i] = ordered[j]; ordered[j] = tmp;
+                    }
+                }
+            }
+            for (Id pid : ordered) webBrowsed.add(byId.get(pid));
+        }
+
         // normalize the independent preference axes (null = no preference on that axis)
         String prefBean  = normBean(r.preferredBeanType);
         String prefBrew  = normBrew(r.preferredBrewStyle);
@@ -208,7 +258,16 @@ public without sharing class RecommendationStrategyService {
                                            wantsDecaf, avoidFlavored, relaxed);
             } catch (Exception e) { axisError = true; }
         }
-        if (!hasAxisPrefs || (primary == null && axisError)) {
+        if (!hasAxisPrefs && primary == null) {
+            // browsed-but-not-bought beats generic affinity: they already showed us what they want
+            for (Product2 cand : webBrowsed) {
+                if (exclude.contains(cand.Id)) continue;
+                if (nameHasDislike(cand.Name, dislikeKw)) continue;
+                primary = cand;
+                break;
+            }
+        }
+        if (!hasAxisPrefs && primary == null || (primary == null && axisError)) {
             // legacy affinity-based picker (no coffee axes, or a safe fallback if axis pick errored)
             Set<Id> exP = new Set<Id>(exclude);
             for (Integer i = 0; i < 12 && primary == null; i++) {
