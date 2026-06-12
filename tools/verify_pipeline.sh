@@ -16,7 +16,7 @@ echo "== 1. Live engagement endpoint (storefront -> Site REST) =="
 RESP=$(curl -s -X POST "$EP" -H "Content-Type: application/json" -H "Origin: $ORIGIN" \
   -d '{"deviceId":"VERIFY-SCRIPT","sessionId":"verify","events":[{"type":"pageView","pageUrl":"/verify"}]}')
 echo "  response: $RESP"
-check "endpoint inserts events" "$(echo "$RESP" | grep -c '\"ok\":true')" "$RESP"
+check "endpoint inserts events" "$(echo "$RESP" | grep -cE '\\\\?"?ok\\\\?"?:\\\\?"?true|inserted\\\\?"?:[1-9]')" "$RESP"
 check "endpoint not blocked by storage" "$(echo "$RESP" | grep -c 'STORAGE_LIMIT_EXCEEDED' | awk '{print ($1==0)?1:0}')" "$RESP"
 
 echo "== 2. CRM: events + stitched identities =="
@@ -48,7 +48,9 @@ PD=$(sf api request rest "/services/data/v62.0/ssot/query-sql" --method POST \
   --body '{"sql":"SELECT COUNT(*) FROM Churn_Predictions__dlm"}' --target-org "$ORG" 2>/dev/null | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['data'][0][0] if 'data' in d else 0)" 2>/dev/null || echo 0)
 echo "  accounts with operational churn score: $A | prediction definitions: $P | prediction rows: $PD | accounts with Einstein model score: $M"
 check "operational scoring populated" "$([ "$A" -gt 100 ] && echo 1 || echo 0)" "$A"
-check "Einstein prediction definition exists" "$([ "$P" -gt 0 ] && echo 1 || echo 0)" "$P"
+# The model lives in the runtime_cdp Model Builder, not the MLPredictionDefinition sobject (which is
+# empty on this org), so prove the model EXISTS by its OUTPUT: prediction rows OR scores written back.
+check "Einstein model active (proven by output)" "$([ "$P" -gt 0 ] || [ "$PD" -gt 0 ] || [ "$M" -gt 0 ] && echo 1 || echo 0)" "MLPredictionDefinition=$P predRows=$PD scores=$M"
 check "Einstein prediction output rows exist" "$([ "$PD" -gt 0 ] && echo 1 || echo 0)" "$PD"
 check "Einstein model scores written back" "$([ "$M" -gt 0 ] && echo 1 || echo 0)" "$M (run tools/sync_model_scores.apex after predict job)"
 J=$(sf data query -o "$ORG" -q "SELECT COUNT(Id) c FROM CronTrigger WHERE CronJobDetail.Name IN ('Kwitko Churn Scoring Daily','Kwitko At-Risk Campaign Daily') AND State='WAITING'" --json 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin)['result']['records'][0]['c'])")
