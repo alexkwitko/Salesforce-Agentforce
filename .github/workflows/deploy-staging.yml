@@ -20,7 +20,6 @@ jobs:
     timeout-minutes: 90
     environment: staging
     env:
-      SF_SOURCE_DIR: force-app
       SFDX_AUTH_URL: ${{ secrets.SALESFORCE_STAGING_SFDX_AUTH_URL }}
       EXPECTED_SALESFORCE_ORG_ID: 00DXX0000000000RED
     steps:
@@ -49,15 +48,7 @@ jobs:
         run: ./scripts/ci/authenticate-salesforce.sh staging
 
       - name: Deploy to staging with local tests
-        run: |
-          sf project deploy start \
-            --source-dir "$SF_SOURCE_DIR" \
-            --target-org staging \
-            --test-level RunLocalTests \
-            --coverage-formatters json-summary \
-            --junit \
-            --results-dir test-results/staging-deploy \
-            --wait 60
+        run: ./scripts/ci/salesforce-deploy-core.sh deploy staging RunLocalTests 60 test-results/staging-deploy
 
       - name: Post-deploy smoke
         run: ./scripts/ci/salesforce-post-deploy-smoke.sh staging

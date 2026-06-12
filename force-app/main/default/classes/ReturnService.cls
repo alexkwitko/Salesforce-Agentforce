@@ -10,6 +10,7 @@ public without sharing class ReturnService {
     public class Request {
         @InvocableVariable(label='Email' required=true) public String email;
         @InvocableVariable(label='Order Identifier (Woo id / order number, optional — defaults to latest)') public String orderIdentifier;
+        @InvocableVariable(label='Items to Return' description='Comma-separated product names (or fragments) the shopper chose to return; leave blank or "all" for the whole order.') public String itemsToReturn;
         @InvocableVariable(label='Return Reason' description='Damaged | Wrong Item | Not As Described | Changed Mind | Quality | Other') public String reason;
         @InvocableVariable(label='Verified Email (pass loggedInEmail — required to process a return)') public String verifiedEmail;
         @InvocableVariable(label='Confirmed by Shopper' description='Must be true only after the shopper explicitly confirms this return/refund.') public Boolean confirmed;
@@ -23,6 +24,7 @@ public without sharing class ReturnService {
         @InvocableVariable public String returnLabelUrl;
         @InvocableVariable public String returnTracking;
         @InvocableVariable public Boolean labelEmailed;
+        @InvocableVariable public String itemsReturned;
         @InvocableVariable public String message;
     }
 
@@ -71,23 +73,39 @@ public without sharing class ReturnService {
         }
 
         String reason = normReason(r.reason);
-        Decimal amount = o.TotalAmount == null ? 0 : o.TotalAmount;
+
+        // --- ITEM SELECTION: return only the item(s) the shopper chose (blank/"all" = whole order) ---
+        List<OrderItem> allItems = [SELECT Product2Id, Product2.Name, Quantity, UnitPrice, TotalPrice FROM OrderItem WHERE OrderId = :o.Id];
+        List<OrderItem> selected = selectItems(allItems, r.itemsToReturn);
+        if (selected.isEmpty()) {
+            res.message = 'I couldn\'t match "' + r.itemsToReturn + '" to an item on order ' + o.OrderNumber
+                + '. This order has: ' + itemList(allItems) + '. Which would you like to return — or say "all"?';
+            return res;
+        }
+        Boolean partial = selected.size() < allItems.size();
+        Decimal amount = 0;
+        for (OrderItem oi : selected) {
+            amount += (oi.TotalPrice != null ? oi.TotalPrice
+                : (oi.UnitPrice == null ? 0 : oi.UnitPrice * (oi.Quantity == null ? 1 : oi.Quantity)));
+        }
+        if (amount == 0 && !partial) amount = (o.TotalAmount == null ? 0 : o.TotalAmount);
         res.refundAmount = amount;
+        res.itemsReturned = itemList(selected);
 
         // ---- CALLOUTS FIRST (no DML before HTTP callouts) ----
-        WooOrderActionService.WooResult wr = WooOrderActionService.refundOrder(o.Woo_Order_Id__c, amount, 'Return: ' + reason);
+        WooOrderActionService.WooResult wr = WooOrderActionService.refundOrder(o.Woo_Order_Id__c, amount, 'Return (' + (partial ? res.itemsReturned : 'all items') + '): ' + reason);
         res.refundIssued = wr.success;
         ShippingService.LabelResult lbl = ShippingService.buildReturnLabel(o.OrderNumber);  // no DML/callout
         res.returnLabelUrl = lbl.labelUrl; res.returnTracking = lbl.trackingNumber;
 
         // ---- DML PHASE ----
-        // 1) ReturnOrder + line items (standard objects)
+        // 1) ReturnOrder + line items (standard objects) — only the selected items
         ReturnOrder ro = new ReturnOrder(AccountId = acc.Id, Order__c = o.Id, Return_Reason__c = reason,
             Return_Label_Url__c = lbl.labelUrl, Return_Tracking__c = lbl.trackingNumber);
         if (wr.success) { ro.Woo_Refund_Id__c = wr.refundId; ro.Refund_Amount__c = amount; }
         insert ro;
         List<ReturnOrderLineItem> lines = new List<ReturnOrderLineItem>();
-        for (OrderItem oi : [SELECT Product2Id, Quantity FROM OrderItem WHERE OrderId = :o.Id]) {
+        for (OrderItem oi : selected) {
             lines.add(new ReturnOrderLineItem(
                 ReturnOrderId = ro.Id, Product2Id = oi.Product2Id,
                 QuantityReturned = (oi.Quantity == null ? 1 : oi.Quantity)));
@@ -139,7 +157,8 @@ public without sharing class ReturnService {
         ro = [SELECT ReturnOrderNumber FROM ReturnOrder WHERE Id = :ro.Id LIMIT 1];
         res.returnOrderNumber = ro.ReturnOrderNumber;
         res.success = true;
-        res.message = 'Return ' + ro.ReturnOrderNumber + ' created for order ' + o.OrderNumber + '. '
+        res.message = 'Return ' + ro.ReturnOrderNumber + ' created for order ' + o.OrderNumber
+            + ' (' + (partial ? 'items: ' + res.itemsReturned : 'all items') + '). '
             + (wr.success ? ('Refund of ' + amount.setScale(2) + ' issued. ') : 'Refund is being processed. ')
             + (res.labelEmailed ? 'A prepaid return label was emailed to you' : 'Return label ready')
             + ' (tracking ' + lbl.trackingNumber + '). Case ' + res.caseNumber + ' is tracking it.';
@@ -171,5 +190,39 @@ public without sharing class ReturnService {
         if (t.contains('mind') || t.contains('changed')) return 'Changed Mind';
         if (t.contains('qualit') || t.contains('taste') || t.contains('stale')) return 'Quality';
         return 'Other';
+    }
+
+    /** Choose which OrderItems to return. Blank / "all" / "everything" / "whole order" → all items.
+     *  Otherwise match each comma-separated fragment against the product name (case-insensitive contains). */
+    private static List<OrderItem> selectItems(List<OrderItem> all, String sel) {
+        String s = (sel == null) ? '' : sel.trim().toLowerCase();
+        if (String.isBlank(s) || s == 'all' || s == 'everything' || s == 'all items' || s.contains('whole order') || s.contains('entire order')) {
+            return all;
+        }
+        List<String> fragments = new List<String>();
+        for (String f : s.split(',')) { if (String.isNotBlank(f)) fragments.add(f.trim()); }
+        List<OrderItem> picked = new List<OrderItem>();
+        Set<Id> seen = new Set<Id>();
+        for (OrderItem oi : all) {
+            String name = (oi.Product2 != null && oi.Product2.Name != null) ? oi.Product2.Name.toLowerCase() : '';
+            for (String frag : fragments) {
+                if (name.contains(frag) || frag.contains(name)) {
+                    if (!seen.contains(oi.Id)) { picked.add(oi); seen.add(oi.Id); }
+                    break;
+                }
+            }
+        }
+        return picked;
+    }
+
+    /** Human-readable "2× Ethiopia Yirgacheffe, 1× House Blend" list. */
+    private static String itemList(List<OrderItem> items) {
+        List<String> parts = new List<String>();
+        for (OrderItem oi : items) {
+            Integer q = (oi.Quantity == null) ? 1 : oi.Quantity.intValue();
+            String nm = (oi.Product2 != null && oi.Product2.Name != null) ? oi.Product2.Name : 'item';
+            parts.add(q + '× ' + nm);
+        }
+        return String.join(parts, ', ');
     }
 }

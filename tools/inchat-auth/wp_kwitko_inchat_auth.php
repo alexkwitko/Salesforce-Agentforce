@@ -146,10 +146,12 @@ add_action('wp_footer', function () {
         cartUrl: '<?php echo esc_url_raw(rest_url('kwitko/v1/cart')); ?>',
         loginUrl:'<?php echo esc_url(home_url('/my-account-2/')); ?>',
         storeApi:'<?php echo esc_url_raw(rest_url('wc/store/v1')); ?>',
+        embeddedConfigUrl:'https://MYDOMAIN.develop.my.salesforce-scrt.com/embeddedservice/v1/embedded-service-config?orgId=00DXX0000000000&esConfigName=Kwitko_Web_Chat&language=en_US',
         nonce:   '<?php echo esc_attr(wp_create_nonce('wp_rest')); ?>',
         loggedIn: <?php echo is_user_logged_in() ? 'true' : 'false'; ?>,
         email:   '<?php echo is_user_logged_in() ? esc_js(wp_get_current_user()->user_email) : ''; ?>',
-        firstName:'<?php echo is_user_logged_in() ? esc_js(wp_get_current_user()->first_name ? wp_get_current_user()->first_name : wp_get_current_user()->display_name) : ''; ?>'
+        firstName:'<?php echo is_user_logged_in() ? esc_js(wp_get_current_user()->first_name ? wp_get_current_user()->first_name : wp_get_current_user()->display_name) : ''; ?>',
+        controllerVersion:'20260607.7'
       };
     </script>
     <script src="<?php echo esc_url(content_url('uploads/kwitko/kwitko_chat_controller.js')); ?>" defer></script>

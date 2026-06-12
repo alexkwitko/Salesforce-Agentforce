@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Last_Scored__c</fullName>
+    <label>Last Scored</label>
+    <type>DateTime</type>
+    <description>When the predictive scoring last ran for this customer.</description>
+    <required>false</required>
+</CustomField>

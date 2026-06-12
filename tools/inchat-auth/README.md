@@ -28,7 +28,7 @@ This adds two things to the storefront chat:
    define('KWITKO_JWT_PRIVATE_KEY', "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n");
    define('KWITKO_JWT_ISS', 'kwitko-coffee-store');
    define('KWITKO_JWT_KID', 'kwitko-key-1');
-   define('KWITKO_WHK_SECRET', 'kwitko_whk_191b7c0315601372f98523adb3471095a8f1b05bf2bf8936'); // for cart queue HMAC
+   define('KWITKO_WHK_SECRET', 'paste-a-random-webhook-secret-from-your-secret-manager'); // for cart queue HMAC
    ```
 2. Upload `kwitko_chat_controller.js` and `kwitko_chat_controller.css` to `wp-content/uploads/kwitko/`.
 3. Paste `wp_kwitko_inchat_auth.php` as a **PHP** snippet in WPCode → Run Everywhere → Activate.

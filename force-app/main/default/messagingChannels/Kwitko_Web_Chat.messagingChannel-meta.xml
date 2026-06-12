@@ -26,7 +26,7 @@
         <actionParameterMappings>
             <actionParameterName>loggedInEmail</actionParameterName>
         </actionParameterMappings>
-        <externalParameterName>loggedInEmail</externalParameterName>
+        <externalParameterName>Kwitko_Logged_In_Email__c</externalParameterName>
         <masterLabel>Logged In Email</masterLabel>
         <maxLength>255</maxLength>
         <name>Logged_In_Email</name>
@@ -36,7 +36,7 @@
         <actionParameterMappings>
             <actionParameterName>loggedInFirstName</actionParameterName>
         </actionParameterMappings>
-        <externalParameterName>loggedInFirstName</externalParameterName>
+        <externalParameterName>Kwitko_Logged_In_First_Name__c</externalParameterName>
         <masterLabel>Logged In First Name</masterLabel>
         <maxLength>80</maxLength>
         <name>Logged_In_First_Name</name>

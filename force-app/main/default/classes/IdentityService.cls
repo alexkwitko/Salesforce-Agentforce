@@ -10,15 +10,27 @@ public without sharing class IdentityService {
 
     public static final String LOGIN_URL = 'https://deepskyblue-deer-920559.hostingersite.com/?kwitko_login=1';
 
-    /** Verified iff a non-blank verifiedEmail matches the requested email (case-insensitive). */
+    /**
+     * Verified iff EITHER:
+     *  - Tier-1: a non-blank verifiedEmail (the signed-in loggedInEmail) matches the requested email, OR
+     *  - Tier-2: the requested email is session-verified by a recent email OTP (VerificationService).
+     * Tier-2 is what lets a shopper who CANNOT log in (password/login issues) still prove identity.
+     */
     public static Boolean isVerified(String requestedEmail, String verifiedEmail) {
-        if (String.isBlank(requestedEmail) || String.isBlank(verifiedEmail)) return false;
-        return requestedEmail.trim().equalsIgnoreCase(verifiedEmail.trim());
+        if (String.isBlank(requestedEmail)) return false;
+        String req = requestedEmail.trim();
+        if (String.isNotBlank(verifiedEmail) && req.equalsIgnoreCase(verifiedEmail.trim())) return true; // Tier-1
+        return VerificationService.isSessionVerified(req); // Tier-2 email OTP
     }
 
-    /** Friendly "please sign in" message with the secure account link — returned instead of any PII. */
+    /**
+     * Returned by gated actions when the shopper is not yet verified. Leads with the EMAIL OTP path
+     * (works even if they can't log in) so the agent verifies by code first; sign-in link is the
+     * secondary option. The agent should call request_verification_code → verify_code, not just paste a link.
+     */
     public static String signInMessage() {
-        return 'For your security I can only share order, account, or coupon details once you\'re signed in. '
-            + 'Use the Sign in to your account button in this chat and I\'ll have everything ready: ' + LOGIN_URL;
+        return 'To protect your account I need to verify it\'s you first. The quickest way: I\'ll email a 6-digit '
+            + 'verification code to your account email and you read it back to me — this works even if you can\'t log in. '
+            + 'Want me to send the code? (If you\'d rather sign in instead, you can: ' + LOGIN_URL + ')';
     }
 }

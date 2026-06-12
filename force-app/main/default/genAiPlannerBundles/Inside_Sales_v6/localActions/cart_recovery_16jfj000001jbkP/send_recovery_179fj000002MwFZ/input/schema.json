@@ -1,0 +1,14 @@
+{
+  "required" : [ "leadId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "leadId" : {
+      "title" : "Lead ID",
+      "description" : "The Salesforce Lead record ID to re-engage with a recovery offer.",
+      "lightning:type" : "lightning__recordIdType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

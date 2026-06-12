@@ -5,10 +5,12 @@ ORG_ALIAS="${1:-ci}"
 
 echo "Checking web messaging channel and deployment config..."
 sf data query --target-org "$ORG_ALIAS" --query "
-  SELECT Id, DeveloperName, IsActive, PlatformType, SessionHandlerId, FallbackQueueId
+  SELECT Id, DeveloperName, IsActive, MessageType, SessionHandlerId, FallbackQueueId
   FROM MessagingChannel
-  WHERE DeveloperName = 'Kwitko_Web_Chat'
+  WHERE DeveloperName = 'Kwitko_Web_Chat_V2'
 " --result-format human
+
+"$(dirname "$0")/web-chat-conversation-smoke.sh"
 
 echo "Checking stuck open messaging sessions..."
 OPEN_SESSIONS_JSON="$(sf data query --target-org "$ORG_ALIAS" --query "
@@ -26,15 +28,17 @@ fi
 
 echo "Checking Agentforce runtime users..."
 BOTS_JSON="$(sf data query --target-org "$ORG_ALIAS" --query "
-  SELECT Id, DeveloperName, MasterLabel, Type, BotUserId
+  SELECT Id, DeveloperName, MasterLabel, BotSource, BotUserId
   FROM BotDefinition
   WHERE DeveloperName IN ('Kwitko_Concierge_Web','Kwitko_Concierge','Product_Advisor','Inside_Sales','Post_Purchase_Growth')
   ORDER BY DeveloperName
 " --json)"
-printf '%s\n' "$BOTS_JSON" | jq '.result.records[] | {DeveloperName, Type, BotUserIdPresent: (.BotUserId != null)}'
-MISSING_BOT_USERS="$(printf '%s' "$BOTS_JSON" | jq '[.result.records[] | select(.BotUserId == null)] | length')"
+printf '%s\n' "$BOTS_JSON" | jq '.result.records[] | {DeveloperName, BotSource, BotUserIdPresent: (.BotUserId != null)}'
+# Only the Service Agent requires a BotUserId. Agent-Script employee agents run via their
+# default_agent_user and legitimately report a null BotDefinition.BotUserId (verified live via AgentInvoker).
+MISSING_BOT_USERS="$(printf '%s' "$BOTS_JSON" | jq '[.result.records[] | select(.DeveloperName=="Kwitko_Concierge_Web" and .BotUserId == null)] | length')"
 if [[ "$MISSING_BOT_USERS" -gt 0 ]]; then
-  echo "One or more Agentforce bots have no runtime BotUserId." >&2
+  echo "The web Service Agent (Kwitko_Concierge_Web) has no runtime BotUserId." >&2
   exit 1
 fi
 
@@ -57,4 +61,3 @@ sf data query --target-org "$ORG_ALIAS" --query "
 " --result-format human
 
 echo "Salesforce smoke checks passed."
-

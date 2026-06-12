@@ -48,7 +48,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     env:
-      SF_SOURCE_DIR: force-app
       SFDX_AUTH_URL: ${{ secrets.SALESFORCE_VALIDATION_SFDX_AUTH_URL }}
       EXPECTED_SALESFORCE_ORG_ID: 00DXX0000000000RED
     steps:
@@ -71,15 +70,7 @@ jobs:
         run: ./scripts/ci/authenticate-salesforce.sh validation
 
       - name: Validate Salesforce deployment
-        run: |
-          sf project deploy validate \
-            --source-dir "$SF_SOURCE_DIR" \
-            --target-org validation \
-            --test-level RunLocalTests \
-            --coverage-formatters json-summary \
-            --junit \
-            --results-dir test-results/pr-validation \
-            --wait 60
+        run: ./scripts/ci/salesforce-deploy-core.sh dry-run validation RunLocalTests 60 test-results/pr-validation
 
       - name: Agentforce and Data Cloud smoke
         run: ./scripts/ci/salesforce-post-deploy-smoke.sh validation

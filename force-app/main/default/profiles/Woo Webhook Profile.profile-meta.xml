@@ -10,4 +10,8 @@
         <apexClass>WooCustomerResource</apexClass>
         <enabled>true</enabled>
     </classAccesses>
+    <classAccesses>
+        <apexClass>EngagementRest</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
 </Profile>

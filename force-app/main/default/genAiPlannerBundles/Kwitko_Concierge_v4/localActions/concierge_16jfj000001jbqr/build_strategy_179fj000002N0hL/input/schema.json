@@ -1,0 +1,21 @@
+{
+  "required" : [ "email", "channel" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "channel" : {
+      "title" : "Channel",
+      "description" : "Use chat for the website concierge.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "The shopper's email.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

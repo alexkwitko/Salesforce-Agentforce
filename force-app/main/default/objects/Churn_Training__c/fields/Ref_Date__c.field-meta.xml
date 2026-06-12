@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Ref_Date__c</fullName>
+    <label>Ref Date</label>
+    <type>Date</type>
+    <description>Snapshot reference date; features use only orders before this date</description>
+    <required>false</required>
+</CustomField>

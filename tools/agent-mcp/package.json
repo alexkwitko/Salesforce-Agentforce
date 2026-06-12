@@ -1,0 +1,19 @@
+{
+  "name": "kwitko-agent-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server exposing Kwitko Agentforce agents via ask_kwitko_agent (calls AgentInvoker through Apex REST).",
+  "bin": {
+    "kwitko-agent-mcp": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Orders_Last_30d__c</fullName>
+    <label>Orders Last 30d</label>
+    <type>Number</type>
+    <precision>9</precision>
+    <scale>0</scale>
+    <description>Momentum: orders in the 30 days before ref date</description>
+    <required>false</required>
+</CustomField>

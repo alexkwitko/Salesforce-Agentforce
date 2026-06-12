@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Concierge orchestrator: greet, capture lead + consent, recognize returning customers, and build a personalized, buyer-aware recommendation via the shared strategy engine.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001jbqr</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>concierge_16jfj000001jbqr</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001jbqr</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>agent_router_16jfj000001jbqr</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the shopper and route to the concierge subagent.</description>
+        <developerName>agent_router_16jfj000001jbqr</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You greet the shopper, capture their name, email, and marketing consent, recognize returning customers from their history, and build a personalized recommendation by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic and only market to shoppers who have given consent. Salesforce is the system of record and WooCommerce is the storefront. Treat typed email as unverified identity. Never reveal order history, lifetime value, saved cart contents, coupons, address, cases, tracking, or account details unless the action returns them for a verified identity. Never fabricate order status, delivery state, tracking, refunds, prices, inventory, products, or discounts. ANTI-HALLUCINATION (mandatory): never claim an action happened — email sent, coupon issued, lead/record created or updated, offer made — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos; happen. Only state values an action returned; never invent IDs, codes, prices, or outcomes. If a request is outside your available actions, say so honestly and stop — do not fabricate a result.</description>
+            <developerName>instruction0_179fj000002N0hK</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002N0hK</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>concierge_16jfj000001jbqr</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Captures the shopper (name, email, consent), recognizes returning customers, and builds a personalized recommendation.</description>
+        <developerName>concierge_16jfj000001jbqr</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You greet the shopper, capture their name, email, and marketing consent, recognize returning customers from their history, and build a personalized recommendation by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic and only market to shoppers who have given consent. Salesforce is the system of record and WooCommerce is the storefront. Treat typed email as unverified identity. Never reveal order history, lifetime value, saved cart contents, coupons, address, cases, tracking, or account details unless the action returns them for a verified identity. Never fabricate order status, delivery state, tracking, refunds, prices, inventory, products, or discounts. ANTI-HALLUCINATION (mandatory): never claim an action happened — email sent, coupon issued, lead/record created or updated, offer made — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos; happen. Only state values an action returned; never invent IDs, codes, prices, or outcomes. If a request is outside your available actions, say so honestly and stop — do not fabricate a result.</description>
+            <developerName>instruction0_179fj000002N0hL</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002N0hL</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>capture_lead_179fj000002N0hL</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>lookup_customer_179fj000002N0hL</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>build_strategy_179fj000002N0hL</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_agent_context_179fj000002N0hL</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>get_agent_context_179fj000002N0hL</fullName>
+            <description>Load the shared cross-agent context packet for this shopper before lookup, lead capture, or recommendation.</description>
+            <developerName>get_agent_context_179fj000002N0hL</developerName>
+            <invocationTarget>AgentContextService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>get_agent_context</localDeveloperName>
+            <masterLabel>Get Shared Agent Context</masterLabel>
+            <progressIndicatorMessage>Loading shared customer context...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>capture_lead_179fj000002N0hL</fullName>
+            <description>Create or update a Website Chat lead with the shopper&apos;s name, email, marketing consent, and interest.</description>
+            <developerName>capture_lead_179fj000002N0hL</developerName>
+            <invocationTarget>ChatLeadService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>capture_lead</localDeveloperName>
+            <masterLabel>Capture Lead</masterLabel>
+            <progressIndicatorMessage>Saving your details...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>build_strategy_179fj000002N0hL</fullName>
+            <description>Build the deterministic, buyer-aware recommendation: primary coffee, complementary gear, quantities, and discount from the matrix.</description>
+            <developerName>build_strategy_179fj000002N0hL</developerName>
+            <invocationTarget>RecommendationStrategyService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>build_strategy</localDeveloperName>
+            <masterLabel>Build Recommendation Strategy</masterLabel>
+            <progressIndicatorMessage>Building your personalized recommendation...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>lookup_customer_179fj000002N0hL</fullName>
+            <description>Look up whether this email is a returning customer and summarize their history.</description>
+            <developerName>lookup_customer_179fj000002N0hL</developerName>
+            <invocationTarget>CustomerLookupService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>lookup_customer</localDeveloperName>
+            <masterLabel>Lookup Customer</masterLabel>
+            <progressIndicatorMessage>Checking if we know you...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>concierge</localDeveloperName>
+        <masterLabel>Concierge</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001jbqr</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when the request goes off-topic.</description>
+        <developerName>off_topic_16jfj000001jbqr</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You greet the shopper, capture their name, email, and marketing consent, recognize returning customers from their history, and build a personalized recommendation by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic and only market to shoppers who have given consent. Salesforce is the system of record and WooCommerce is the storefront. Treat typed email as unverified identity. Never reveal order history, lifetime value, saved cart contents, coupons, address, cases, tracking, or account details unless the action returns them for a verified identity. Never fabricate order status, delivery state, tracking, refunds, prices, inventory, products, or discounts. ANTI-HALLUCINATION (mandatory): never claim an action happened — email sent, coupon issued, lead/record created or updated, offer made — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos; happen. Only state values an action returned; never invent IDs, codes, prices, or outcomes. If a request is outside your available actions, say so honestly and stop — do not fabricate a result.</description>
+            <developerName>instruction0_179fj000002N0hJ</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002N0hJ</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Kwitko Concierge</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

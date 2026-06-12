@@ -13,7 +13,7 @@
     "ci:static": "npm run prettier:verify && npm run lint",
     "ci:secret-scan": "bash scripts/ci/secret-scan.sh",
     "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
-    "prettier:verify": "prettier --check \".github/**/*.{md,yaml,yml}\" \"docs/CI_CD_RUNBOOK.md\" \"tools/inchat-auth/*.{css,js,md}\" \"package.json\" \"sfdx-project.json\" \"jest.config.js\"",
+    "prettier:verify": "prettier --check \".github/**/*.{md,yaml,yml}\" \"docs/CI_CD_RUNBOOK.md\" \"tools/inchat-auth/**/*.{css,js,md}\" \"package.json\" \"sfdx-project.json\" \"jest.config.js\"",
     "postinstall": "husky install",
     "precommit": "lint-staged"
   },

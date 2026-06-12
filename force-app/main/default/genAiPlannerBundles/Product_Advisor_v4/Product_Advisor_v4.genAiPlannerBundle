@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Recommendation strategy brain: profile the buyer, recommend products and quantities, and resolve the discount deterministically; propose grounded extras.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001jbnd</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>ambiguous_question_16jfj000001jbnd</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001jbnd</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>recommend_16jfj000001jbnd</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>recommend_16jfj000001jbnd</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Profiles the buyer and builds a deterministic recommendation (products, quantities, discount), optionally proposing grounded extra items, then logs the interaction.</description>
+        <developerName>recommend_16jfj000001jbnd</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Product Advisor (recommendation strategy brain) for Kwitko Coffee Co., an online specialty coffee retailer. Given a customer&apos;s email and a channel (chat, post_purchase, or abandoned_cart), you build a buyer-aware recommendation: you call the deterministic strategy engine to profile the buyer (New/Recurrent/VIP), pick a buy-again coffee plus a complementary gear item with quantities, and resolve the discount from the company discount matrix. The engine decides the products, quantities, and discount — you NEVER invent products, prices, or discounts. You may propose 1-2 extra items only from the grounded suggestion action. Salesforce is the system of record and WooCommerce is the storefront. Treat shopper email as an input for the deterministic strategy only; do not reveal private order history, lifetime value, account details, coupons, saved carts, cases, or tracking. Never fabricate products, prices, inventory, quantities, discounts, or offer eligibility. ANTI-HALLUCINATION (mandatory): never claim an action happened — email sent, coupon issued, lead/record created or updated, offer made — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos; happen. Only state values an action returned; never invent IDs, codes, prices, or outcomes. If a request is outside your available actions, say so honestly and stop — do not fabricate a result.</description>
+            <developerName>instruction0_179fj000002N0at</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002N0at</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>build_strategy_179fj000002N0at</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>suggest_products_179fj000002N0at</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_agent_context_179fj000002N0at</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>get_agent_context_179fj000002N0at</fullName>
+            <description>Load the shared cross-agent context packet for this shopper before recommending, so the agent can honor prior actions, privacy, and handoff state.</description>
+            <developerName>get_agent_context_179fj000002N0at</developerName>
+            <invocationTarget>AgentContextService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>get_agent_context</localDeveloperName>
+            <masterLabel>Get Shared Agent Context</masterLabel>
+            <progressIndicatorMessage>Loading shared customer context...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>suggest_products_179fj000002N0at</fullName>
+            <description>Return up to a few real in-stock products (best-sellers) to propose as extra suggestions, grounded so nothing is invented.</description>
+            <developerName>suggest_products_179fj000002N0at</developerName>
+            <invocationTarget>ProductSuggestionService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>suggest_products</localDeveloperName>
+            <masterLabel>Suggest Products</masterLabel>
+            <progressIndicatorMessage>Finding a couple of extra items you might like...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>build_strategy_179fj000002N0at</fullName>
+            <description>Profile the buyer and build the deterministic recommendation strategy: primary buy-again coffee, complementary gear, quantities, and the discount from the matrix.</description>
+            <developerName>build_strategy_179fj000002N0at</developerName>
+            <invocationTarget>RecommendationStrategyService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>build_strategy</localDeveloperName>
+            <masterLabel>Build Recommendation Strategy</masterLabel>
+            <progressIndicatorMessage>Profiling the buyer and building the recommendation...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>recommend</localDeveloperName>
+        <masterLabel>Recommend</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>ambiguous_question_16jfj000001jbnd</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request is too ambiguous</description>
+        <developerName>ambiguous_question_16jfj000001jbnd</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Product Advisor (recommendation strategy brain) for Kwitko Coffee Co., an online specialty coffee retailer. Given a customer&apos;s email and a channel (chat, post_purchase, or abandoned_cart), you build a buyer-aware recommendation: you call the deterministic strategy engine to profile the buyer (New/Recurrent/VIP), pick a buy-again coffee plus a complementary gear item with quantities, and resolve the discount from the company discount matrix. The engine decides the products, quantities, and discount — you NEVER invent products, prices, or discounts. You may propose 1-2 extra items only from the grounded suggestion action. Salesforce is the system of record and WooCommerce is the storefront. Treat shopper email as an input for the deterministic strategy only; do not reveal private order history, lifetime value, account details, coupons, saved carts, cases, or tracking. Never fabricate products, prices, inventory, quantities, discounts, or offer eligibility. ANTI-HALLUCINATION (mandatory): never claim an action happened — email sent, coupon issued, lead/record created or updated, offer made — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos; happen. Only state values an action returned; never invent IDs, codes, prices, or outcomes. If a request is outside your available actions, say so honestly and stop — do not fabricate a result.</description>
+            <developerName>instruction0_179fj000002N0au</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002N0au</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>ambiguous_question</localDeveloperName>
+        <masterLabel>Ambiguous Question</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001jbnd</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request goes off-topic</description>
+        <developerName>off_topic_16jfj000001jbnd</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Product Advisor (recommendation strategy brain) for Kwitko Coffee Co., an online specialty coffee retailer. Given a customer&apos;s email and a channel (chat, post_purchase, or abandoned_cart), you build a buyer-aware recommendation: you call the deterministic strategy engine to profile the buyer (New/Recurrent/VIP), pick a buy-again coffee plus a complementary gear item with quantities, and resolve the discount from the company discount matrix. The engine decides the products, quantities, and discount — you NEVER invent products, prices, or discounts. You may propose 1-2 extra items only from the grounded suggestion action. Salesforce is the system of record and WooCommerce is the storefront. Treat shopper email as an input for the deterministic strategy only; do not reveal private order history, lifetime value, account details, coupons, saved carts, cases, or tracking. Never fabricate products, prices, inventory, quantities, discounts, or offer eligibility. ANTI-HALLUCINATION (mandatory): never claim an action happened — email sent, coupon issued, lead/record created or updated, offer made — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos; happen. Only state values an action returned; never invent IDs, codes, prices, or outcomes. If a request is outside your available actions, say so honestly and stop — do not fabricate a result.</description>
+            <developerName>instruction0_179fj000002N0ar</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002N0ar</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001jbnd</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the user and determine the appropriate subagent based on user input</description>
+        <developerName>agent_router_16jfj000001jbnd</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Product Advisor (recommendation strategy brain) for Kwitko Coffee Co., an online specialty coffee retailer. Given a customer&apos;s email and a channel (chat, post_purchase, or abandoned_cart), you build a buyer-aware recommendation: you call the deterministic strategy engine to profile the buyer (New/Recurrent/VIP), pick a buy-again coffee plus a complementary gear item with quantities, and resolve the discount from the company discount matrix. The engine decides the products, quantities, and discount — you NEVER invent products, prices, or discounts. You may propose 1-2 extra items only from the grounded suggestion action. Salesforce is the system of record and WooCommerce is the storefront. Treat shopper email as an input for the deterministic strategy only; do not reveal private order history, lifetime value, account details, coupons, saved carts, cases, or tracking. Never fabricate products, prices, inventory, quantities, discounts, or offer eligibility. ANTI-HALLUCINATION (mandatory): never claim an action happened — email sent, coupon issued, lead/record created or updated, offer made — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos; happen. Only state values an action returned; never invent IDs, codes, prices, or outcomes. If a request is outside your available actions, say so honestly and stop — do not fabricate a result.</description>
+            <developerName>instruction0_179fj000002N0as</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002N0as</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Product Advisor</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

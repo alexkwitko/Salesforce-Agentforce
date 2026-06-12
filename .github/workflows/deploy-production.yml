@@ -20,7 +20,6 @@ jobs:
     timeout-minutes: 120
     environment: production
     env:
-      SF_SOURCE_DIR: force-app
       SFDX_AUTH_URL: ${{ secrets.SALESFORCE_PRODUCTION_SFDX_AUTH_URL }}
       EXPECTED_SALESFORCE_ORG_ID: 00DXX0000000000RED
     steps:
@@ -51,12 +50,7 @@ jobs:
       - name: Validate production deployment
         id: validate
         run: |
-          sf project deploy validate \
-            --source-dir "$SF_SOURCE_DIR" \
-            --target-org production \
-            --test-level RunLocalTests \
-            --json \
-            --wait 90 > deploy-validation.json
+          ./scripts/ci/salesforce-deploy-core.sh validate-json production RunLocalTests 90 test-results/production-validation > deploy-validation.json
           cat deploy-validation.json | jq -r '.result.id' > deploy-job-id.txt
 
       - name: Quick deploy validated package

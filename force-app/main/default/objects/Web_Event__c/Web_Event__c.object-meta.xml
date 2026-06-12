@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Device-keyed web engagement event (anonymous until stitched to an Account by email).</description>
+    <enableActivities>false</enableActivities>
+    <enableReports>true</enableReports>
+    <label>Web Event</label>
+    <pluralLabel>Web Events</pluralLabel>
+    <nameField><label>Web Event #</label><type>AutoNumber</type><displayFormat>WE-{00000000}</displayFormat></nameField>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

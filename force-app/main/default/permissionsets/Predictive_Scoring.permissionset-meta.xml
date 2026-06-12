@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Predictive Scoring</label>
+    <description>Read/edit on predictive churn/LTV fields and the win-back campaign pipeline.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <fieldPermissions><field>Account.Churn_Score__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Account.Predicted_LTV__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Account.Value_At_Risk__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Account.Churn_Risk_Tier__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Account.Last_Scored__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Account.Web_Events_30d__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Account.Web_Last_Seen__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Account__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Ref_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Orders_Count__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Total_Spend__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Avg_Order_Value__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Days_Since_Last_Order__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Tenure_Days__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Cadence_Days__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Orders_Last_30d__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Churned__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Churn_Training__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+</PermissionSet>

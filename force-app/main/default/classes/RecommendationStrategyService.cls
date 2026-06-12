@@ -41,6 +41,8 @@ public without sharing class RecommendationStrategyService {
         @InvocableVariable(label='Wants Decaf (true=only decaf, false=only regular, leave blank=no preference)') public Boolean wantsDecaf;
         @InvocableVariable(label='Avoid Flavored (true=never recommend flavored coffee)') public Boolean avoidFlavored;
         @InvocableVariable(label='Skip Journey Write (true=do NOT log recommended ids — keeps this callout-safe for callers that callout afterward)') public Boolean skipJourneyWrite;
+        @InvocableVariable(label='Active Coupon Code (the shopper\'s existing unredeemed coupon, from the context packet — pass it so we do NOT stack a new discount)') public String activeCouponCode;
+        @InvocableVariable(label='Active Coupon Percent (the percent off of their existing unredeemed coupon)') public Decimal activeCouponPercent;
     }
 
     public class Result {
@@ -267,6 +269,20 @@ public without sharing class RecommendationStrategyService {
             perk = false;
             rationale = 'Service recovery guardrail: ' + res.serviceRecoveryReason;
         }
+        // COUPON-AWARE: never stack on top of an unredeemed coupon the shopper already holds.
+        // Honor the better of the two (their held coupon vs. the engine offer); don't issue a new code.
+        else if (String.isNotBlank(r.activeCouponCode)) {
+            Decimal held = (r.activeCouponPercent == null ? 0 : r.activeCouponPercent);
+            res.couponEligible = false;
+            if (held >= pct) {
+                pct = held;
+                rationale = 'Honoring your existing coupon ' + r.activeCouponCode.trim() + ' (' + held.intValue()
+                    + '% off, unredeemed) — we don\'t stack discounts, so use that one.';
+            } else {
+                rationale = rationale + '. Note: you also hold coupon ' + r.activeCouponCode.trim() + ' ('
+                    + held.intValue() + '% off) — this offer is better, and we never stack the two.';
+            }
+        }
         res.discountPercent = pct;
         res.addsPerk = perk;
         res.discountRationale = rationale;
@@ -357,9 +373,9 @@ public without sharing class RecommendationStrategyService {
         Integer all = orderCountAll == null ? 0 : orderCountAll;
         Integer o12 = orders12mo == null ? 0 : orders12mo;
         Decimal v = ltv == null ? 0 : ltv;
+        if (v >= VIP_LTV || o12 >= VIP_FREQ_12MO) return 'VIP';
         if (all == 0) return 'New';
         if (o12 == 0) return 'Lapsed';
-        if (v >= VIP_LTV || o12 >= VIP_FREQ_12MO) return 'VIP';
         if (o12 >= RECURRENT_MIN_12MO) return 'Recurrent';
         return 'Occasional';
     }
@@ -385,11 +401,19 @@ public without sharing class RecommendationStrategyService {
     /** Account-based overload so other services (e.g. PostPurchaseService) classify identically. */
     public static String classifyBuyer(Id accountId) {
         if (accountId == null) return 'New';
+        Account a = [SELECT Data_Cloud_Order_Count__c, Data_Cloud_Lifetime_Value__c
+                     FROM Account WHERE Id = :accountId LIMIT 1];
         Integer all = [SELECT count() FROM Order WHERE AccountId = :accountId];
         Integer o12 = [SELECT count() FROM Order WHERE AccountId = :accountId AND CreatedDate = LAST_N_DAYS:365];
         Decimal v = 0;
         for (AggregateResult ar : [SELECT SUM(TotalAmount) s FROM Order WHERE AccountId = :accountId]) {
             v = (Decimal) (ar.get('s') == null ? 0 : ar.get('s'));
+        }
+        if (all == 0 && a.Data_Cloud_Order_Count__c != null) {
+            all = a.Data_Cloud_Order_Count__c.intValue();
+        }
+        if (v == 0 && a.Data_Cloud_Lifetime_Value__c != null) {
+            v = a.Data_Cloud_Lifetime_Value__c;
         }
         return classifyBuyer(all, v, o12);
     }

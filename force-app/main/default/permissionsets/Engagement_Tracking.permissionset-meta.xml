@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Engagement Tracking</label>
+    <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions><allowCreate>true</allowCreate><allowDelete>true</allowDelete><allowEdit>true</allowEdit><allowRead>true</allowRead><object>Web_Event__c</object></objectPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Device_Id__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Session_Id__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Event_Type__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Page_Url__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Product_Id__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Product_Name__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Category__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Search_Query__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Cart_Value__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Quantity__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Time_On_Page__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Scroll_Pct__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Email__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Account__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Web_Event__c.Occurred_At__c</field><readable>true</readable></fieldPermissions>
+</PermissionSet>

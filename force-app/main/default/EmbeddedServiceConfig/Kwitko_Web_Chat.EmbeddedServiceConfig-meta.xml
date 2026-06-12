@@ -31,7 +31,7 @@
             <isRequired>false</isRequired>
             <messagingChannelParameterType>Custom</messagingChannelParameterType>
         </embeddedServiceFormFields>
-        <isActive>false</isActive>
+        <isActive>true</isActive>
     </embeddedServiceForms>
     <embeddedServiceMessagingChannel>
         <isChatInvitationCustomizable>false</isChatInvitationCustomizable>

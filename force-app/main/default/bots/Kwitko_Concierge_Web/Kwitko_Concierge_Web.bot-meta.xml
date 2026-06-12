@@ -8,6 +8,132 @@
     </botMlDomain>
     <botSource>None</botSource>
     <botUser>post_purchase_growth@00dxx00000xxxxx1227134584.ext</botUser>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
+            <messageType>WhatsApp</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
+            <messageType>Facebook</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
+            <messageType>Text</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
+            <messageType>AppleBusinessChat</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
+            <messageType>Line</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
+            <messageType>Custom</messageType>
+        </contextVariableMappings>
+        <dataType>Text</dataType>
+        <description>Storefront browser cart token passed into the Messaging Session by hidden pre-chat for zero-click cart bridge actions.</description>
+        <developerName>cartToken</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Cart Token</label>
+    </contextVariables>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
+            <messageType>WhatsApp</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
+            <messageType>Custom</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
+            <messageType>Line</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
+            <messageType>AppleBusinessChat</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
+            <messageType>Facebook</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
+            <messageType>Text</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <dataType>Text</dataType>
+        <description>The shopper&apos;s email from their VERIFIED website sign-in, passed into the Messaging Session by hidden pre-chat. If this is non-empty, the shopper IS signed in and this IS their real email — use it directly and never ask for an email.</description>
+        <developerName>loggedInEmail</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Logged In Email</label>
+    </contextVariables>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>Text</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>AppleBusinessChat</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>Custom</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>WhatsApp</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>Facebook</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>Line</messageType>
+        </contextVariableMappings>
+        <dataType>Text</dataType>
+        <description>The shopper&apos;s first name from their verified website sign-in, passed into the Messaging Session by hidden pre-chat when available. Use it for a warm greeting only; do not treat it as authorization.</description>
+        <developerName>loggedInFirstName</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Logged In First Name</label>
+    </contextVariables>
     <description>Concierge orchestrator: greet, capture lead + consent, recognize returning customers, and build a personalized, buyer-aware recommendation via the shared strategy engine.</description>
     <label>Kwitko Concierge Web</label>
     <logPrivateConversationData>false</logPrivateConversationData>

@@ -88,8 +88,9 @@ private class DataCloudAugmentationServiceTest {
 
         System.assertEquals(true, res.success);
         System.assertEquals('uid-123', res.unifiedIndividualId);
-        System.assertEquals('Lapsed', res.segment);
+        System.assertEquals('VIP', res.segment);
         System.assertEquals('High', res.churnRisk);
+        System.assertEquals('Resolve the service or return issue before making a new sales offer.', res.nextBestAction);
         System.assertEquals('Data Cloud CI + CRM fallback', res.insightSource);
         System.assertEquals('Espresso', res.favoriteCategory);
 

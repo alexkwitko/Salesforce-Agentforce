@@ -4,6 +4,28 @@
 
 package.xml
 
+# Agentforce authoring/evaluation bundle files are kept for audit, but the
+# current Salesforce CLI registry cannot infer these metadata types reliably.
+# NOTE: aiAuthoringBundles is intentionally NOT ignored so `sf agent publish
+# authoring-bundle` can read + deploy it (otherwise publish fails with
+# "No source-backed components present in the package").
+**/aiEvaluationDefinitions/**
+force-app/main/default/aiEvaluationDefinitions/**
+# genAiPlannerBundles / genAiPlugins are NO LONGER ignored: publishing the agent
+# must deploy the regenerated planner+plugins so NEW actions (e.g. OTP) attach to
+# the live agent. (Ignoring them caused new actions to silently not register.)
+
+# Internal Agentforce bots currently fail Metadata API deploy for this CI user
+# with "User doesn't have access to agent"; keep them in source for audit/smoke.
+**/bots/Inside_Sales/**
+**/bots/Kwitko_Concierge/**
+**/bots/Post_Purchase_Growth/**
+**/bots/Product_Advisor/**
+force-app/main/default/bots/Inside_Sales/**
+force-app/main/default/bots/Kwitko_Concierge/**
+force-app/main/default/bots/Post_Purchase_Growth/**
+force-app/main/default/bots/Product_Advisor/**
+
 # LWC configuration files
 **/jsconfig.json
 **/.eslintrc.json

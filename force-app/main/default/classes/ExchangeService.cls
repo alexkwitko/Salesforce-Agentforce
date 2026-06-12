@@ -5,6 +5,7 @@ public without sharing class ExchangeService {
         @InvocableVariable(label='Email' required=true) public String email;
         @InvocableVariable(label='Verified Email (pass loggedInEmail)') public String verifiedEmail;
         @InvocableVariable(label='Order Identifier (optional)') public String orderIdentifier;
+        @InvocableVariable(label='Items to Exchange' description='Comma-separated product names the shopper is returning for exchange, or "all"/blank for the whole order.') public String itemsToExchange;
         @InvocableVariable(label='Reason') public String reason;
         @InvocableVariable(label='Desired Item') public String desiredItem;
         @InvocableVariable(label='Confirmed by Shopper' description='Must be true only after the shopper explicitly confirms this exchange/return.') public Boolean confirmed;
@@ -17,6 +18,7 @@ public without sharing class ExchangeService {
         if(!IdentityService.isVerified(r.email,r.verifiedEmail)){ res.message=IdentityService.signInMessage(); return res; }
         // Reuse ReturnService for the return leg (it is itself identity-gated + eligibility-checked).
         ReturnService.Request rr=new ReturnService.Request(); rr.email=r.email; rr.verifiedEmail=r.verifiedEmail; rr.orderIdentifier=r.orderIdentifier;
+        rr.itemsToReturn=r.itemsToExchange;
         rr.confirmed=r.confirmed;
         rr.reason=String.isBlank(r.reason)?'Exchange':('Exchange: '+r.reason.trim());
         ReturnService.Result rres=ReturnService.process(new List<ReturnService.Request>{rr})[0];

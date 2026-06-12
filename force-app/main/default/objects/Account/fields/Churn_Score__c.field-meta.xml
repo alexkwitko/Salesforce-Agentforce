@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Churn_Score__c</fullName>
+    <label>Churn Score</label>
+    <type>Number</type>
+    <precision>3</precision>
+    <scale>2</scale>
+    <description>Predictive churn risk 0-1 (Apex scoring stand-in for an Einstein Studio model).</description>
+    <required>false</required>
+</CustomField>

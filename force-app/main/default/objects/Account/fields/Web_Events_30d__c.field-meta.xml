@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Web_Events_30d__c</fullName>
+    <label>Web Events (30d)</label>
+    <type>Number</type>
+    <precision>9</precision>
+    <scale>0</scale>
+    <description>Count of stitched Web_Event__c engagement events in the last 30 days. Feeds churn scoring.</description>
+    <required>false</required>
+</CustomField>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Deployable metadata manifest for the Kwitko Coffee Agentforce + WooCommerce + Data Cloud build.
+
+  This manifest captures ONLY the metadata types that deploy reliably via the Metadata API
+  (`sf project deploy start`). It intentionally EXCLUDES the Agentforce authoring bundles and
+  the Data Cloud CRM-stream pieces that are not deployable for this org/CLI registry — those are
+  documented as manual/API post-deploy steps in README.md (see "Non-deployable metadata" and
+  "Data Cloud post-deploy").
+
+  EXCLUDED ON PURPOSE (kept in source for audit, listed in .forceignore):
+    - GenAiPlannerBundle / GenAiPlugin / Bot (Agentforce agents)  -> author/activate via `sf agent`
+      authoring bundles + UI; the CLI registry cannot infer these reliably for this org.
+    - aiAuthoringBundles/** and aiEvaluationDefinitions/**         -> kept for audit only.
+    - DataStreamDefinition / MktDataTranObject (CRM data streams)  -> UI/Connect-API gated
+      (deploy fails with "no MktDataTranObject"); create in the Data Cloud UI post-deploy.
+
+  Deploy ORDERING is enforced by scripts/deploy/deploy-to-new-org.sh, not by this manifest
+  (the Metadata API resolves intra-deploy dependencies, but Person Accounts must be enabled in
+  the org BEFORE this deploys, and Data Cloud DLO/DMO objects must exist before the
+  objectSourceTargetMaps activate — see README).
+-->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+
+  <!-- ===== Apex (classes + triggers) ===== -->
+  <types>
+    <members>*</members>
+    <name>ApexClass</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>ApexTrigger</name>
+  </types>
+
+  <!-- ===== Data model: standard + custom objects, fields, record types, layouts ===== -->
+  <types>
+    <members>*</members>
+    <name>CustomObject</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>CustomField</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>RecordType</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>Layout</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>CustomMetadata</name>
+  </types>
+
+  <!-- ===== Automation ===== -->
+  <types>
+    <members>*</members>
+    <name>Flow</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>FlowDefinition</name>
+  </types>
+
+  <!-- ===== Security / access ===== -->
+  <types>
+    <members>*</members>
+    <name>PermissionSet</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>Profile</name>
+  </types>
+
+  <!-- ===== Integration (WooCommerce) ===== -->
+  <types>
+    <members>*</members>
+    <name>NamedCredential</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>CspTrustedSite</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>CorsWhitelistOrigin</name>
+  </types>
+
+  <!-- ===== Messaging for Web / Embedded Service ===== -->
+  <types>
+    <members>*</members>
+    <name>MessagingChannel</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>EmbeddedServiceConfig</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>CustomSite</name>
+  </types>
+
+  <!-- ===== Omni-Channel routing ===== -->
+  <types>
+    <members>*</members>
+    <name>Queue</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>QueueRoutingConfig</name>
+  </types>
+
+  <!-- ===== Data Cloud (DEPLOYABLE pieces only) ===== -->
+  <!-- DataSourceObject = DLO definitions; ObjectSourceTargetMap = DLO->DMO field/relationship maps;
+       MktCalcInsightObjectDef = Calculated Insights. The CRM DATA STREAMS that feed the DLOs are
+       NOT here (UI-gated) — see README "Data Cloud post-deploy". -->
+  <types>
+    <members>*</members>
+    <name>DataSourceObject</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>ObjectSourceTargetMap</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>MktCalcInsightObjectDef</name>
+  </types>
+
+  <!-- ===== UI: apps, pages, tabs, components, assets ===== -->
+  <types>
+    <members>*</members>
+    <name>CustomApplication</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>FlexiPage</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>CustomTab</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>LightningComponentBundle</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>AuraDefinitionBundle</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>StaticResource</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>ContentAsset</name>
+  </types>
+
+  <!-- ===== Org settings ===== -->
+  <types>
+    <members>Deployment</members>
+    <name>Settings</name>
+  </types>
+
+  <version>66.0</version>
+</Package>

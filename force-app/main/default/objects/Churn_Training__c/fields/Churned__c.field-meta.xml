@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Churned__c</fullName>
+    <label>Churned</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>LABEL: true if no order within 60 days after ref date</description>
+</CustomField>

@@ -27,35 +27,62 @@ public without sharing class EmailService {
         description='Sends an HTML email after re-checking marketing consent on the related record. The agent writes the body; this sends it.')
     public static List<Response> send(List<Request> reqs) {
         List<Response> out = new List<Response>();
-        for (Request r : reqs) out.add(doSend(r));
-        return out;
-    }
+        // Build all messages first, then ONE Messaging.sendEmail call — Apex allows only
+        // 10 sendEmail INVOCATIONS per transaction, but one invocation carries up to 100 messages.
+        List<Messaging.SingleEmailMessage> msgs = new List<Messaging.SingleEmailMessage>();
+        List<Integer> msgToReq = new List<Integer>();
 
-    private static Response doSend(Request r) {
-        Response resp = new Response(); resp.success = false;
-        if (String.isBlank(r.toEmail)) { resp.message = 'No recipient.'; return resp; }
-        if (!consentOk(r.recordId, r.isTransactional)) { resp.message = 'No consent on file; email NOT sent.'; return resp; }
-        try {
+        // Sender: prefer a verified OWEA on a REAL (non-freemail) domain so SPF/DKIM pass. A freemail
+        // OWEA (gmail/outlook/etc.) now FAILS the recipient's DMARC after Salesforce's mandatory
+        // sending-domain enforcement, so we DON'T use it — instead we leave the From unset and rely on
+        // org Deliverability "substitute address for unverified domains", which sends from a
+        // Salesforce-authenticated address that actually delivers. Branding is preserved via display name.
+        Id oweaId = null;
+        for (OrgWideEmailAddress o : [SELECT Id, Address FROM OrgWideEmailAddress WHERE IsVerified = true ORDER BY DisplayName]) {
+            String dom = (o.Address != null && o.Address.contains('@')) ? o.Address.substringAfterLast('@').toLowerCase() : '';
+            if (!FREEMAIL.contains(dom)) { oweaId = o.Id; break; }
+        }
+
+        for (Integer i = 0; i < reqs.size(); i++) {
+            Request r = reqs[i];
+            Response resp = new Response(); resp.success = false;
+            out.add(resp);
+            if (String.isBlank(r.toEmail)) { resp.message = 'No recipient.'; continue; }
+            if (!consentOk(r.recordId, r.isTransactional)) { resp.message = 'No consent on file; email NOT sent.'; continue; }
             Messaging.SingleEmailMessage m = new Messaging.SingleEmailMessage();
             m.setToAddresses(new List<String>{ r.toEmail });
             m.setSubject(r.subject);
             m.setHtmlBody(r.htmlBody);
             m.setSaveAsActivity(false);
-            // Sender: prefer a verified OWEA on a REAL (non-freemail) domain so SPF/DKIM pass. A freemail
-            // OWEA (gmail/outlook/etc.) now FAILS the recipient's DMARC after Salesforce's mandatory
-            // sending-domain enforcement, so we DON'T use it — instead we leave the From unset and rely on
-            // org Deliverability "substitute address for unverified domains", which sends from a
-            // Salesforce-authenticated address that actually delivers. Branding is preserved via display name.
-            Boolean oweaSet = false;
-            for (OrgWideEmailAddress o : [SELECT Id, Address, DisplayName FROM OrgWideEmailAddress WHERE IsVerified = true ORDER BY DisplayName]) {
-                String dom = (o.Address != null && o.Address.contains('@')) ? o.Address.substringAfterLast('@').toLowerCase() : '';
-                if (!FREEMAIL.contains(dom)) { m.setOrgWideEmailAddressId(o.Id); oweaSet = true; break; }
+            if (oweaId != null) m.setOrgWideEmailAddressId(oweaId);
+            else m.setSenderDisplayName('Kwitko Coffee Co.');
+            msgs.add(m);
+            msgToReq.add(i);
+        }
+
+        if (!msgs.isEmpty()) {
+            if (Test.isRunningTest()) {
+                for (Integer i = 0; i < msgs.size(); i++) {
+                    out[msgToReq[i]].success = true;
+                    out[msgToReq[i]].message = 'Sent to ' + reqs[msgToReq[i]].toEmail;
+                }
+            } else {
+                try {
+                    Messaging.SendEmailResult[] results = Messaging.sendEmail(msgs, false);
+                    for (Integer i = 0; i < results.size(); i++) {
+                        Response resp = out[msgToReq[i]];
+                        if (results[i].isSuccess()) {
+                            resp.success = true; resp.message = 'Sent to ' + reqs[msgToReq[i]].toEmail;
+                        } else {
+                            resp.message = results[i].getErrors().isEmpty() ? 'Send failed.' : results[i].getErrors()[0].getMessage();
+                        }
+                    }
+                } catch (Exception e) {
+                    for (Integer i = 0; i < msgs.size(); i++) out[msgToReq[i]].message = e.getMessage();
+                }
             }
-            if (!oweaSet) m.setSenderDisplayName('Kwitko Coffee Co.');
-            if (!Test.isRunningTest()) Messaging.sendEmail(new List<Messaging.SingleEmailMessage>{ m });
-            resp.success = true; resp.message = 'Sent to ' + r.toEmail;
-        } catch (Exception e) { resp.message = e.getMessage(); }
-        return resp;
+        }
+        return out;
     }
 
     private static Boolean consentOk(String recordId, Boolean isTransactional) {

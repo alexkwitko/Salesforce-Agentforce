@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Churn_Risk_Tier__c</fullName>
+    <label>Churn Risk Tier</label>
+    <type>Picklist</type>
+    <description>Value-at-risk tier: A save-at-all-costs, B automated, C light-touch.</description>
+    <required>false</required>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>A</fullName><default>false</default><label>A - Save at all costs</label></value>
+            <value><fullName>B</fullName><default>false</default><label>B - Automated win-back</label></value>
+            <value><fullName>C</fullName><default>false</default><label>C - Light touch</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -54,7 +54,7 @@
         <filterApplied>false</filterApplied>
         <filterOperationType>Equal</filterOperationType>
         <isSourceFormula>false</isSourceFormula>
-        <sourceField>Account_Home__dll.PersonIndividualId__c</sourceField>
+        <sourceField>Account_Home__dll.Id__c</sourceField>
         <targetField>ssot__ContactPointEmail__dlm.ssot__PartyId__c</targetField>
     </fieldSourceTargetMaps>
     <masterLabel>Account_Home_map_ContactPointEmail_1780619893796</masterLabel>
