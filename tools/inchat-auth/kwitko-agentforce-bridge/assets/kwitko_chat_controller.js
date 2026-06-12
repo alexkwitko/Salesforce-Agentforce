@@ -112,6 +112,18 @@
   }
 
   function setHiddenPrechatFields() {
+    // Stitch this device's anonymous web-engagement history to the signed-in shopper the moment
+    // we know who they are. Independent of the SF prechat mapping AND of chat readiness, so the
+    // engagement cross-device stitch no longer depends on the separate optional identity snippet.
+    // Fires once per email per page load. (The engagement tracker exposes window.kwitkoIdentify.)
+    if (
+      CFG.loggedIn && CFG.email &&
+      typeof window.kwitkoIdentify === "function" &&
+      window.__kwitkoIdentifyDone !== CFG.email
+    ) {
+      window.__kwitkoIdentifyDone = CFG.email;
+      try { window.kwitkoIdentify(CFG.email, CFG.firstName || "", ""); } catch (e) {}
+    }
     if (
       !window.embeddedservice_bootstrap ||
       !embeddedservice_bootstrap.prechatAPI

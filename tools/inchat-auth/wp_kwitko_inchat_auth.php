@@ -153,6 +153,33 @@ add_action('wp_footer', function () {
         firstName:'<?php echo is_user_logged_in() ? esc_js(wp_get_current_user()->first_name ? wp_get_current_user()->first_name : wp_get_current_user()->display_name) : ''; ?>',
         controllerVersion:'20260607.7'
       };
+
+      // Controller-independent engagement stitch on sign-in. Whether the shopper is already
+      // signed in at page render OR signs in mid-session via the in-chat login (no reload),
+      // stitch this device's anonymous web-engagement history to them the moment we know the
+      // email. Works even if the heavy chat controller is disabled. Once per email.
+      (function () {
+        function fire(email, first) {
+          if (!email || typeof window.kwitkoIdentify !== 'function') return false;
+          if (window.__kwitkoIdentifyDone === email) return true;
+          window.__kwitkoIdentifyDone = email;
+          try { window.kwitkoIdentify(email, first || '', ''); } catch (e) {}
+          return true;
+        }
+        if (window.KWITKO_AUTH && window.KWITKO_AUTH.loggedIn && window.KWITKO_AUTH.email) {
+          fire(window.KWITKO_AUTH.email, window.KWITKO_AUTH.firstName);
+          return;
+        }
+        var meUrl = window.KWITKO_AUTH && window.KWITKO_AUTH.meUrl;
+        if (!meUrl) return;
+        var tries = 0, iv = setInterval(function () {
+          if (++tries > 20) { clearInterval(iv); return; } // ~2 min after sign-in
+          fetch(meUrl, { credentials: 'include' })
+            .then(function (r) { return r.json(); })
+            .then(function (me) { if (me && me.logged_in && fire(me.email, me.first_name)) clearInterval(iv); })
+            .catch(function () {});
+        }, 6000);
+      })();
     </script>
     <script src="<?php echo esc_url(content_url('uploads/kwitko/kwitko_chat_controller.js')); ?>" defer></script>
     <?php

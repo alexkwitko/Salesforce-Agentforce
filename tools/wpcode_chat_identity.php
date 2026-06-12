@@ -18,8 +18,9 @@
  *   1. Shopper is logged into WordPress.
  *   2. Hidden fields are set INSIDE onEmbeddedMessagingReady (before the conversation starts),
  *      so the shopper opens a NEW chat after signing in (an open guest chat keeps empty value).
- *   3. We send BOTH key variants (Logged_In_Email AND Kwitko_Logged_In_Email__c) to
- *      defeat the channel-name vs session-field-name ambiguity; extra keys are ignored.
+ *   3. We send the exact hidden pre-chat field names accepted by the live
+ *      Messaging deployment. The shorter Logged_In_* aliases are rejected by
+ *      the bootstrap validator and should not be sent.
  */
 
 if ( is_user_logged_in() ) {
@@ -41,19 +42,11 @@ if ( is_user_logged_in() ) {
 					if (window.embeddedservice_bootstrap
 						&& embeddedservice_bootstrap.prechatAPI
 						&& typeof embeddedservice_bootstrap.prechatAPI.setHiddenPrechatFields === "function") {
-						// Hedge the key ambiguity: set BOTH the channel-parameter name
-						// (Logged_In_Email) AND the runtime/session-field name
-						// (Kwitko_Logged_In_Email__c). Unknown keys are ignored by the
-						// platform, so sending both guarantees the right one lands the value
-						// on MessagingSession.Kwitko_Logged_In_Email__c → Bot context var
-						// loggedInEmail → IdentityService.isVerified.
-						embeddedservice_bootstrap.prechatAPI.setHiddenPrechatFields({
-							"Logged_In_Email": KWITKO_EMAIL,
-							"Kwitko_Logged_In_Email__c": KWITKO_EMAIL,
-							"Logged_In_First_Name": KWITKO_FIRST,
-							"Kwitko_Logged_In_First_Name__c": KWITKO_FIRST
-						});
-						console.log("[Kwitko] hidden identity set:", KWITKO_EMAIL);
+							embeddedservice_bootstrap.prechatAPI.setHiddenPrechatFields({
+								"Kwitko_Logged_In_Email__c": KWITKO_EMAIL,
+								"Kwitko_Logged_In_First_Name__c": KWITKO_FIRST
+							});
+							console.log("[Kwitko] hidden identity set:", KWITKO_EMAIL);
 					}
 					// Also stitch this device's anonymous web-engagement history to the
 					// signed-in shopper (the engagement tracker exposes this hook).
@@ -66,11 +59,8 @@ if ( is_user_logged_in() ) {
 				}
 			}
 
-			window.addEventListener("onEmbeddedMessagingReady", kwitkoSetIdentity);
-			if (window.embeddedservice_bootstrap && embeddedservice_bootstrap.prechatAPI) {
-				kwitkoSetIdentity();
-			}
-		})();
+				window.addEventListener("onEmbeddedMessagingReady", kwitkoSetIdentity);
+			})();
 		</script>
 		<?php
 	}, 99 );

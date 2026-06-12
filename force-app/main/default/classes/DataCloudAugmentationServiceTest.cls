@@ -74,7 +74,8 @@ private class DataCloudAugmentationServiceTest {
             'ssot__ContactPointEmail__dlm' => new List<Object>{ 'unified.profile@example.com', 'uid-123', 'Unified', '{"roast":"medium"}' },
             'Customer_Agent_Profile__cio' => new List<Object>{ String.valueOf(a.Id), 5, 410, 82, String.valueOf(Date.today()) },
             'Customer_Category_Affinity__cio' => new List<Object>{ 'Espresso', 5 },
-            'Customer_Return_Risk__cio' => new List<Object>{ 2, String.valueOf(Date.today()) }
+            'Customer_Return_Risk__cio' => new List<Object>{ 2, String.valueOf(Date.today()) },
+            'Web_Engagement_Profile_v2__cio' => new List<Object>{ 9, 240, String.valueOf(Date.today()) }
         };
         DataCloudAugmentationService.Request r = new DataCloudAugmentationService.Request();
         r.accountId = String.valueOf(a.Id);
@@ -93,6 +94,9 @@ private class DataCloudAugmentationServiceTest {
         System.assertEquals('Resolve the service or return issue before making a new sales offer.', res.nextBestAction);
         System.assertEquals('Data Cloud CI + CRM fallback', res.insightSource);
         System.assertEquals('Espresso', res.favoriteCategory);
+        System.assertEquals(9, res.webEventCount, 'web engagement CI surfaced to the result');
+        System.assertEquals(Decimal.valueOf(240), res.webDwellSeconds, 'dwell seconds surfaced');
+        System.assert(res.profileSummary.contains('web event'), 'summary mentions web engagement: ' + res.profileSummary);
 
         Account refreshed = [SELECT Data_Cloud_Unified_Individual_Id__c, Data_Cloud_Order_Count__c,
                              Data_Cloud_Lifetime_Value__c, Data_Cloud_Favorite_Category__c,

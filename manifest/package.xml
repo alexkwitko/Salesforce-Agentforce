@@ -2,19 +2,15 @@
 <!--
   Deployable metadata manifest for the Kwitko Coffee Agentforce + WooCommerce + Data Cloud build.
 
-  This manifest captures ONLY the metadata types that deploy reliably via the Metadata API
-  (`sf project deploy start`). It intentionally EXCLUDES the Agentforce authoring bundles and
-  the Data Cloud CRM-stream pieces that are not deployable for this org/CLI registry — those are
-  documented as manual/API post-deploy steps in README.md (see "Non-deployable metadata" and
-  "Data Cloud post-deploy").
+  This manifest captures the metadata types used by the Kwitko build, including retrieved
+  Data Cloud CRM stream metadata where it is present in source. Some target orgs still reject
+  stream metadata until Data Cloud is fully provisioned and the source connector exists; in
+  those cases use the README's UI/Connect fallback and then re-run this deploy.
 
   EXCLUDED ON PURPOSE (kept in source for audit, listed in .forceignore):
     - GenAiPlannerBundle / GenAiPlugin / Bot (Agentforce agents)  -> author/activate via `sf agent`
       authoring bundles + UI; the CLI registry cannot infer these reliably for this org.
     - aiAuthoringBundles/** and aiEvaluationDefinitions/**         -> kept for audit only.
-    - DataStreamDefinition / MktDataTranObject (CRM data streams)  -> UI/Connect-API gated
-      (deploy fails with "no MktDataTranObject"); create in the Data Cloud UI post-deploy.
-
   Deploy ORDERING is enforced by scripts/deploy/deploy-to-new-org.sh, not by this manifest
   (the Metadata API resolves intra-deploy dependencies, but Person Accounts must be enabled in
   the org BEFORE this deploys, and Data Cloud DLO/DMO objects must exist before the
@@ -112,13 +108,26 @@
     <name>QueueRoutingConfig</name>
   </types>
 
-  <!-- ===== Data Cloud (DEPLOYABLE pieces only) ===== -->
-  <!-- DataSourceObject = DLO definitions; ObjectSourceTargetMap = DLO->DMO field/relationship maps;
-       MktCalcInsightObjectDef = Calculated Insights. The CRM DATA STREAMS that feed the DLOs are
-       NOT here (UI-gated) — see README "Data Cloud post-deploy". -->
+  <!-- ===== Data Cloud (DEPLOYABLE pieces) ===== -->
+  <!-- The CRM DATA STREAMS that feed the DLOs ARE included below (DataStreamDefinition +
+       MktDataTranObject). On a brand-new org where Data Cloud is provisioned but the source
+       object has never been streamed, a stream deploy can fail with "no MktDataTranObject
+       named <X>_Home found" — in that case create the stream once in the Data Cloud UI
+       (Data Streams > New > Salesforce CRM) and re-run; the metadata then upserts cleanly.
+       The deploy script runs the stream step as NON-FATAL for exactly this reason.
+       DataSourceObject = DLO definitions; ObjectSourceTargetMap = DLO->DMO field/relationship
+       maps; MktCalcInsightObjectDef = Calculated Insights. -->
   <types>
     <members>*</members>
     <name>DataSourceObject</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>MktDataTranObject</name>
+  </types>
+  <types>
+    <members>*</members>
+    <name>DataStreamDefinition</name>
   </types>
   <types>
     <members>*</members>

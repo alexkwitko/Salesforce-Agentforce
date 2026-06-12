@@ -27,6 +27,9 @@ public without sharing class DataCloudAugmentationService {
         @InvocableVariable public String lastOrderDate;
         @InvocableVariable public String favoriteCategory;
         @InvocableVariable public Integer returnCount;
+        @InvocableVariable public Integer webEventCount;
+        @InvocableVariable public Decimal webDwellSeconds;
+        @InvocableVariable public String webLastActivity;
         @InvocableVariable public String insightSource;
         @InvocableVariable public String profileSummary;
         @InvocableVariable public String message;
@@ -41,6 +44,9 @@ public without sharing class DataCloudAugmentationService {
         String favoriteCategory;
         Integer returnCount = 0;
         Integer openCaseCount = 0;
+        Integer webEventCount = 0;       // from Web_Engagement_Profile CI (Data Cloud)
+        Decimal webDwellSeconds = 0;
+        Date webLastActivity;
         String segment = 'New';
         String churnRisk = 'Low';
         String nextBestAction;
@@ -120,6 +126,9 @@ public without sharing class DataCloudAugmentationService {
         res.lastOrderDate = m.lastOrderDate == null ? null : String.valueOf(m.lastOrderDate);
         res.favoriteCategory = m.favoriteCategory;
         res.returnCount = m.returnCount;
+        res.webEventCount = m.webEventCount;
+        res.webDwellSeconds = m.webDwellSeconds;
+        res.webLastActivity = m.webLastActivity == null ? null : String.valueOf(m.webLastActivity);
         res.insightSource = m.source;
         res.profileSummary = summary;
         res.message = 'Account augmentation refreshed from ' + m.source + '.';
@@ -221,6 +230,19 @@ public without sharing class DataCloudAugmentationService {
                 m.source = 'Data Cloud CI + CRM fallback';
             }
         } catch (Exception e) {}
+
+        // Web engagement (the Web_Engagement_Profile CI aggregates stitched Web_Event__c per account):
+        // event count + total dwell + last activity, so agents/segmentation see browsing behavior too.
+        try {
+            List<Object> row = firstRow('SELECT WebEventCount__c, TotalDwellSeconds__c, LastWebActivity__c '
+                + 'FROM Web_Engagement_Profile_v2__cio WHERE AccountId__c = \'' + String.escapeSingleQuotes(String.valueOf(accountId)) + '\' LIMIT 1');
+            if (row != null && cell(row, 0) != null) {
+                m.webEventCount = intVal(cell(row, 0));
+                m.webDwellSeconds = dec(cell(row, 1));
+                m.webLastActivity = dateVal(cell(row, 2));
+                m.source = 'Data Cloud CI + CRM fallback';
+            }
+        } catch (Exception e) {}
     }
 
     private static void finalizeRules(Metrics m, Account a) {
@@ -255,6 +277,12 @@ public without sharing class DataCloudAugmentationService {
         parts.add('LTV ' + String.valueOf(ltv));
         if (String.isNotBlank(m.favoriteCategory)) parts.add('favorite category ' + m.favoriteCategory);
         if (m.returnCount > 0) parts.add(String.valueOf(m.returnCount) + ' return(s)');
+        if (m.webEventCount > 0) {
+            String web = m.webEventCount + ' web event(s)';
+            if (m.webDwellSeconds != null && m.webDwellSeconds > 0) web += ', ' + m.webDwellSeconds.intValue() + 's dwell';
+            if (m.webLastActivity != null) web += ', last seen ' + m.webLastActivity.format();
+            parts.add(web);
+        }
         if (profile != null && profile.found) parts.add('unified profile matched');
         parts.add('next action: ' + m.nextBestAction);
         return String.join(parts, '; ');

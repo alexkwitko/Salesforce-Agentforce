@@ -19,6 +19,9 @@
     <fieldPermissions><field>Churn_Training__c.Tenure_Days__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Churn_Training__c.Cadence_Days__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Churn_Training__c.Orders_Last_30d__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Web_Events_30d__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Web_Dwell_Total__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Churn_Training__c.Web_Days_Since_Seen__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Churn_Training__c.Churned__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <objectPermissions>
         <allowCreate>true</allowCreate>

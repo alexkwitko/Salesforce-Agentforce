@@ -16,6 +16,32 @@ private class AtRiskCampaignBuilderTest {
         return [SELECT Id, PersonContactId, Value_At_Risk__c FROM Account WHERE Id=:a.Id];
     }
 
+    @isTest static void testModelScoreOverridesHeuristic() {
+        // Heuristic says NOT at risk (0.20), but the Einstein model score written back says it IS
+        // (0.92). The win-back must select on the model score.
+        Account a = scored('ModelSays', 0.20, 400, 'C', true);
+        a.Data_Cloud_Churn_Risk__c = '0.92 (AI model v2)';
+        update a;
+
+        Test.startTest();
+        Integer added = AtRiskCampaignBuilder.run();
+        Test.stopTest();
+
+        System.assertEquals(1, added, 'model score 0.92 must qualify the account the heuristic missed');
+        Campaign c = [SELECT Id, (SELECT ContactId FROM CampaignMembers)
+                      FROM Campaign WHERE Name=:AtRiskCampaignBuilder.CAMPAIGN_NAME LIMIT 1];
+        System.assertEquals(a.PersonContactId, c.CampaignMembers[0].ContactId, 'the model-flagged account is the member');
+    }
+
+    @isTest static void testHeuristicUsedWhenNoModelScore() {
+        // No model score on file -> falls back to the heuristic (low churn -> excluded).
+        scored('NoModel', 0.20, 600, 'C', true);
+        Test.startTest();
+        Integer added = AtRiskCampaignBuilder.run();
+        Test.stopTest();
+        System.assertEquals(0, added, 'no model score + low heuristic churn -> not selected');
+    }
+
     @isTest static void testBuildAndTier() {
         Account tierA = scored('TopRisk', 0.90, 400, 'A', true);   // VAR 360 -> Tier A -> task
         Account tierB = scored('MidRisk', 0.75, 250, 'B', true);   // qualifies, no task

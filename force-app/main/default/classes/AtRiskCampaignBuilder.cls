@@ -31,15 +31,20 @@ public with sharing class AtRiskCampaignBuilder {
 
         List<CampaignMember> toAdd = new List<CampaignMember>();
         List<Task> tasks = new List<Task>();
+        // Prefilter is permissive on churn (model score is a String, not SOQL-comparable); the
+        // real threshold is applied in-loop against effectiveChurn() so the Einstein model score
+        // drives selection when it has been written back, else the operational heuristic.
         for (Account a : [
                 SELECT Id, PersonContactId, Churn_Score__c, Predicted_LTV__c,
-                       Value_At_Risk__c, Churn_Risk_Tier__c
+                       Value_At_Risk__c, Churn_Risk_Tier__c, Data_Cloud_Churn_Risk__c
                 FROM Account
                 WHERE IsPersonAccount = true AND PersonContactId != null
                   AND Email_Consent__c = true
-                  AND Churn_Score__c >= :CHURN_MIN
-                  AND Predicted_LTV__c >= :LTV_MIN ]) {
+                  AND Predicted_LTV__c >= :LTV_MIN
+                  AND (Churn_Score__c >= :CHURN_MIN OR Data_Cloud_Churn_Risk__c != null) ]) {
             if (existing.contains(a.PersonContactId)) continue;
+            Decimal churn = effectiveChurn(a);
+            if (churn == null || churn < CHURN_MIN) continue;
             toAdd.add(new CampaignMember(CampaignId = campId, ContactId = a.PersonContactId));
             if (a.Churn_Risk_Tier__c == 'A') {
                 tasks.add(new Task(
@@ -52,6 +57,20 @@ public with sharing class AtRiskCampaignBuilder {
         if (!toAdd.isEmpty()) insert toAdd;
         if (!tasks.isEmpty()) insert tasks;
         return toAdd.size();
+    }
+
+    /** Prefer the Einstein Studio model score when it has been written back: the predict job
+     *  writes Account.Data_Cloud_Churn_Risk__c as e.g. "0.72 (AI model v2)". Parse the leading
+     *  probability; fall back to the operational heuristic Churn_Score__c when no model score. */
+    @TestVisible
+    private static Decimal effectiveChurn(Account a) {
+        if (a != null && String.isNotBlank(a.Data_Cloud_Churn_Risk__c)) {
+            Matcher m = Pattern.compile('([0-9]*\\.?[0-9]+)').matcher(a.Data_Cloud_Churn_Risk__c);
+            if (m.find()) {
+                try { return Decimal.valueOf(m.group(1)); } catch (Exception e) { /* fall through */ }
+            }
+        }
+        return a == null ? null : a.Churn_Score__c;
     }
 
     /** Activation: send the win-back email to members not yet emailed. Consent re-checked

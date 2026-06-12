@@ -38,17 +38,19 @@ ReturnOrder, Shipment, Product2, Lead, MessagingSession) + custom (`Cart__c`, `C
 `Customer_Journey__c`, `Agent_Interaction__c`, `Order_Analytics__c`, `Woo_Settings__c`) + `Discount_Rule__mdt`
 custom metadata.
 
-**Data Cloud** (DX-deployable pieces): `dataSourceObjects` (DLO defs), `objectSourceTargetMaps` (DLO→DMO field +
-relationship maps), `mktCalcInsightObjectDefs` (Calculated Insights: customer profile/affinity/return-risk/
-service-risk/return-churn/shipment-health/order-patterns). The **CRM data streams** that populate the DLOs are
-UI-gated (see post-deploy).
+**Data Cloud**: `dataSourceObjects` (DLO defs), `mktDataTranObjects` + `dataStreamDefinitions` (retrieved CRM
+stream metadata), `objectSourceTargetMaps` (DLO→DMO field + relationship maps), and `mktCalcInsightObjectDefs`
+(Calculated Insights: customer profile/affinity/return-risk/service-risk/return-churn/shipment-health/order-patterns/
+web-engagement). First-time target orgs can still reject stream metadata until the Salesforce CRM source connector
+exists; use the UI fallback in post-deploy, then re-run the deploy.
 
 **Messaging for Web / routing:** `messagingChannels` (`Kwitko_Web_Chat`, `Kwitko_Web_Chat_V2`),
 `EmbeddedServiceConfig`, a public `sites` entry, `queues` + `queueRoutingConfigs` (Omni-Channel), the
 `Kwitko_Web_Chat_Routing` flow, `namedCredentials` (WooCommerce), `cspTrustedSites` + `corsWhitelistOrigins`.
 
 **Permission sets:** `Kwitko_Integration` (FLS/object access for the Woo↔SF integration + agent actions),
-`Kwitko_Messaging_Ops` (manage stuck messaging sessions).
+`Kwitko_Messaging_Ops` (manage stuck messaging sessions), `Engagement_Tracking` (`Web_Event__c` capture/stitch
+access), and `Predictive_Scoring` (churn/LTV fields + `Churn_Training__c` access).
 
 ---
 
@@ -95,7 +97,8 @@ scripts/deploy/deploy-to-new-org.sh myNewOrg
 ```
 
 The script deploys in dependency order, only includes directories that exist/are non-empty (idempotent, re-runnable),
-assigns `Kwitko_Integration` + `Kwitko_Messaging_Ops`, and prints the manual/API post-deploy checklist.
+assigns `Kwitko_Integration`, `Kwitko_Messaging_Ops`, `Engagement_Tracking`, and `Predictive_Scoring`, and prints
+the manual/API post-deploy checklist.
 
 ### Manual ordered path (what the script does)
 
@@ -132,8 +135,10 @@ sf project deploy start --source-dir force-app/main/default/messagingChannels \
 sf project deploy start --source-dir force-app/main/default/flows \
   --source-dir force-app/main/default/flowDefinitions --target-org $ORG
 
-# 7) Data Cloud (DEPLOYABLE pieces only), in dependency order: DLO -> DLO/DMO maps -> Calculated Insights
+# 7) Data Cloud, in dependency order: DLO -> streams -> DLO/DMO maps -> Calculated Insights
 sf project deploy start --source-dir force-app/main/default/dataSourceObjects --target-org $ORG
+sf project deploy start --source-dir force-app/main/default/mktDataTranObjects \
+  --source-dir force-app/main/default/dataStreamDefinitions --target-org $ORG
 sf project deploy start --source-dir force-app/main/default/objectSourceTargetMaps --target-org $ORG
 sf project deploy start --source-dir force-app/main/default/mktCalcInsightObjectDefs --target-org $ORG
 
@@ -152,6 +157,8 @@ sf project deploy start --source-dir force-app/main/default/applications \
 # Assign permission sets to the running user
 sf org assign permset --name Kwitko_Integration --target-org $ORG
 sf org assign permset --name Kwitko_Messaging_Ops --target-org $ORG
+sf org assign permset --name Engagement_Tracking --target-org $ORG
+sf org assign permset --name Predictive_Scoring --target-org $ORG
 ```
 
 ### Manifest-based alternative
@@ -162,9 +169,10 @@ To deploy via the manifest in one call (after preconditions are met):
 sf project deploy start --manifest manifest/package.xml --target-org $ORG --test-level RunLocalTests
 ```
 
-`manifest/package.xml` uses wildcards and **excludes** the non-deployable Data Cloud CRM-stream pieces
-(`DataStreamDefinition` / `MktDataTranObject`) and the Agentforce authoring bundles / planners / plugins / bots
-(see `.forceignore`). The ordered script is preferred for a fresh org because it isolates failures per group.
+`manifest/package.xml` uses wildcards and includes the retrieved Data Cloud stream metadata
+(`DataStreamDefinition` / `MktDataTranObject`) where present. It still excludes the Agentforce authoring bundles /
+planners / plugins / bots (see `.forceignore`). The ordered script is preferred for a fresh org because it isolates
+failures per group and treats CRM stream metadata as an org-sensitive step with a UI fallback.
 
 ---
 
@@ -178,10 +186,12 @@ If you use the connected `salesforce` MCP instead of (or alongside) the CLI:
   - `SELECT QualifiedApiName FROM EntityDefinition WHERE QualifiedApiName LIKE '%__cio'` (Calculated Insights visible)
   - `SELECT DeveloperName, BotSource, BotUserId FROM BotDefinition` (agent runtime users)
   - `SELECT COUNT() FROM UnifiedssotIndividual__dlm` (unified profiles populated — should be > 0)
-- **`assign_permission_set`** — assign `Kwitko_Integration` / `Kwitko_Messaging_Ops`.
+- **`assign_permission_set`** — assign `Kwitko_Integration`, `Kwitko_Messaging_Ops`, `Engagement_Tracking`, and
+  `Predictive_Scoring`.
 - **`run_apex_test`** — run the Apex test suite.
-- The Data Cloud Identity-Resolution / Calculated-Insight **run** steps and the CRM **data-stream creation** are not
-  MCP deploy operations — do them via the Connect REST API (below) or the Data Cloud UI.
+- The Data Cloud Identity-Resolution / Calculated-Insight **run** steps are not MCP deploy operations. CRM stream
+  metadata is in source, but if a target org rejects first-run stream deploys, create the stream once in the Data
+  Cloud UI and re-run the metadata deploy.
 
 ---
 
@@ -203,11 +213,13 @@ sf agent publish  authoring-bundle --api-name Kwitko_Concierge_Web --target-org 
     --apex 'System.debug(AgentInvoker.callAgent("Product_Advisor","hello").agentResponse);'
   ```
 
-### B) Data Cloud — create the CRM data streams (UI-gated)
-Metadata deploy of a CRM-source stream fails with **"no MktDataTranObject"**. For each DLO in
-`dataSourceObjects`, create the stream in the UI: **Data Cloud → Data Streams → New → Salesforce CRM →** pick the
-source object (Account, Order_Analytics__c, Shipment, ReturnOrder, FulfillmentOrder) → map to the matching `*_Home`
-DLO → **Save & Run**.
+### B) Data Cloud — CRM data streams (metadata first, UI fallback)
+This repo carries retrieved CRM stream metadata for `Web_Event__c_Home`, `Churn_Training__c_Home`, and the legacy
+commerce streams. Deploy `mktDataTranObjects` + `dataStreamDefinitions` after `dataSourceObjects`. If a fresh target
+org rejects a stream with **"no MktDataTranObject named <X>_Home found"**, create that stream once in the UI:
+**Data Cloud → Data Streams → New → Salesforce CRM →** pick the source object (`Web_Event__c`,
+`Churn_Training__c`, Account, Order_Analytics__c, Shipment, ReturnOrder, FulfillmentOrder as applicable) → map to
+the matching `*_Home` DLO → **Save & Run**, then re-run the metadata deploy.
 
 ### C) Data Cloud — Identity Resolution + Calculated Insights (Connect REST API)
 **GOTCHA (root cause from this build):** Identity Resolution silently produces **0 unified profiles** if the
@@ -255,6 +267,12 @@ Developer Edition / small orgs are storage-constrained. **Do not run `sf agent t
 AI Evaluation result records are a large, hard-to-delete storage hog (Testing Center UI only). A MIAW
 `POST /conversation` → **412** usually means storage is full, not misconfiguration. Check:
 `sf api request rest "/services/data/v62.0/limits" --target-org $ORG | jq '.DataStorageMB'`.
+
+The web engagement endpoint also fails when data storage is full (`STORAGE_LIMIT_EXCEEDED` from
+`EngagementRest`). After generating transient prediction rows or endpoint probes, run:
+```bash
+sf apex run --file tools/cleanup_transient_storage.apex --target-org $ORG
+```
 
 ---
 

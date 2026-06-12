@@ -43,6 +43,8 @@ cd "$REPO_ROOT"
 PERMISSION_SETS=(
   "Kwitko_Integration"
   "Kwitko_Messaging_Ops"
+  "Engagement_Tracking"   # FLS for Web_Event__c (engagement capture + identity stitch)
+  "Predictive_Scoring"    # FLS for churn/LTV fields + Churn_Training__c (predictive pipeline)
 )
 
 log()  { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
@@ -143,14 +145,42 @@ deploy_dirs "6. Flows (routing + automation)" \
   "force-app/main/default/flows" \
   "force-app/main/default/flowDefinitions"
 
-# 7) Data Cloud DEPLOYABLE metadata, in dependency order:
-#    DLO defs -> DLO->DMO maps -> Calculated Insights.
-#    (CRM data streams that POPULATE the DLOs are UI-gated; see post-deploy checklist.)
+# 7) Data Cloud metadata, in dependency order:
+#    DLO defs -> CRM stream metadata -> DLO->DMO maps -> Calculated Insights.
+#    Stream metadata is org-sensitive, so its deploy is non-fatal with a UI fallback.
 deploy_dirs "7a. Data Cloud DLO definitions (dataSourceObjects)" \
   "force-app/main/default/dataSourceObjects"
-deploy_dirs "7b. Data Cloud DLO->DMO maps (objectSourceTargetMaps)" \
+
+# 7b. CRM DATA STREAMS (MktDataTranObject + DataStreamDefinition) — NON-FATAL.
+#     On a fresh org these create/upsert the streams that POPULATE the *_Home DLOs. If the
+#     source object has never been streamed, the Metadata API rejects with
+#     "no MktDataTranObject named <X>_Home found" — that is expected on first run: create the
+#     stream once in the UI (Data Streams > New > Salesforce CRM) and re-run this script; the
+#     metadata then upserts cleanly. We do NOT abort the whole deploy on this step.
+deploy_streams_nonfatal() {
+  local args=() dir
+  for dir in "force-app/main/default/mktDataTranObjects" \
+             "force-app/main/default/dataStreamDefinitions"; do
+    if [[ -d "$dir" ]] && find "$dir" -type f -print -quit | grep -q .; then
+      args+=(--source-dir "$dir")
+    fi
+  done
+  [[ "${#args[@]}" -eq 0 ]] && { warn "Skipping '7d. Data Cloud streams' — no source found."; return 0; }
+  log "Deploying: 7d. Data Cloud CRM streams (dataStreamDefinitions, mktDataTranObjects) [non-fatal]"
+  if sf project deploy start "${args[@]}" --target-org "$ORG_ALIAS" \
+        --test-level NoTestRun --wait "$WAIT_MINUTES" --concise; then
+    echo "    streams deployed."
+  else
+    warn "Stream metadata deploy failed (expected on a fresh org with no prior stream for the"
+    warn "source object). Create each stream once in the Data Cloud UI (see post-deploy section B),"
+    warn "then re-run this script — the stream metadata will upsert cleanly. Continuing."
+  fi
+}
+deploy_streams_nonfatal
+
+deploy_dirs "7c. Data Cloud DLO->DMO maps (objectSourceTargetMaps)" \
   "force-app/main/default/objectSourceTargetMaps"
-deploy_dirs "7c. Data Cloud Calculated Insights (mktCalcInsightObjectDefs)" \
+deploy_dirs "7d. Data Cloud Calculated Insights (mktCalcInsightObjectDefs)" \
   "force-app/main/default/mktCalcInsightObjectDefs"
 
 # 8) Security/access (permission sets + profile). After all referenced objects/fields exist.
@@ -208,11 +238,15 @@ A) AGENTFORCE AGENTS (authoring bundles are excluded from the manifest)
        sf apex run --target-org "<alias>" \
          --apex 'System.debug(AgentInvoker.callAgent("Product_Advisor","hello").agentResponse);'
 
-B) DATA CLOUD — CRM DATA STREAMS (UI-gated; "no MktDataTranObject" on metadata deploy)
-   For each DataSourceObject (DLO) in the package, create the CRM data stream that feeds it:
+B) DATA CLOUD — CRM DATA STREAMS (metadata first, UI fallback)
+   This repo includes retrieved stream metadata for Web_Event__c_Home and
+   Churn_Training__c_Home, plus the legacy commerce streams. The script attempts to
+   deploy MktDataTranObject/DataStreamDefinition metadata. If a target org rejects a
+   stream with "no MktDataTranObject named <X>_Home found", create that stream once:
      Data Cloud UI > Data Streams > New > Salesforce CRM > pick the source object
-       (Account, Order_Analytics__c, Shipment, ReturnOrder, FulfillmentOrder) >
-       map to the matching *_Home DLO > Save & Run.
+       (Web_Event__c, Churn_Training__c, Account, Order_Analytics__c, Shipment,
+        ReturnOrder, FulfillmentOrder as applicable) >
+       map to the matching *_Home DLO > Save & Run, then re-run this script.
 
 C) DATA CLOUD — IDENTITY RESOLUTION + CALCULATED INSIGHTS (API post-steps)
    GOTCHA (root cause from this build): the unified Individual key MUST source from a POPULATED
@@ -222,11 +256,12 @@ C) DATA CLOUD — IDENTITY RESOLUTION + CALCULATED INSIGHTS (API post-steps)
    yields 0 unified profiles.
    Then run, via the Data Cloud REST API (uses the org you are logged into):
      # Run Identity Resolution now (accepted once keys are populated):
-     sf api request rest "/services/data/v62.0/ssot/identity-resolutions/<RulesetApiName>/actions/run" --method POST --target-org "<alias>"
+     sf api request rest "/services/data/v62.0/ssot/identity-resolutions/<RulesetApiName>/actions/run-now" --method POST --body '{}' --target-org "<alias>"
      # Run each Calculated Insight:
      sf api request rest "/services/data/v62.0/ssot/calculated-insights/Customer_Agent_Profile__cio/actions/run" --method POST --target-org "<alias>"
      # (repeat for Customer_Category_Affinity, Customer_Return_Risk, Customer_Service_Risk,
-     #  Return_Churn_By_Account, Shipment_Delivery_Health, Order_Patterns_by_Demographics)
+     #  Return_Churn_By_Account, Shipment_Delivery_Health, Order_Patterns_by_Demographics,
+     #  Web_Engagement_Profile_v2)
    Verify unified profiles populated:
      sf data query --target-org "<alias>" --query "SELECT COUNT() FROM UnifiedssotIndividual__dlm"
 
