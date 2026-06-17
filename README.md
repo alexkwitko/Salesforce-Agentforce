@@ -89,6 +89,19 @@ Agent actions are thin Apex `@InvocableMethod` wrappers; every agent shares **on
 
 ---
 
+## Autonomous automation, governance & certification
+
+This isn't just request/response agents — much of it runs **proactively**:
+
+- **Scheduled sweeps + record-triggered flows** drive the business without a human asking: `AbandonedCartSweep`, `CartRecoverySweep`, `PostPurchaseSweep`, `Chat_Nurture_Sweep`, `Lead_Copilot_Nurture_Sweep`, `RenewalRetentionScheduler`, `ReplenishmentService`, `ChurnScoreService`, `ServiceInteractionLogPull`, plus flows `Auto_Invoke_PostPurchase_Agent`, `Auto_Post_Purchase_Offer`, `Winback_On_Return`, `Order_Close_Lead_On_Purchase`, `Inside_Sales_Handoff_To_Nurture`, `Sync_Product_to_WooCommerce`.
+- **Deterministic discount governance** — a full **RFM-tier × channel matrix** in `Discount_Rule__mdt` (New / Occasional / Recurrent / Lapsed × abandoned-cart / chat / post-purchase). The agents *resolve* a discount from the matrix; they never invent one.
+- **Secrets** via protected custom metadata (`Kwitko_Secret__mdt` / `KwitkoSecrets`) — no keys in code.
+- **Agent certification** — multi-turn evaluation (`aiEvaluationDefinitions`) + a live certification matrix and evidence under `docs/proofs/`; design docs under `docs/agents/`.
+- **Service automation** — Case `assignmentRules` + `escalationRules`, `sharingRules`, and a Field Service **offline mobile briefcase** (`briefcaseDefinitions`).
+- **Cross-agent memory & traceability** — `Customer_Journey__c` + `JourneyLogger`/`JourneyService` record who/what/when across every agent so actions are auditable and agents share context.
+
+---
+
 ## Quick start — deploy to a fresh dev/scratch org (one command)
 
 ```bash
