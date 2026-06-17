@@ -1,0 +1,199 @@
+<!--
+  Bean & Brew (LWR D2C storefront) → Salesforce Data Cloud Web SDK beacon.
+
+  This is the LWR twin of the live Woo beacon (tools/wpcode_datacloud_sdk.php): it uses the SAME
+  Data Cloud connector, the SAME SalesforceInteractions SDK API (init + initSitemap + pageTypes +
+  CatalogObjectInteractionName / CartInteractionName), and the SAME identify-on-known-email /
+  reset-on-logout logic — so both stores feed Data Cloud the identical Web_Event schema. The ONLY
+  difference is every catalog/cart event carries  brand = "Bean & Brew"  (Woo carries "Kwitko Coffee").
+  Identity Resolution unifies the same person across both brands by email → one Unified Individual;
+  Brand__c is just a dimension that slices that one profile by store.
+
+  INSTALL (one UI step — standard components only, no custom LWC):
+    Experience Builder → Bean & Brew site → Settings → Advanced → Head Markup → paste this block →
+    Save → Publish.
+  NO new Data Cloud Web connector is required — this reuses THIS org's existing connector beacon.
+  Before publishing, set COOKIE_DOMAIN below to your storefront domain (e.g. ".my.site.com" or your
+  custom domain). The add-to-cart / email selectors target the standard Commerce LWR components;
+  adjust only if you've replaced those components.
+-->
+<script defer src="https://cdn.c360a.salesforce.com/beacon/c360a/f60b9bc1-8d47-44de-b802-7e21cf783065/scripts/c360a.min.js"></script>
+<script>
+(function () {
+	var BRAND = "Bean & Brew";                 // brand dimension (Woo beacon uses "Kwitko Coffee")
+	var COOKIE_DOMAIN = ".my.site.com";        // <-- set to your Bean & Brew storefront domain
+	var CONSENT = { purpose: "Tracking", provider: "Bean & Brew Commerce", status: "Opt In" };
+	var IDENTITY_KEY = "beanbrew_dc_identity";
+	var RESET_KEY = "beanbrew_dc_reset_requested";
+
+	function waitForSdk(attemptsLeft) {
+		if (window.SalesforceInteractions) { return Promise.resolve(window.SalesforceInteractions); }
+		if (attemptsLeft <= 0) { return Promise.reject(new Error("SalesforceInteractions SDK not loaded")); }
+		return new Promise(function (resolve) { setTimeout(resolve, 100); }).then(function () {
+			return waitForSdk(attemptsLeft - 1);
+		});
+	}
+
+	function cleanText(value, fallback) {
+		value = (value || "").toString().trim();
+		return value || fallback || "";
+	}
+
+	function emailLocalPart(email) {
+		return cleanText((email || "").split("@")[0], "Shopper");
+	}
+
+	function identityState(email) {
+		email = cleanText(email).toLowerCase();
+		return email ? "user:" + email : "guest";
+	}
+
+	function resetSdkIdentity(si) {
+		try {
+			window.__beanbrewIdentifyDone = null;
+			if (si && typeof si.reset === "function") { si.reset(); return true; }
+			if (window.SalesforceInteractions && typeof window.SalesforceInteractions.reset === "function") {
+				window.SalesforceInteractions.reset(); return true;
+			}
+		} catch (e) {}
+		return false;
+	}
+
+	function syncIdentityState(si, email) {
+		try {
+			var current = identityState(email);
+			var previous = localStorage.getItem(IDENTITY_KEY);
+			var resetRequested = localStorage.getItem(RESET_KEY);
+			if (resetRequested || (previous && previous !== current)) {
+				resetSdkIdentity(si);
+				localStorage.removeItem(RESET_KEY);
+			}
+			localStorage.setItem(IDENTITY_KEY, current);
+		} catch (e) {}
+	}
+
+	// ---- standard Commerce LWR product context (parsed client-side; no server render) ----
+	// Standard product page paths look like /product/<slug>/<productId> or carry recordId in the URL.
+	function currentProduct() {
+		var path = window.location.pathname || "/";
+		var m = path.match(/\/product\/[^\/]+\/([A-Za-z0-9]{15,18})(?:[\/?#]|$)/) ||
+		        path.match(/\/product\/([A-Za-z0-9]{15,18})(?:[\/?#]|$)/);
+		if (!m) {
+			var rid = new URLSearchParams(window.location.search).get("recordId");
+			if (rid) { m = [null, rid]; }
+		}
+		if (!m) { return null; }
+		var nameEl = document.querySelector("h1, .product-name, [data-product-title]");
+		return {
+			id: String(m[1]),
+			name: cleanText(nameEl ? nameEl.textContent : document.title, "Product"),
+			currency: "USD"
+		};
+	}
+
+	function currentQuantity() {
+		var input = document.querySelector("input[name='quantity'], input.quantity, input.qty, lightning-input input[type='number']");
+		var qty = input ? parseInt(input.value, 10) : 1;
+		return isNaN(qty) || qty < 1 ? 1 : qty;
+	}
+
+	function pageCatalogObject() {
+		var path = window.location.pathname || "/";
+		var id = path === "/" ? "home" : path.replace(/^\/+|\/+$/g, "");
+		return { id: "page:" + (id || "home"), name: cleanText(document.title, id || "Bean & Brew"), type: "Page" };
+	}
+
+	function lineItemFor(product) {
+		if (!product || !product.id) { return null; }
+		return {
+			catalogObjectType: "Product",
+			catalogObjectId: String(product.id),
+			quantity: currentQuantity(),
+			currency: product.currency || "USD"
+		};
+	}
+
+	function identifyWithSdk(si, email, firstName, lastName, userId) {
+		email = cleanText(email);
+		if (!email || email.indexOf("@") < 1) { return; }
+		firstName = cleanText(firstName, emailLocalPart(email));
+		lastName = cleanText(lastName, "Customer");
+		syncIdentityState(si, email);
+
+		si.sendEvent({ user: { attributes: { eventType: "contactPointEmail", email: email } } });
+		si.sendEvent({ user: { attributes: { eventType: "identity", firstName: firstName, lastName: lastName, isAnonymous: "0" } } });
+		if (userId) {
+			si.sendEvent({ user: { attributes: {
+				eventType: "partyIdentification", IDName: "Commerce User ID", IDType: "Salesforce", userId: String(userId)
+			} } });
+		}
+	}
+
+	waitForSdk(80).then(function (si) {
+		syncIdentityState(si, "");
+		return si.init({ cookieDomain: COOKIE_DOMAIN, consents: [CONSENT] }).then(function () {
+			var sitemapConfig = {
+				global: {
+					locale: "en_US",
+					listeners: [
+						si.listener("change", "input[type='email'], input[name='email'], input[name='Email']", function (event) {
+							identifyWithSdk(si, event.target.value, "", "", "");
+						}),
+						si.listener("click", "button[name='addToCart'], .add-to-cart-button, button[data-add-to-cart]", function () {
+							var item = lineItemFor(currentProduct());
+							if (!item) { return; }
+							si.sendEvent({ interaction: { name: si.CartInteractionName.AddToCart, lineItem: item } });
+						})
+					]
+				},
+				pageTypes: [
+					{
+						name: "product_detail",
+						isMatch: function () { return !!currentProduct(); },
+						interaction: {
+							name: si.CatalogObjectInteractionName.ViewCatalogObjectDetail,
+							catalogObject: {
+								type: "Product",
+								id: function () { var p = currentProduct(); return p ? p.id : "unknown"; },
+								attributes: {
+									name: function () { var p = currentProduct(); return p ? p.name : "Product"; },
+									currency: function () { return "USD"; },
+									brand: function () { return BRAND; }
+								}
+							}
+						}
+					}
+				],
+				pageTypeDefault: {
+					name: "default_page",
+					interaction: {
+						name: si.CatalogObjectInteractionName.ViewCatalogObject,
+						catalogObject: {
+							type: function () { return pageCatalogObject().type; },
+							id: function () { return pageCatalogObject().id; },
+							attributes: {
+								name: function () { return pageCatalogObject().name; },
+								brand: function () { return BRAND; }
+							}
+						}
+					}
+				}
+			};
+
+			si.initSitemap(sitemapConfig);
+
+			// Site calls these from a logged-in template / after login / on logout:
+			window.beanBrewIdentify = function (email, firstName, lastName) {
+				identifyWithSdk(si, email, firstName, lastName, "");
+			};
+			window.beanBrewDataCloudIdentify = window.beanBrewIdentify;
+			window.beanBrewDataCloudReset = function () {
+				resetSdkIdentity(si);
+				try { localStorage.removeItem(RESET_KEY); localStorage.setItem(IDENTITY_KEY, "guest"); } catch (e) {}
+			};
+		});
+	}).catch(function (error) {
+		if (window.console && console.warn) { console.warn("Bean & Brew Data Cloud SDK init failed", error); }
+	});
+})();
+</script>

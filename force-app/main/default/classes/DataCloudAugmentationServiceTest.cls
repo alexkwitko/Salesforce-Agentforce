@@ -67,14 +67,15 @@ private class DataCloudAugmentationServiceTest {
     static void refreshUsesDataCloudCalculatedInsightRowsWhenAvailable() {
         Id rt = [SELECT Id FROM RecordType WHERE SobjectType='Account' AND IsPersonType=true LIMIT 1].Id;
         Account a = new Account(RecordTypeId=rt, FirstName='Unified', LastName='Profile',
-            PersonEmail='unified.profile@example.com');
+            PersonEmail='unified.profile@example.com', Return_Count__c=2);
         insert a;
 
         DataCloudAugmentationService.testRowsBySqlToken = new Map<String, List<Object>>{
             'ssot__ContactPointEmail__dlm' => new List<Object>{ 'unified.profile@example.com', 'uid-123', 'Unified', '{"roast":"medium"}' },
-            'Customer_Agent_Profile__cio' => new List<Object>{ String.valueOf(a.Id), 5, 410, 82, String.valueOf(Date.today()) },
-            'Customer_Category_Affinity__cio' => new List<Object>{ 'Espresso', 5 },
-            'Customer_Return_Risk__cio' => new List<Object>{ 2, String.valueOf(Date.today()) },
+            'UnifiedLinkssotIndividualCoff__dlm' => new List<Object>{ 'uid-123' },
+            'UP_Customer_Value__cio' => new List<Object>{ 5, 410, 82, String.valueOf(Date.today()) },
+            'UP_Web_Engagement_Device_Profile__cio' => new List<Object>{ 9, 2, 3, 240, String.valueOf(Date.today()) },
+            'UP_Service_Profile__cio' => new List<Object>{ 7, String.valueOf(Date.today()) },
             'Web_Engagement_Profile_v2__cio' => new List<Object>{ 9, 240, String.valueOf(Date.today()) }
         };
         DataCloudAugmentationService.Request r = new DataCloudAugmentationService.Request();
@@ -92,21 +93,66 @@ private class DataCloudAugmentationServiceTest {
         System.assertEquals('VIP', res.segment);
         System.assertEquals('High', res.churnRisk);
         System.assertEquals('Resolve the service or return issue before making a new sales offer.', res.nextBestAction);
-        System.assertEquals('Data Cloud CI + CRM fallback', res.insightSource);
-        System.assertEquals('Espresso', res.favoriteCategory);
+        System.assertEquals('Data Cloud Unified CI + CRM fallback', res.insightSource);
         System.assertEquals(9, res.webEventCount, 'web engagement CI surfaced to the result');
+        System.assertEquals(2, res.webDeviceCount, 'SDK device count surfaced to the result');
+        System.assertEquals(3, res.webSessionCount, 'SDK session count surfaced to the result');
         System.assertEquals(Decimal.valueOf(240), res.webDwellSeconds, 'dwell seconds surfaced');
-        System.assert(res.profileSummary.contains('web event'), 'summary mentions web engagement: ' + res.profileSummary);
+        System.assert(res.profileSummary.contains('2 device'), 'summary mentions device count: ' + res.profileSummary);
+        System.assert(res.profileSummary.contains('3 session'), 'summary mentions session count: ' + res.profileSummary);
 
         Account refreshed = [SELECT Data_Cloud_Unified_Individual_Id__c, Data_Cloud_Order_Count__c,
                              Data_Cloud_Lifetime_Value__c, Data_Cloud_Favorite_Category__c,
-                             Data_Cloud_Return_Count__c, Data_Cloud_Insight_Source__c
+                             Data_Cloud_Return_Count__c, Data_Cloud_Insight_Source__c,
+                             Insights_Web_Events__c, Insights_Device_Count__c, Insights_Session_Count__c,
+                             Insights_Total_Cases__c
                              FROM Account WHERE Id = :a.Id];
         System.assertEquals('uid-123', refreshed.Data_Cloud_Unified_Individual_Id__c);
         System.assertEquals(5, refreshed.Data_Cloud_Order_Count__c.intValue());
         System.assertEquals(Decimal.valueOf(410), refreshed.Data_Cloud_Lifetime_Value__c);
-        System.assertEquals('Espresso', refreshed.Data_Cloud_Favorite_Category__c);
         System.assertEquals(2, refreshed.Data_Cloud_Return_Count__c.intValue());
-        System.assertEquals('Data Cloud CI + CRM fallback', refreshed.Data_Cloud_Insight_Source__c);
+        System.assertEquals(9, refreshed.Insights_Web_Events__c.intValue());
+        System.assertEquals(2, refreshed.Insights_Device_Count__c.intValue());
+        System.assertEquals(3, refreshed.Insights_Session_Count__c.intValue());
+        System.assertEquals(7, refreshed.Insights_Total_Cases__c.intValue(), 'unified service profile case count cached');
+        System.assertEquals('Data Cloud Unified CI + CRM fallback', refreshed.Data_Cloud_Insight_Source__c);
+    }
+
+    @isTest
+    static void asyncRefreshUsesDataCloudRowsWhenAvailableInTest() {
+        Id rt = [SELECT Id FROM RecordType WHERE SobjectType='Account' AND IsPersonType=true LIMIT 1].Id;
+        Account a = new Account(RecordTypeId=rt, FirstName='Async', LastName='Unified',
+            PersonEmail='async.unified@example.com');
+        insert a;
+
+        DataCloudAugmentationService.testRowsBySqlToken = new Map<String, List<Object>>{
+            'ssot__ContactPointEmail__dlm' => new List<Object>{ 'async.unified@example.com', 'uid-async', 'Async', null },
+            'UnifiedLinkssotIndividualCoff__dlm' => new List<Object>{ 'uid-async' },
+            'UP_Customer_Value__cio' => new List<Object>{ 3, 180, 60, String.valueOf(Date.today()) },
+            'UP_Web_Engagement_Device_Profile__cio' => new List<Object>{ 4, 2, 3, 120, String.valueOf(Date.today()) },
+            'UP_Service_Profile__cio' => new List<Object>{ 5, String.valueOf(Date.today()) },
+            'Web_Engagement_Profile_v2__cio' => new List<Object>{ 4, 120, String.valueOf(Date.today()) }
+        };
+
+        Test.startTest();
+        DataCloudAugmentationService.refreshAccountFromDataCloudAsync(a.Id);
+        Test.stopTest();
+
+        Account refreshed = [
+            SELECT Data_Cloud_Unified_Individual_Id__c, Data_Cloud_Order_Count__c,
+                   Data_Cloud_Lifetime_Value__c, Data_Cloud_Insight_Source__c,
+                   Insights_Web_Events__c, Insights_Device_Count__c, Insights_Session_Count__c,
+                   Insights_Total_Cases__c
+            FROM Account
+            WHERE Id = :a.Id
+        ];
+        System.assertEquals('uid-async', refreshed.Data_Cloud_Unified_Individual_Id__c);
+        System.assertEquals(3, refreshed.Data_Cloud_Order_Count__c.intValue());
+        System.assertEquals(Decimal.valueOf(180), refreshed.Data_Cloud_Lifetime_Value__c);
+        System.assertEquals(4, refreshed.Insights_Web_Events__c.intValue());
+        System.assertEquals(2, refreshed.Insights_Device_Count__c.intValue());
+        System.assertEquals(3, refreshed.Insights_Session_Count__c.intValue());
+        System.assertEquals(5, refreshed.Insights_Total_Cases__c.intValue());
+        System.assertEquals('Data Cloud Unified CI + CRM fallback', refreshed.Data_Cloud_Insight_Source__c);
     }
 }

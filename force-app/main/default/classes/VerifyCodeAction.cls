@@ -7,14 +7,22 @@ public without sharing class VerifyCodeAction {
     public class Result {
         @InvocableVariable public Boolean verified;
         @InvocableVariable public String message;
+        @InvocableVariable(label='Email') public String email;
+        @InvocableVariable(label='Verified Email Proof' description='Opaque proof to pass as verifiedEmail to gated service actions after verified=true. Do not show to the shopper.')
+        public String verifiedEmail;
     }
     @InvocableMethod(label='Verify Code'
-        description='Checks the one-time code the shopper provided. On match, marks their email session-verified so account actions are allowed. Returns verified true/false and a message.')
+        description='Checks the one-time code the shopper provided. On match, returns an opaque proof to pass as verifiedEmail to gated account actions. Returns verified true/false and a message.')
     public static List<Result> run(List<Request> reqs) {
         List<Result> out = new List<Result>();
         for (Request r : reqs) {
             VerificationService.Outcome o = VerificationService.verify(r.email, r.code);
-            Result res = new Result(); res.verified = o.ok; res.message = o.message; out.add(res);
+            Result res = new Result();
+            res.verified = o.ok;
+            res.message = o.message;
+            res.email = o.email;
+            res.verifiedEmail = o.verifiedEmail;
+            out.add(res);
         }
         return out;
     }

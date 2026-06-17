@@ -1,0 +1,46 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "complementaryProductId" : {
+      "title" : "Complementary Product Id",
+      "description" : "Salesforce Product2 Id of the complementary product.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "complementaryProductName" : {
+      "title" : "Complementary Product Name",
+      "description" : "Grounded complementary product name.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "discountPercent" : {
+      "title" : "Discount Percent",
+      "description" : "Policy guidance only; not a real coupon unless issue_coupon has run.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "primaryProductId" : {
+      "title" : "Primary Product Id",
+      "description" : "Salesforce Product2 Id of the primary coffee. Required for add_to_cart.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "primaryProductName" : {
+      "title" : "Primary Product Name",
+      "description" : "Grounded product name.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

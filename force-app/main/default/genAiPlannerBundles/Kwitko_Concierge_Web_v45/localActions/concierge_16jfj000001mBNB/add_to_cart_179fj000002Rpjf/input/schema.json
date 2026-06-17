@@ -1,0 +1,21 @@
+{
+  "required" : [ "productIdsCsv" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "couponCode" : {
+      "title" : "Coupon Code",
+      "description" : "Optional discount coupon code to apply.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "productIdsCsv" : {
+      "title" : "Product Ids CSV",
+      "description" : "Comma-separated Salesforce product ids to add — use primaryProductId and complementaryProductId from the recommendation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Woo_Line_Item_Id__c</fullName>
+    <label>Woo Line Item Id</label>
+    <type>Text</type>
+    <length>80</length>
+    <description>WooCommerce line item ID copied from the original order item so receipt-driven refunds can include line-level refund totals.</description>
+</CustomField>

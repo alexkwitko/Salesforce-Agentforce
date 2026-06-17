@@ -1,0 +1,32 @@
+<template>
+    <section class="fc">
+        <header class="fc__head">
+            <div>
+                <p class="fc__eyebrow">Shop the collection</p>
+                <h2 class="fc__heading">{heading}</h2>
+            </div>
+            <p class="fc__sub">{subheading}</p>
+        </header>
+
+        <ul class="fc__grid">
+            <template for:each={cards} for:item="c">
+                <li key={c.id} class="card">
+                    <a class="card__link" href={c.url}>
+                        <div class={c.toneClass}>
+                            <span class="card__mark" aria-hidden="true">{c.initial}</span>
+                            <span class="card__tag">{c.tag}</span>
+                        </div>
+                        <div class="card__body">
+                            <h3 class="card__name">{c.name}</h3>
+                            <p class="card__blurb">{c.blurb}</p>
+                            <div class="card__foot">
+                                <span class="card__price">{c.price}</span>
+                                <span class="card__cta">View <span aria-hidden="true">&#8594;</span></span>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+            </template>
+        </ul>
+    </section>
+</template>

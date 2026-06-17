@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Brand__c</fullName>
+    <label>Brand</label>
+    <description>Which brand the order belongs to (Kwitko Coffee / Bean & Brew). A dimension on the unified profile; the customer unifies across brands by Identity Resolution.</description>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>false</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Kwitko Coffee</fullName><default>false</default><label>Kwitko Coffee</label></value>
+            <value><fullName>Bean &amp; Brew</fullName><default>false</default><label>Bean &amp; Brew</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

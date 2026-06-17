@@ -20,13 +20,10 @@ public without sharing class CartRecoverySweep implements Schedulable {
             LIMIT 100
         ];
         Set<Id> leadIds = new Set<Id>();
-        List<Cart__c> stamp = new List<Cart__c>();
         for (Cart__c c : carts) {
             leadIds.add(c.Lead__c);
-            stamp.add(new Cart__c(Id = c.Id, Recovery_Sent_At__c = System.now()));
         }
         for (Id lid : leadIds) System.enqueueJob(new Job(lid));
-        if (!stamp.isEmpty()) update stamp;
         return leadIds.size();
     }
 

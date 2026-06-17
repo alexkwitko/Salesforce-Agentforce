@@ -16,7 +16,8 @@
 public without sharing class LeadNurtureService {
 
     private static final String AGENT = 'Inside_Sales';
-    private static final String CART_URL = 'https://deepskyblue-deer-920559.hostingersite.com/cart';
+    private static final String CART_URL = 'https://deepskyblue-deer-920559.hostingersite.com/cart-2/';
+    @TestVisible private static Boolean forceEmailFailureInTests = false;
 
     public class Request {
         @InvocableVariable(label='Lead ID' required=true) public Id leadId;
@@ -50,13 +51,29 @@ public without sharing class LeadNurtureService {
 
         // ── 1. Reconstruct the abandoned cart (grounding) ──
         List<Cart_Item__c> items = new List<Cart_Item__c>();
-        List<Cart__c> carts = [SELECT Id FROM Cart__c WHERE Lead__c = :leadId ORDER BY LastModifiedDate DESC LIMIT 1];
+        List<Cart__c> carts = [
+            SELECT Id
+            FROM Cart__c
+            WHERE Lead__c = :leadId
+              AND Status__c = 'Abandoned'
+              AND Recovery_Sent_At__c = null
+            ORDER BY LastModifiedDate DESC
+            LIMIT 1
+        ];
         if (!carts.isEmpty()) {
             items = [SELECT Quantity__c, Unit_Price__c, SKU__c, Product__c, Product__r.Name
                      FROM Cart_Item__c WHERE Cart__c = :carts[0].Id ORDER BY Line_Total__c DESC];
         }
+        if (carts.isEmpty() || items.isEmpty()) {
+            res.message = 'No abandoned cart items were found for this lead. No coupon, no email.';
+            return res;
+        }
         List<Id> cartProdIds = new List<Id>();
         for (Cart_Item__c it : items) if (it.Product__c != null) cartProdIds.add(it.Product__c);
+        if (cartProdIds.isEmpty()) {
+            res.message = 'The abandoned cart has no Salesforce-linked products, so a restore link cannot be built. No coupon, no email.';
+            return res;
+        }
         String cartProdCsv = idsToCsv(cartProdIds);
 
         // ── 2. Real recommendation engine (callout-safe: skipJourneyWrite) ──
@@ -68,7 +85,7 @@ public without sharing class LeadNurtureService {
 
         Integer pct = (rec != null && rec.discountPercent != null && rec.discountPercent > 0) ? Integer.valueOf(rec.discountPercent) : 10;
         Date expiry = Date.today().addDays(7);
-        String code = 'COMEBACK' + String.valueOf(Math.mod(Math.abs(leadId.hashCode()), 10000));
+        String code = recoveryCode(carts[0].Id);
         res.couponCode = code;
 
         // recommendation display + ids to add to the restore link
@@ -87,6 +104,10 @@ public without sharing class LeadNurtureService {
         List<Id> restoreIds = new List<Id>(cartProdIds);
         restoreIds.addAll(recIds);
         String restoreUrl = buildRestoreUrl(restoreIds, code);
+        if (restoreUrl == CART_URL) {
+            res.message = 'The abandoned cart products are not synced to WooCommerce, so a one-click restore link cannot be built. No coupon, no email.';
+            return res;
+        }
 
         // ── 4. CALLOUTS (agent copy → Woo coupon) — before any DML ──
         Map<String, String> copy = agentCopy(firstName, itemsText, recNames, pct, code, expiry);
@@ -96,22 +117,34 @@ public without sharing class LeadNurtureService {
             heroImg, itemsHtml, recsHtml, pct, code, expiry, restoreUrl);
 
         String wooId = WooCouponService.createPercentCoupon(code, pct, expiry, l.Email, null);
+        if (String.isBlank(wooId)) {
+            res.message = 'Recovery coupon was not created in the store, so no email was sent and the cart was not marked recovered.';
+            return res;
+        }
 
         // ── 5. DML (coupon, email, lead, cross-agent context log) ──
+        EmailService.Request er = new EmailService.Request();
+        er.toEmail = l.Email;
+        er.subject = 'You left something brewing, ' + firstName + ' — ' + pct + '% off + your cart saved';
+        er.htmlBody = emailBody;
+        er.recordId = l.Id;
+        EmailService.Response emailResp = Test.isRunningTest() && forceEmailFailureInTests
+            ? failedEmailResponse('forced test email failure')
+            : EmailService.send(new List<EmailService.Request>{ er })[0];
+        if (emailResp == null || emailResp.success != true) {
+            WooCouponService.deleteCoupon(wooId);
+            res.message = 'Recovery email was not sent: ' + (emailResp == null ? 'unknown email send result' : emailResp.message);
+            return res;
+        }
+
         if ([SELECT count() FROM Coupon__c WHERE Code__c = :code] == 0) {
             insert new Coupon__c(Name=code, Code__c=code, Discount_Percent__c=pct,
                 Expiry_Date__c=expiry, Status__c='Issued', Woo_Coupon_Id__c=wooId,
                 Recommendation_Summary__c='Cart recovery for ' + l.Name + (rec != null ? ' (' + rec.buyerType + ')' : ''));
         }
 
-        EmailService.Request er = new EmailService.Request();
-        er.toEmail = l.Email;
-        er.subject = 'You left something brewing, ' + firstName + ' — ' + pct + '% off + your cart saved';
-        er.htmlBody = emailBody;
-        er.recordId = l.Id;
-        EmailService.send(new List<EmailService.Request>{ er });
-
         update new Lead(Id = l.Id, Status = 'Working - Contacted');
+        stampRecoveredCarts(l.Id);
 
         // Cross-agent context: record the recovery + coupon + recommended picks on the journey.
         try {
@@ -128,6 +161,19 @@ public without sharing class LeadNurtureService {
             + ' | items=' + items.size() + ' | recs=' + recNames.size()
             + (copy.containsKey('headline') ? ' | agent-authored' : ' | fallback copy');
         return res;
+    }
+
+    private static EmailService.Response failedEmailResponse(String message) {
+        EmailService.Response resp = new EmailService.Response();
+        resp.success = false;
+        resp.message = message;
+        return resp;
+    }
+
+    private static String recoveryCode(Id cartId) {
+        String raw = String.valueOf(cartId).replaceAll('[^A-Za-z0-9]', '').toUpperCase();
+        if (raw.length() > 8) raw = raw.substring(raw.length() - 8);
+        return 'COMEBACK' + raw;
     }
 
     /** Inside Sales agent authors persuasive copy grounded in the real cart items + recommendations. */
@@ -180,6 +226,22 @@ public without sharing class LeadNurtureService {
             CartLinkService.Result lr = CartLinkService.build(new List<CartLinkService.Request>{ cr })[0];
             return String.isNotBlank(lr.addToCartUrl) ? lr.addToCartUrl : CART_URL;
         } catch (Exception e) { return CART_URL; }
+    }
+
+    private static void stampRecoveredCarts(Id leadId) {
+        if (leadId == null) return;
+        List<Cart__c> updates = new List<Cart__c>();
+        for (Cart__c c : [
+            SELECT Id
+            FROM Cart__c
+            WHERE Lead__c = :leadId
+              AND Status__c = 'Abandoned'
+              AND Recovery_Sent_At__c = null
+            LIMIT 100
+        ]) {
+            updates.add(new Cart__c(Id = c.Id, Recovery_Sent_At__c = System.now()));
+        }
+        if (!updates.isEmpty()) update updates;
     }
 
     private static String itemsText(List<Cart_Item__c> items) {

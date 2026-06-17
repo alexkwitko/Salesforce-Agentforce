@@ -1,0 +1,45 @@
+<template>
+    <lightning-card title="Service Cockpit" icon-name="standard:service_contract">
+        <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+            <template lwc:if={hasInfo}>
+
+                <div class="section-title">SLA Milestones</div>
+                <template lwc:if={info.hasMilestones}>
+                    <template for:each={milestones} for:item="m">
+                        <div key={m.name} class="ms-row">
+                            <span class="ms-name">{m.name}</span>
+                            <span class={m.badgeClass}>{m.status}</span>
+                            <span class={m.countdownClass}>{m.countdown}</span>
+                        </div>
+                    </template>
+                </template>
+                <template lwc:else>
+                    <div class="muted">No SLA milestones on this case (no entitlement linked).</div>
+                </template>
+
+                <div class="section-title slds-m-top_medium">Entitlement &amp; Contract</div>
+                <template lwc:if={info.hasEntitlement}>
+                    <div class="kv"><span>Entitlement</span><b>{info.entitlementName}</b></div>
+                    <div class="kv"><span>SLA Process</span><b>{info.slaProcessName}</b></div>
+                    <div class="kv"><span>Active Through</span><b><lightning-formatted-date-time value={info.entEndDate}></lightning-formatted-date-time></b></div>
+                    <template lwc:if={info.hasContract}>
+                        <div class="kv"><span>Service Contract</span><b><a href={contractUrl}>{info.contractName}</a> &middot; {info.contractStatus}</b></div>
+                    </template>
+                </template>
+                <template lwc:else>
+                    <div class="muted">No entitlement linked — SLAs are not tracked for this case.</div>
+                </template>
+
+                <div class="section-title slds-m-top_medium">Context</div>
+                <div class="kv"><span>Account</span><b><a href={accountUrl}>{info.accountName}</a></b></div>
+                <template lwc:if={info.orderNumber}>
+                    <div class="kv"><span>Order</span><b><a href={orderUrl}>{info.orderNumber}</a></b></div>
+                </template>
+
+            </template>
+            <template lwc:if={error}>
+                <div class="muted">Unable to load service info for this case.</div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

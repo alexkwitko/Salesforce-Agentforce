@@ -17,6 +17,8 @@
  */
 public without sharing class PostPurchaseService {
 
+    @TestVisible private static Boolean forceEmailFailureInTests = false;
+
     // Coffee/"bean" families get a complementary equipment/accessory cross-sell.
     private static final Set<String> BEAN_FAMILIES = new Set<String>{
         'Single-Origin','Blends','Espresso','Decaf','Flavored','Subscriptions','Gift Sets'
@@ -173,9 +175,21 @@ public without sharing class PostPurchaseService {
         List<String> wooIds = new List<String>();
         if (String.isNotBlank(rec.Woo_Product_Id__c)) wooIds.add(rec.Woo_Product_Id__c);
         if (comp != null && String.isNotBlank(comp.Woo_Product_Id__c)) wooIds.add(comp.Woo_Product_Id__c);
-        String wooCouponId = pushCouponToWoo(code, pct, expiry, ord.Account.PersonEmail, wooIds);
+        String wooCouponId = WooCouponService.createPercentCoupon(code, pct.intValue(), expiry, ord.Account.PersonEmail, wooIds);
+        if (String.isBlank(wooCouponId)) {
+            res.summary = summary + ' Coupon was not created in WooCommerce, so no email was sent and no offer was recorded.';
+            return res;
+        }
 
-        // Persist Coupon__c + stamp order (DML now that callouts are done).
+        // Email before Salesforce DML so a failed send does not leave a false "Issued" offer.
+        EmailOutcome emailOutcome = sendEmail(ord, 'Your ' + pct.intValue() + '% off is waiting, ' + ord.Account.Name + ' ☕', emailBody);
+        if (emailOutcome.success != true) {
+            WooCouponService.deleteCoupon(wooCouponId);
+            res.summary = summary + ' Email was not sent: ' + emailOutcome.message;
+            return res;
+        }
+
+        // Persist Coupon__c + stamp order only after the Woo coupon exists and the email sent.
         insert new Coupon__c(
             Name = code, Code__c = code, Account__c = ord.AccountId, Order__c = ord.Id,
             Recommended_Product__c = rec.Id, Discount_Percent__c = pct, Expiry_Date__c = expiry,
@@ -184,9 +198,6 @@ public without sharing class PostPurchaseService {
         if (String.isBlank(ord.Coupon_Code__c)) {
             update new Order(Id = ord.Id, Coupon_Code__c = code);
         }
-
-        // Email the customer (Messaging.sendEmail is not a callout; safe after DML).
-        sendEmail(ord, 'Your ' + pct.intValue() + '% off is waiting, ' + ord.Account.Name + ' ☕', emailBody);
 
         // Cross-agent context: Growth generated an offer, so Service/Concierge/Inside Sales should know.
         try {
@@ -278,6 +289,15 @@ public without sharing class PostPurchaseService {
         return 'BREW' + catTag + suffix;
     }
 
+    private class EmailOutcome {
+        Boolean success;
+        String message;
+        EmailOutcome(Boolean success, String message) {
+            this.success = success;
+            this.message = message;
+        }
+    }
+
     /** WooCommerce coupon create. Returns Woo coupon id (string) or null on failure. */
     private static String pushCouponToWoo(String code, Decimal pct, Date expiry, String email, List<String> wooProductIds) {
         Map<String, Object> body = new Map<String, Object>{
@@ -311,18 +331,23 @@ public without sharing class PostPurchaseService {
         return null;
     }
 
-    private static void sendEmail(Order ord, String subject, String htmlBody) {
-        if (String.isBlank(ord.Account.PersonEmail)) return;
-        if (ord.Account.Email_Consent__c != true) return; // defense in depth
+    private static EmailOutcome sendEmail(Order ord, String subject, String htmlBody) {
+        if (String.isBlank(ord.Account.PersonEmail)) return new EmailOutcome(false, 'No recipient email.');
+        if (ord.Account.Email_Consent__c != true) return new EmailOutcome(false, 'No consent on file.'); // defense in depth
+        if (Test.isRunningTest() && forceEmailFailureInTests) return new EmailOutcome(false, 'forced test email failure');
         try {
-            Messaging.SingleEmailMessage msg = new Messaging.SingleEmailMessage();
-            msg.setToAddresses(new List<String>{ ord.Account.PersonEmail });
-            msg.setSubject(subject);
-            msg.setHtmlBody(htmlBody);
-            msg.setSaveAsActivity(false);
-            Messaging.sendEmail(new List<Messaging.SingleEmailMessage>{ msg });
+            EmailService.Request req = new EmailService.Request();
+            req.toEmail = ord.Account.PersonEmail;
+            req.subject = subject;
+            req.htmlBody = htmlBody;
+            req.recordId = ord.Id;
+            EmailService.Response resp = EmailService.send(new List<EmailService.Request>{ req })[0];
+            if (resp != null && resp.success == true) {
+                return new EmailOutcome(true, resp.message);
+            }
+            return new EmailOutcome(false, resp == null ? 'Unknown email send result.' : resp.message);
         } catch (Exception e) {
-            System.debug('Email send failed: ' + e.getMessage());
+            return new EmailOutcome(false, e.getMessage());
         }
     }
 }

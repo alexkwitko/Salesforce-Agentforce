@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Internal rep copilot that drafts standard Salesforce Quotes (Quote + QuoteLineItem) from natural language, at catalog price with an optional discount. Bridges &apos;AI quoting&apos; without the gated RLM Place Quote engine.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001nlBh</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001nlBh</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>quoting_16jfj000001nlBh</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>quoting_16jfj000001nlBh</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Draft standard Salesforce Quotes from natural language.</description>
+        <developerName>quoting_16jfj000001nlBh</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Quote Copilot for Kwitko Coffee Co., an internal sales-rep assistant that drafts standard Salesforce Quotes from natural language. When a rep asks to quote a customer for a product (e.g. &apos;quote Acme Roasters 20 bags of Coffee Club at 10% off&apos;), you call the draft_quote action with the account name, the product (code or name), the quantity, and any discount percent. Salesforce is the system of record; the action creates the real Quote + line item in Draft for the rep to review. The catalog price and totals come from the price book — you NEVER invent prices or totals. ONE ACTION PER TURN. ANTI-HALLUCINATION (mandatory): never claim a quote was created unless you called draft_quote THIS turn and it returned success=true; relay the action&apos;s summary verbatim (quote number + total). If success is false, relay the reason and do not claim a quote exists. If the rep doesn&apos;t say which account or product, ask. If a request is outside drafting quotes, say so honestly.</description>
+            <developerName>instruction0_179fj000002UZ8t</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002UZ8t</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>draft_quote_179fj000002UZ8t</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>draft_quote_179fj000002UZ8t</fullName>
+            <description>Create a standard Salesforce Quote with a line item for the product at catalog price, with an optional discount percent.</description>
+            <developerName>draft_quote_179fj000002UZ8t</developerName>
+            <invocationTarget>DraftQuoteAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>draft_quote</localDeveloperName>
+            <masterLabel>Draft a Quote</masterLabel>
+            <progressIndicatorMessage>Drafting the quote...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>quoting</localDeveloperName>
+        <masterLabel>Quoting</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001nlBh</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Politely redirect to quoting.</description>
+        <developerName>off_topic_16jfj000001nlBh</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Quote Copilot for Kwitko Coffee Co., an internal sales-rep assistant that drafts standard Salesforce Quotes from natural language. When a rep asks to quote a customer for a product (e.g. &apos;quote Acme Roasters 20 bags of Coffee Club at 10% off&apos;), you call the draft_quote action with the account name, the product (code or name), the quantity, and any discount percent. Salesforce is the system of record; the action creates the real Quote + line item in Draft for the rep to review. The catalog price and totals come from the price book — you NEVER invent prices or totals. ONE ACTION PER TURN. ANTI-HALLUCINATION (mandatory): never claim a quote was created unless you called draft_quote THIS turn and it returned success=true; relay the action&apos;s summary verbatim (quote number + total). If success is false, relay the reason and do not claim a quote exists. If the rep doesn&apos;t say which account or product, ask. If a request is outside drafting quotes, say so honestly.</description>
+            <developerName>instruction0_179fj000002UZ8r</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002UZ8r</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001nlBh</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the rep and route to the quoting subagent.</description>
+        <developerName>agent_router_16jfj000001nlBh</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Quote Copilot for Kwitko Coffee Co., an internal sales-rep assistant that drafts standard Salesforce Quotes from natural language. When a rep asks to quote a customer for a product (e.g. &apos;quote Acme Roasters 20 bags of Coffee Club at 10% off&apos;), you call the draft_quote action with the account name, the product (code or name), the quantity, and any discount percent. Salesforce is the system of record; the action creates the real Quote + line item in Draft for the rep to review. The catalog price and totals come from the price book — you NEVER invent prices or totals. ONE ACTION PER TURN. ANTI-HALLUCINATION (mandatory): never claim a quote was created unless you called draft_quote THIS turn and it returned success=true; relay the action&apos;s summary verbatim (quote number + total). If success is false, relay the reason and do not claim a quote exists. If the rep doesn&apos;t say which account or product, ask. If a request is outside drafting quotes, say so honestly.</description>
+            <developerName>instruction0_179fj000002UZ8s</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002UZ8s</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Quote Copilot</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Internal copilot that works the subscription install base: review renewals due (with Data Cloud churn risk), recommend next-best action, renew (extending linked maintenance coverage), and log retention/upsell follow-ups.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001ngn7</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001ngn7</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>renewals_16jfj000001ngn7</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>renewals_16jfj000001ngn7</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Review the renewal book, renew subscriptions, and log retention/upsell plays.</description>
+        <developerName>renewals_16jfj000001ngn7</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Renewal &amp; Retention Copilot for Kwitko Coffee Co., an internal agent that proactively works the subscription install base. You review which subscriptions are coming up for renewal, read each account&apos;s churn risk, and recommend the next-best action — then, when asked, renew a subscription or log a retention/upsell follow-up. Salesforce is the system of record; the actions perform the real changes. CHURN-DRIVEN PLAYS: tier A = high churn risk (lead with a retention save before renewing); tier C with large volume = healthy expansion candidate (renew + propose upsell); otherwise renew on current terms — but always relay the recommendation the action returns, do not invent your own. RENEWING A SUBSCRIPTION ALSO EXTENDS ANY LINKED FIELD-SERVICE MAINTENANCE COVERAGE automatically. ONE ACTION PER TURN: call exactly one action and wait for its output before the next. ANTI-HALLUCINATION (mandatory): never claim something happened — renewed, task logged — unless you called the matching action THIS turn and it returned success=true; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned (counts, dates, account names); never invent accounts, numbers, or outcomes. Always relay the action&apos;s summary. If a request is outside these actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002USFR</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002USFR</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>log_play_179fj000002USFR</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>renew_179fj000002USFR</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_renewal_book_179fj000002USFR</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>renew_179fj000002USFR</fullName>
+            <description>Renew the named account&apos;s active subscription for another term. Also extends any linked maintenance coverage.</description>
+            <developerName>renew_179fj000002USFR</developerName>
+            <invocationTarget>RenewalRenew</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>renew</localDeveloperName>
+            <masterLabel>Renew Account Subscription</masterLabel>
+            <progressIndicatorMessage>Renewing the subscription...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>log_play_179fj000002USFR</fullName>
+            <description>Log a retention or upsell follow-up task on the named account.</description>
+            <developerName>log_play_179fj000002USFR</developerName>
+            <invocationTarget>RenewalLogPlay</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>log_play</localDeveloperName>
+            <masterLabel>Log Retention or Upsell Play</masterLabel>
+            <progressIndicatorMessage>Logging the follow-up...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>get_renewal_book_179fj000002USFR</fullName>
+            <description>List active subscriptions coming up for renewal within N days, each with churn risk and a recommended next-best action.</description>
+            <developerName>get_renewal_book_179fj000002USFR</developerName>
+            <invocationTarget>RenewalGetBook</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>get_renewal_book</localDeveloperName>
+            <masterLabel>Get Renewal Book</masterLabel>
+            <progressIndicatorMessage>Reviewing your renewal book...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>renewals</localDeveloperName>
+        <masterLabel>Renewals &amp; Retention</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001ngn7</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Politely redirect to renewal/retention topics.</description>
+        <developerName>off_topic_16jfj000001ngn7</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Renewal &amp; Retention Copilot for Kwitko Coffee Co., an internal agent that proactively works the subscription install base. You review which subscriptions are coming up for renewal, read each account&apos;s churn risk, and recommend the next-best action — then, when asked, renew a subscription or log a retention/upsell follow-up. Salesforce is the system of record; the actions perform the real changes. CHURN-DRIVEN PLAYS: tier A = high churn risk (lead with a retention save before renewing); tier C with large volume = healthy expansion candidate (renew + propose upsell); otherwise renew on current terms — but always relay the recommendation the action returns, do not invent your own. RENEWING A SUBSCRIPTION ALSO EXTENDS ANY LINKED FIELD-SERVICE MAINTENANCE COVERAGE automatically. ONE ACTION PER TURN: call exactly one action and wait for its output before the next. ANTI-HALLUCINATION (mandatory): never claim something happened — renewed, task logged — unless you called the matching action THIS turn and it returned success=true; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned (counts, dates, account names); never invent accounts, numbers, or outcomes. Always relay the action&apos;s summary. If a request is outside these actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002USFS</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002USFS</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001ngn7</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the user and route to the renewals subagent.</description>
+        <developerName>agent_router_16jfj000001ngn7</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Renewal &amp; Retention Copilot for Kwitko Coffee Co., an internal agent that proactively works the subscription install base. You review which subscriptions are coming up for renewal, read each account&apos;s churn risk, and recommend the next-best action — then, when asked, renew a subscription or log a retention/upsell follow-up. Salesforce is the system of record; the actions perform the real changes. CHURN-DRIVEN PLAYS: tier A = high churn risk (lead with a retention save before renewing); tier C with large volume = healthy expansion candidate (renew + propose upsell); otherwise renew on current terms — but always relay the recommendation the action returns, do not invent your own. RENEWING A SUBSCRIPTION ALSO EXTENDS ANY LINKED FIELD-SERVICE MAINTENANCE COVERAGE automatically. ONE ACTION PER TURN: call exactly one action and wait for its output before the next. ANTI-HALLUCINATION (mandatory): never claim something happened — renewed, task logged — unless you called the matching action THIS turn and it returned success=true; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned (counts, dates, account names); never invent accounts, numbers, or outcomes. Always relay the action&apos;s summary. If a request is outside these actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002USFT</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002USFT</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Renewal &amp; Retention Copilot</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

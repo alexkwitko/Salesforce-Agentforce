@@ -88,6 +88,38 @@ private class ChurnScoreServiceTest {
         System.assertEquals(0, q.Web_Events_30d__c, 'no web activity -> zero');
     }
 
+    @isTest static void testDataCloudAccountWebInsightsDamperWithoutLegacyEvents() {
+        Id pbId = Test.getStandardPricebookId();
+        Product2 p = new Product2(Name='Coffee', IsActive=true); insert p;
+        PricebookEntry pbe = new PricebookEntry(Pricebook2Id=pbId, Product2Id=p.Id, UnitPrice=50, IsActive=true);
+        insert pbe;
+
+        Account quiet = makeBuyer('QuietSdkLapsed', true);
+        Account browsing = makeBuyer('BrowsingSdkLapsed', true);
+        for (Integer i=0; i<6; i++) {
+            addOrder(quiet.Id, pbe.Id, pbId, 200 + i*70, 120);
+            addOrder(browsing.Id, pbe.Id, pbId, 200 + i*70, 120);
+        }
+        update new Account(
+            Id = browsing.Id,
+            Insights_Web_Events__c = 12,
+            Insights_Last_Web_Activity__c = System.now().addDays(-1)
+        );
+
+        Test.startTest();
+        ChurnScoreService.scoreAll();
+        Test.stopTest();
+
+        Account q = [SELECT Churn_Score__c, Web_Events_30d__c, Web_Last_Seen__c FROM Account WHERE Id=:quiet.Id];
+        Account b = [SELECT Churn_Score__c, Web_Events_30d__c, Web_Last_Seen__c FROM Account WHERE Id=:browsing.Id];
+
+        System.assert(b.Churn_Score__c < q.Churn_Score__c,
+            'Data Cloud SDK web activity must dampen churn even when Web_Event__c is empty');
+        System.assertEquals(12, b.Web_Events_30d__c, 'SDK web event count written to operational web count');
+        System.assertNotEquals(null, b.Web_Last_Seen__c, 'SDK web last-seen written');
+        System.assertEquals(0, q.Web_Events_30d__c, 'silent customer remains without web signal');
+    }
+
     @isTest static void testEngagementOnlyVisitor() {
         // a stitched visitor with web events but NO orders still gets web fields
         Account visitor = makeBuyer('VisitorOnly', false);

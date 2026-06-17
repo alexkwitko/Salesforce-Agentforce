@@ -13,14 +13,16 @@ public without sharing class IdentityService {
     /**
      * Verified iff EITHER:
      *  - Tier-1: a non-blank verifiedEmail (the signed-in loggedInEmail) matches the requested email, OR
-     *  - Tier-2: the requested email is session-verified by a recent email OTP (VerificationService).
+     *  - Tier-2: verifiedEmail is the opaque OTP proof returned by VerifyCodeAction for this email.
      * Tier-2 is what lets a shopper who CANNOT log in (password/login issues) still prove identity.
      */
     public static Boolean isVerified(String requestedEmail, String verifiedEmail) {
         if (String.isBlank(requestedEmail)) return false;
         String req = requestedEmail.trim();
-        if (String.isNotBlank(verifiedEmail) && req.equalsIgnoreCase(verifiedEmail.trim())) return true; // Tier-1
-        return VerificationService.isSessionVerified(req); // Tier-2 email OTP
+        if (String.isBlank(verifiedEmail)) return false;
+        String verified = verifiedEmail.trim();
+        if (VerificationService.isOtpProofVerified(req, verified)) return true; // Tier-2 email OTP proof
+        return req.equalsIgnoreCase(verified); // Tier-1 logged-in email
     }
 
     /**

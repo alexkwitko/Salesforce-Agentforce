@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Resolution_Required_On_Close</fullName>
+    <active>true</active>
+    <description>Require a Resolution before closing a non-chat case. Chat cases are excluded so the AI agent's
+        resolution path (CaseResolutionService) is never blocked.</description>
+    <errorConditionFormula>AND(
+  ISPICKVAL(Status, "Closed"),
+  ISBLANK(Resolution__c),
+  NOT(ISPICKVAL(Origin, "Chat"))
+)</errorConditionFormula>
+    <errorDisplayField>Resolution__c</errorDisplayField>
+    <errorMessage>Please enter a Resolution before closing this case.</errorMessage>
+</ValidationRule>

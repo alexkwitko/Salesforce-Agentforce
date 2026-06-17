@@ -1,0 +1,32 @@
+<template>
+    <lightning-card title="Visit Assistant" icon-name="utility:einstein">
+        <div class="slds-p-horizontal_medium slds-p-bottom_medium">
+            <p class="slds-text-heading_small"><b>WO {workOrderNumber}</b> — {accountName}</p>
+            <p>{subject}</p>
+            <p class="slds-text-body_small slds-text-color_weak">Status: {status} &middot; Payment: {paymentStatus}</p>
+
+            <lightning-layout multiple-rows="true" class="slds-m-top_small">
+                <lightning-layout-item padding="around-xx-small"><lightning-button label="AI: Brief" variant="brand" onclick={brief}></lightning-button></lightning-layout-item>
+                <lightning-layout-item padding="around-xx-small"><lightning-button label="AI: Notes" onclick={notes}></lightning-button></lightning-layout-item>
+                <template if:true={scanAvailable}>
+                    <lightning-layout-item padding="around-xx-small"><lightning-button label="Scan serial" icon-name="utility:scan" onclick={scan}></lightning-button></lightning-layout-item>
+                </template>
+                <lightning-layout-item padding="around-xx-small"><lightning-button label="Service report" icon-name="utility:file" onclick={report}></lightning-button></lightning-layout-item>
+            </lightning-layout>
+
+            <div class="slds-grid slds-gutters slds-m-top_x-small">
+                <div class="slds-col"><lightning-input type="number" label="Collect $" value={payAmount} onchange={handlePayAmount}></lightning-input></div>
+                <div class="slds-col slds-align-bottom"><lightning-button label="Collect payment" onclick={pay}></lightning-button></div>
+            </div>
+            <div class="slds-grid slds-gutters slds-m-top_x-small">
+                <div class="slds-col"><lightning-input type="number" label="Quote hours (@ $95)" value={quoteHours} onchange={handleHours}></lightning-input></div>
+                <div class="slds-col slds-align-bottom"><lightning-button label="Create quote" onclick={quote}></lightning-button></div>
+            </div>
+
+            <template if:true={loading}><lightning-spinner alternative-text="Working" size="small"></lightning-spinner></template>
+            <template if:true={hasResult}><div class="slds-box slds-box_x-small slds-m-top_small slds-theme_success">{resultMsg}</div></template>
+            <template if:true={hasAi}><div class="slds-box slds-box_x-small slds-m-top_small"><lightning-formatted-text value={aiText}></lightning-formatted-text></div></template>
+            <template if:true={error}><p class="slds-text-color_error slds-m-top_x-small">{error}</p></template>
+        </div>
+    </lightning-card>
+</template>

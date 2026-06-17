@@ -1,0 +1,35 @@
+{
+  "required" : [ "email", "agentName" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "agentName" : {
+      "title" : "Agent Name",
+      "description" : "Pass Kwitko_Concierge_Web.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "The shopper's email.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "intent" : {
+      "title" : "Intent",
+      "description" : "Current service intent such as order status, return, refund, tracking, or case.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "Pass loggedInEmail. Required before returning private saved-cart, coupon, order, Data Cloud, or case context.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

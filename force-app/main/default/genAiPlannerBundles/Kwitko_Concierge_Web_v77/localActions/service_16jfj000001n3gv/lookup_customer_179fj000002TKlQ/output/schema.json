@@ -1,0 +1,94 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "dataCloudChurnRisk" : {
+      "title" : "Data Cloud Churn Risk",
+      "description" : "Verified-only risk signal from Account augmentation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudFavoriteCategory" : {
+      "title" : "Data Cloud Favorite Category",
+      "description" : "Verified-only category affinity from Account augmentation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudIndividualId" : {
+      "title" : "Data Cloud Individual Id",
+      "description" : "Unified Individual id when Data Cloud matched this shopper.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudLifetimeValue" : {
+      "title" : "Data Cloud Lifetime Value",
+      "description" : "Verified-only lifetime value from Account augmentation.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudNextBestAction" : {
+      "title" : "Data Cloud Next Best Action",
+      "description" : "Verified-only next-best-action guidance from Account augmentation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudOrderCount" : {
+      "title" : "Data Cloud Order Count",
+      "description" : "Verified-only order count from Account augmentation.",
+      "lightning:type" : "lightning__integerType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudPreferences" : {
+      "title" : "Data Cloud Preferences",
+      "description" : "Preferences from the Data Cloud unified profile when available.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudSegment" : {
+      "title" : "Data Cloud Segment",
+      "description" : "Verified-only customer segment from Account augmentation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudSummary" : {
+      "title" : "Data Cloud Summary",
+      "description" : "Brief Data Cloud profile summary.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "isReturning" : {
+      "title" : "Is Returning",
+      "description" : "Whether they are a known customer.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "summary" : {
+      "title" : "Summary",
+      "description" : "History plus a CROSS-AGENT CONTEXT section (saved cart, active coupon, last agent action, open cases, returns).",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Quote Copilot</label>
+        <name>Quote_Copilot</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <description>Internal rep copilot that drafts standard Salesforce Quotes (Quote + QuoteLineItem) from natural language, at catalog price with an optional discount. Bridges &apos;AI quoting&apos; without the gated RLM Place Quote engine.</description>
+    <label>Quote Copilot</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

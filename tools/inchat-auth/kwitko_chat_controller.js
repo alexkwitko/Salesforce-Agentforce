@@ -11,7 +11,7 @@
   "use strict";
   var CFG = window.KWITKO_AUTH || {};
   CFG.loginUrl = CFG.loginUrl || "/my-account-2/";
-  window.KWITKO_CHAT_CONTROLLER_VERSION = "20260607.7";
+  window.KWITKO_CHAT_CONTROLLER_VERSION = "20260613.1";
   var POLL_MS = 3000;
   var verified = false;
   var allowedPrechatFields = null;
@@ -111,19 +111,30 @@
       .catch(function () {});
   }
 
+  function fireDataCloudIdentify(email, firstName, lastName) {
+    var identifyFn =
+      typeof window.kwitkoDataCloudIdentify === "function"
+        ? window.kwitkoDataCloudIdentify
+        : typeof window.kwitkoIdentify === "function"
+          ? window.kwitkoIdentify
+          : null;
+    if (!email || !identifyFn) return false;
+    if (window.__kwitkoIdentifyDone === email) return true;
+    window.__kwitkoIdentifyDone = email;
+    try {
+      identifyFn(email, firstName || "", lastName || "");
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function setHiddenPrechatFields() {
     // Stitch this device's anonymous web-engagement history to the signed-in shopper the moment
     // we know who they are. Independent of the SF prechat mapping AND of chat readiness, so the
     // engagement cross-device stitch no longer depends on the separate optional identity snippet.
-    // Fires once per email per page load. (The engagement tracker exposes window.kwitkoIdentify.)
-    if (
-      CFG.loggedIn && CFG.email &&
-      typeof window.kwitkoIdentify === "function" &&
-      window.__kwitkoIdentifyDone !== CFG.email
-    ) {
-      window.__kwitkoIdentifyDone = CFG.email;
-      try { window.kwitkoIdentify(CFG.email, CFG.firstName || "", ""); } catch (e) {}
-    }
+    // Fires once per email per page load. Prefer the Data Cloud SDK helper; keep the old helper as a fallback.
+    if (CFG.loggedIn && CFG.email) fireDataCloudIdentify(CFG.email, CFG.firstName || "", "");
     if (
       !window.embeddedservice_bootstrap ||
       !embeddedservice_bootstrap.prechatAPI
@@ -165,19 +176,13 @@
         var allowed = {};
         var aliases = {
           Logged_In_Email: [
-            "Logged_In_Email",
-            "Kwitko_Logged_In_Email__c",
-            "loggedInEmail"
+            "Kwitko_Logged_In_Email__c"
           ],
           Logged_In_First_Name: [
-            "Logged_In_First_Name",
-            "Kwitko_Logged_In_First_Name__c",
-            "loggedInFirstName"
+            "Kwitko_Logged_In_First_Name__c"
           ],
           Kwitko_Cart_Token: [
-            "Kwitko_Cart_Token",
-            "Kwitko_Cart_Token__c",
-            "cartToken"
+            "Kwitko_Cart_Token__c"
           ]
         };
         var canonicalByAlias = {};
@@ -293,6 +298,8 @@
       openLoginModal();
     }
   }
+  setTimeout(maybeOpenLoginFromChatLink, 0);
+  setTimeout(maybeOpenLoginFromChatLink, 1200);
   if (document.readyState !== "loading") maybeOpenLoginFromChatLink();
   else
     document.addEventListener("DOMContentLoaded", maybeOpenLoginFromChatLink);
@@ -308,12 +315,31 @@
       openLoginModal();
   });
 
+  /* ---------- Chat-verified identity poller ---------- */
+  // When the shopper verifies their email IN CHAT (no WP login), Salesforce posts that verified email
+  // to /identify keyed by this browser's cart token. We poll it and fire the native kwitkoIdentify(),
+  // so the Data Cloud Web SDK stitches THIS device to that email (same path login already uses).
+  if (CFG.identifyUrl) {
+    setInterval(pollIdentify, POLL_MS);
+  }
+  function pollIdentify() {
+    fetchJSON(CFG.identifyUrl + "?token=" + encodeURIComponent(token()))
+      .then(function (q) {
+        if (!q || !q.email) return;
+        fireDataCloudIdentify(q.email, q.firstName || "", "");
+        // clear the queue so it isn't re-fired
+        fetch(CFG.identifyUrl + "?token=" + encodeURIComponent(token()), { method: "DELETE" }).catch(function () {});
+      })
+      .catch(function () {});
+  }
+
   /* ---------- Zero-click cart poller (Option C) + A/B fallback ---------- */
   setInterval(pollCart, POLL_MS);
   function pollCart() {
     fetchJSON(CFG.cartUrl + "?token=" + encodeURIComponent(token()))
       .then(function (q) {
         if (!q || !q.items || !q.items.length) return;
+        var replaceCart = q.clear === true || q.clear === "true" || q.clear === 1 || q.clear === "1";
         addItemsLive(q.items, q.coupon).then(function (ok) {
           // Clear the queue either way so it isn't re-applied.
           fetch(CFG.cartUrl + "?token=" + encodeURIComponent(token()), {
@@ -332,6 +358,7 @@
               location.origin +
               "/?kc_add=" +
               q.items.join(",") +
+              (replaceCart ? "&kc_clear=1" : "") +
               (q.coupon ? "&kc_coupon=" + encodeURIComponent(q.coupon) : "");
             location.assign(url);
           }

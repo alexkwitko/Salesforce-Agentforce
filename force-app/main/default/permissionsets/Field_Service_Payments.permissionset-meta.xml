@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Field Service Payments</label>
+    <hasActivationRequired>false</hasActivationRequired>
+    <fieldPermissions><field>WorkOrder.Payment_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>WorkOrder.Amount_Collected__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>

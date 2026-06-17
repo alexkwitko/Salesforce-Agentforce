@@ -7,6 +7,7 @@ public without sharing class CaseService {
 
     public class Request {
         @InvocableVariable(label='Email' required=true) public String email;
+        @InvocableVariable(label='Verified Email (pass loggedInEmail, or the email verified by OTP)') public String verifiedEmail;
         @InvocableVariable(label='Category' description='Order | Shipping | Returns | Refund | Product | Billing | Account | Escalation') public String category;
         @InvocableVariable(label='Subject' required=true) public String subject;
         @InvocableVariable(label='Description') public String description;
@@ -32,16 +33,18 @@ public without sharing class CaseService {
 
     private static Result doOpen(Request r) {
         Result res = new Result(); res.success = false;
-        Account acc = KwitkoServiceUtil.findAccount(r.email);
-        if (acc == null) { res.message = 'No account found for that email; ask the shopper to confirm their email or sign in.'; return res; }
+        Boolean verified = IdentityService.isVerified(r.email, r.verifiedEmail);
+        Account acc = verified ? KwitkoServiceUtil.findAccount(r.email) : null;
 
-        Order ord = String.isBlank(r.orderIdentifier) ? null : KwitkoServiceUtil.findOrder(acc.Id, r.orderIdentifier);
+        Order ord = (verified && acc != null && String.isNotBlank(r.orderIdentifier))
+            ? KwitkoServiceUtil.findOrder(acc.Id, r.orderIdentifier)
+            : null;
 
         String cat = normCategory(r.category);
         // Persist the chat transcript ON the case: standard Description carries the issue detail PLUS the
         // full conversation transcript (Description is a 32k long-text), so the case is self-contained and a
         // CSR sees what was said. (Native ConversationEntry is not persisted in this org — this is the trail.)
-        String transcript = String.isBlank(r.chatSummary) ? '' : r.chatSummary.trim();
+        String transcript = String.isBlank(r.chatSummary) ? '' : CaseTranscriptUtil.sanitizePreActionCaseClaims(r.chatSummary);
         String caseDescription = String.isBlank(r.description) ? '' : r.description.trim();
         if (String.isNotBlank(transcript)) {
             caseDescription = (String.isBlank(caseDescription) ? '' : (caseDescription + '\n\n'))
@@ -49,17 +52,22 @@ public without sharing class CaseService {
         }
         if (caseDescription.length() > 32000) caseDescription = caseDescription.substring(0, 32000);
 
+        String suppliedEmail = String.isBlank(r.email) ? null : r.email.trim();
+        String summary = (String.isBlank(r.subject) ? '' : (r.subject + ' — '))
+            + (String.isBlank(r.description) ? 'Opened from chat.' : r.description)
+            + (ord != null ? (' (order ' + KwitkoServiceUtil.displayOrderNumber(ord) + ')') : '');
+
         Case c = new Case(
-            AccountId = acc.Id,
-            ContactId = acc.PersonContactId,
+            AccountId = acc == null ? null : acc.Id,
+            ContactId = acc == null ? null : acc.PersonContactId,
+            SuppliedEmail = suppliedEmail,
             Subject = String.isBlank(r.subject) ? 'Chat request' : r.subject,
             Description = caseDescription,
             Origin = 'Chat',
             Status = (r.escalate == true) ? 'Escalated' : 'New',
             Priority = normPriority(r.priority, r.escalate == true),
             Category__c = cat,
-            Summary__c = (String.isBlank(r.subject) ? '' : (r.subject + ' — ')) + (String.isBlank(r.description) ? 'Opened from chat.' : r.description)
-                + (ord != null ? (' (order ' + ord.OrderNumber + ')') : '')
+            Summary__c = summary
         );
         if (ord != null) { c.Order__c = ord.Id; c.Woo_Order_Id__c = ord.Woo_Order_Id__c; }
         if (r.escalate == true) {
@@ -76,7 +84,7 @@ public without sharing class CaseService {
                 try {
                     insert new Task(
                         WhatId = c.Id,
-                        WhoId = acc.PersonContactId,
+                        WhoId = acc == null ? null : acc.PersonContactId,
                         Subject = 'Chat transcript',
                         Status = 'Completed',
                         Priority = 'Normal',
@@ -89,10 +97,10 @@ public without sharing class CaseService {
             // Cross-agent context: log so any agent sees this case on the customer's journey.
             try {
                 JourneyLogger.LogRequest lr = new JourneyLogger.LogRequest();
-                lr.email = acc.PersonEmail; lr.agent = 'Service';
+                lr.email = acc == null ? suppliedEmail : acc.PersonEmail; lr.agent = 'Service';
                 lr.action = (r.escalate == true) ? 'escalate_case' : 'open_case'; lr.stage = 'Service';
                 lr.result = 'Case ' + created.CaseNumber + ' (' + cat + '): ' + (String.isBlank(r.subject) ? 'chat request' : r.subject);
-                if (String.isNotBlank(acc.PersonEmail)) JourneyLogger.logInteraction(new List<JourneyLogger.LogRequest>{ lr });
+                if (verified && String.isNotBlank(lr.email)) JourneyLogger.logInteraction(new List<JourneyLogger.LogRequest>{ lr });
             } catch (Exception ex) { System.debug('journey log failed: ' + ex.getMessage()); }
             res.message = (r.escalate == true)
                 ? ('Escalated to our team — case ' + created.CaseNumber + '. A specialist will follow up.')

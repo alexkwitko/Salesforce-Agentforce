@@ -1,0 +1,28 @@
+{
+  "required" : [ "cartToken", "verifiedEmail" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "cartToken" : {
+      "title" : "Cart Token",
+      "description" : "The browser cart token from the session ({!@variables.cartToken}).",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "firstName" : {
+      "title" : "First Name",
+      "description" : "The shopper first name if known; optional.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "The email that was JUST verified by the code (never a typed/unverified claim).",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

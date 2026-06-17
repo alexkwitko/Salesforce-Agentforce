@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Renewal &amp; Retention Copilot</label>
+        <name>Renewal_Retention</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <description>Internal copilot that works the subscription install base: review renewals due (with Data Cloud churn risk), recommend next-best action, renew (extending linked maintenance coverage), and log retention/upsell follow-ups.</description>
+    <label>Renewal &amp; Retention Copilot</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

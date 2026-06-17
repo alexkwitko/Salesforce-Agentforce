@@ -1,0 +1,17 @@
+<template>
+    <section class="nl">
+        <div class="nl__inner">
+            <h2 class="nl__heading">{heading}</h2>
+            <p class="nl__sub">{subhead}</p>
+            <template lwc:if={done}>
+                <p class="nl__done">Welcome to the crew — check your inbox for the guide. &#9749;</p>
+            </template>
+            <template lwc:else>
+                <form class="nl__form" onsubmit={handleSubmit}>
+                    <input class="nl__input" type="email" placeholder="you@cafe.com" value={email} oninput={handleInput} aria-label="Email address" required />
+                    <button class="nl__btn" type="submit">Subscribe</button>
+                </form>
+            </template>
+        </div>
+    </section>
+</template>

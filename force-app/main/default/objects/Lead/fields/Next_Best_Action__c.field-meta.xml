@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Next_Best_Action__c</fullName>
+    <description>Lead Copilot's latest recommended next-best-action(s), derived from unified-profile metrics (LTV, purchases, recency, cart).</description>
+    <externalId>false</externalId>
+    <label>Next Best Action</label>
+    <length>1000</length>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <type>LongTextArea</type>
+    <visibleLines>4</visibleLines>
+</CustomField>

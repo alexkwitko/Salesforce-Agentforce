@@ -106,6 +106,38 @@
     </actionCalls>
     <apiVersion>66.0</apiVersion>
     <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <decisions>
+        <name>Has_Identity</name>
+        <label>Has Identity</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Route_to_Concierge_Web</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>No Identity</defaultConnectorLabel>
+        <rules>
+            <name>Identity_Provided</name>
+            <conditionLogic>or</conditionLogic>
+            <conditions>
+                <leftValueReference>loggedInEmail</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>cartToken</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Set_Identity_On_Session</targetReference>
+            </connector>
+            <label>Identity Provided</label>
+        </rules>
+    </decisions>
     <environments>Default</environments>
     <interviewLabel>Kwitko Web Chat Routing {!$Flow.CurrentDateTime}</interviewLabel>
     <label>Kwitko Web Chat Routing</label>
@@ -128,14 +160,78 @@
         </value>
     </processMetadataValues>
     <processType>RoutingFlow</processType>
-    <start>
+    <recordUpdates>
+        <name>Set_Identity_On_Session</name>
+        <label>Set Identity On Session</label>
         <locationX>0</locationX>
         <locationY>0</locationY>
         <connector>
             <targetReference>Route_to_Concierge_Web</targetReference>
         </connector>
+        <inputAssignments>
+            <field>Kwitko_Cart_Token__c</field>
+            <value>
+                <elementReference>cartToken</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Kwitko_Logged_In_Email__c</field>
+            <value>
+                <elementReference>loggedInEmail</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Kwitko_Logged_In_First_Name__c</field>
+            <value>
+                <elementReference>loggedInFirstName</elementReference>
+            </value>
+        </inputAssignments>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </filters>
+        <object>MessagingSession</object>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Has_Identity</targetReference>
+        </connector>
     </start>
     <status>Active</status>
+    <variables>
+        <name>cartToken</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>loggedInEmail</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>loggedInFirstName</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+    <variables>
+        <name>brand</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
     <variables>
         <name>recordId</name>
         <dataType>String</dataType>

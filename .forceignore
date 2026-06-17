@@ -9,8 +9,9 @@ package.xml
 # NOTE: aiAuthoringBundles is intentionally NOT ignored so `sf agent publish
 # authoring-bundle` can read + deploy it (otherwise publish fails with
 # "No source-backed components present in the package").
-**/aiEvaluationDefinitions/**
-force-app/main/default/aiEvaluationDefinitions/**
+# TEMP un-ignored to (re)create + run agent tests via `sf agent test create/run`
+# **/aiEvaluationDefinitions/**
+# force-app/main/default/aiEvaluationDefinitions/**
 # genAiPlannerBundles / genAiPlugins are NO LONGER ignored: publishing the agent
 # must deploy the regenerated planner+plugins so NEW actions (e.g. OTP) attach to
 # the live agent. (Ignoring them caused new actions to silently not register.)

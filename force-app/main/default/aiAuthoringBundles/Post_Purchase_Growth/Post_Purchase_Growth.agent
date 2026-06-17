@@ -74,7 +74,6 @@ subagent post_purchase_offer:
                     label: "Order ID"
                     description: "The Salesforce Order record ID."
                     complex_data_type_name: "lightning__recordIdType"
-                    developer_name: "recordId"
                     is_required: True
                 agentName: string
                     label: "Agent Name"
@@ -108,7 +107,6 @@ subagent post_purchase_offer:
                     label: "Order ID"
                     description: "The Salesforce Order record ID whose customer's email consent should be checked."
                     complex_data_type_name: "lightning__recordIdType"
-                    developer_name: "recordId"
                     is_required: True
             outputs:
                 hasConsent: boolean
@@ -130,7 +128,6 @@ subagent post_purchase_offer:
                     label: "Order ID"
                     description: "The Salesforce Order record ID to analyze for the post-purchase offer."
                     complex_data_type_name: "lightning__recordIdType"
-                    developer_name: "orderId"
                     is_required: True
             outputs:
                 couponCode: string

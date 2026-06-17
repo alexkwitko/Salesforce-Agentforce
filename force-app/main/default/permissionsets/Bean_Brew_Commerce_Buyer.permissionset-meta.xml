@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Bean Brew Commerce Buyer</label>
+    <description>Grants commerce buyers read on catalog + pricing so the storefront PDP/PLP/pricing work. Cart/checkout are handled by the commerce runtime (the Customer Community license blocks direct WebCart CRUD). Assign to D2C buyer users.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <objectPermissions>
+        <object>PricebookEntry</object>
+        <allowRead>true</allowRead><allowCreate>false</allowCreate><allowEdit>false</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>ProductCatalog</object>
+        <allowRead>true</allowRead><allowCreate>false</allowCreate><allowEdit>false</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>ProductCategory</object>
+        <allowRead>true</allowRead><allowCreate>false</allowCreate><allowEdit>false</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>ProductCategoryProduct</object>
+        <allowRead>true</allowRead><allowCreate>false</allowCreate><allowEdit>false</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>Product2</object>
+        <allowRead>true</allowRead><allowCreate>false</allowCreate><allowEdit>false</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>WebStore</object>
+        <allowRead>true</allowRead><allowCreate>false</allowCreate><allowEdit>false</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>ProductMedia</object>
+        <allowRead>true</allowRead><allowCreate>false</allowCreate><allowEdit>false</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+</PermissionSet>

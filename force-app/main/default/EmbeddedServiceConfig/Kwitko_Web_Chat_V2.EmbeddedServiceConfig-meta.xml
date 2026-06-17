@@ -9,6 +9,14 @@
         <displayContext>Conversation</displayContext>
         <embeddedServiceFormFields>
             <displayOrder>-1</displayOrder>
+            <formField>Brand</formField>
+            <formFieldType>Text</formFieldType>
+            <isHidden>true</isHidden>
+            <isRequired>false</isRequired>
+            <messagingChannelParameterType>Custom</messagingChannelParameterType>
+        </embeddedServiceFormFields>
+        <embeddedServiceFormFields>
+            <displayOrder>-1</displayOrder>
             <formField>Logged_In_First_Name</formField>
             <formFieldType>Text</formFieldType>
             <isHidden>true</isHidden>

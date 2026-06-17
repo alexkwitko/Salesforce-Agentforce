@@ -3,7 +3,7 @@ private class WooOrderPullTest {
     private class OrdersMock implements HttpCalloutMock {
         public HttpResponse respond(HttpRequest req) {
             HttpResponse r = new HttpResponse(); r.setStatusCode(200);
-            r.setBody('[{"id":88888,"status":"processing","customer_id":0,"billing":{"first_name":"Pull","last_name":"Test","email":"pull.test@example.com","phone":"123"},"line_items":[{"product_id":5001,"quantity":1,"price":"15"}],"meta_data":[{"key":"_wc_other/kwitko/marketing_consent","value":"1"}],"coupon_lines":[]}]');
+            r.setBody('[{"id":88888,"status":"processing","customer_id":0,"billing":{"first_name":"Pull","last_name":"Test","email":"pull.test@example.com","phone":"123"},"line_items":[{"id":61001,"product_id":5001,"quantity":1,"price":"15"}],"meta_data":[{"key":"_wc_other/kwitko/marketing_consent","value":"1"}],"coupon_lines":[]}]');
             return r;
         }
     }
@@ -22,6 +22,9 @@ private class WooOrderPullTest {
         System.assertEquals(true,
             [SELECT Email_Consent__c FROM Account WHERE PersonEmail='pull.test@example.com' LIMIT 1].Email_Consent__c,
             'checkout consent synced via pull');
+        System.assertEquals('61001',
+            [SELECT Woo_Line_Item_Id__c FROM OrderItem WHERE Order.Woo_Order_Id__c='88888' LIMIT 1].Woo_Line_Item_Id__c,
+            'Woo line item id captured for future partial refunds');
     }
 
     @isTest static void testWooCompletedWithTrackingCreatesFulfillmentAndShipmentButNotDelivered() {
@@ -29,7 +32,7 @@ private class WooOrderPullTest {
             '{"id":88999,"status":"completed","date_paid":"2026-06-06T12:00:00Z","customer_id":0,'
             + '"billing":{"first_name":"Ship","last_name":"Test","email":"ship.test@example.com","phone":"123"},'
             + '"shipping":{"address_1":"1 Test St","city":"Austin","state":"TX","postcode":"78701","country":"US"},'
-            + '"line_items":[{"product_id":5001,"quantity":1,"price":"15"}],'
+            + '"line_items":[{"id":61002,"product_id":5001,"quantity":1,"price":"15"}],'
             + '"meta_data":[{"key":"_wc_shipment_tracking_items","value":[{"tracking_number":"1ZTESTSHIP","tracking_provider":"UPS","custom_tracking_link":"https://example.com/track/1ZTESTSHIP"}]}],'
             + '"coupon_lines":[]}'
         );

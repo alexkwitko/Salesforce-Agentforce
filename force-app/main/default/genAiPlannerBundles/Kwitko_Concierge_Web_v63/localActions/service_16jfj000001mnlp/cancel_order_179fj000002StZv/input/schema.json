@@ -1,0 +1,49 @@
+{
+  "required" : [ "email" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "chatSummary" : {
+      "title" : "Chat Summary",
+      "description" : "ALWAYS pass this. Faithful summary/transcript of the cancellation conversation so the Case carries the shopper reason and confirmation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "confirmed" : {
+      "title" : "Confirmed by Shopper",
+      "description" : "True only after the shopper explicitly confirms cancelling/refunding this order.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "The shopper's email.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "orderIdentifier" : {
+      "title" : "Order Identifier",
+      "description" : "Order number or Woo id to cancel. Leave blank for the most recent order.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "reason" : {
+      "title" : "Cancellation Reason",
+      "description" : "Why the shopper wants to cancel.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "Pass the loggedInEmail variable. Required to cancel.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

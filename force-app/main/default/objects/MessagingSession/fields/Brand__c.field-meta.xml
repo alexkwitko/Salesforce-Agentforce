@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Brand__c</fullName>
+    <label>Brand</label>
+    <type>Text</type>
+    <length>80</length>
+    <description>The site/brand this chat session is on (Kwitko Coffee | Bean &amp; Brew). Set from the embedded-chat 'brand' parameter via the routing flow; the Concierge reads it as a linked variable to scope product recommendations to the right catalog.</description>
+</CustomField>

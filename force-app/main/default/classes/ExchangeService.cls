@@ -9,6 +9,7 @@ public without sharing class ExchangeService {
         @InvocableVariable(label='Reason') public String reason;
         @InvocableVariable(label='Desired Item') public String desiredItem;
         @InvocableVariable(label='Confirmed by Shopper' description='Must be true only after the shopper explicitly confirms this exchange/return.') public Boolean confirmed;
+        @InvocableVariable(label='Chat Summary' description='Faithful summary/transcript of the exchange conversation so the Case carries the chat trail.') public String chatSummary;
     }
     public class Result { @InvocableVariable public Boolean success; @InvocableVariable public String caseNumber; @InvocableVariable public String message; }
     @InvocableMethod(label='Process Exchange' description='Starts a return of a delivered order and opens an exchange case for the desired replacement. Verified shopper only.')
@@ -21,16 +22,19 @@ public without sharing class ExchangeService {
         rr.itemsToReturn=r.itemsToExchange;
         rr.confirmed=r.confirmed;
         rr.reason=String.isBlank(r.reason)?'Exchange':('Exchange: '+r.reason.trim());
+        rr.chatSummary=r.chatSummary;
         ReturnService.Result rres=ReturnService.process(new List<ReturnService.Request>{rr})[0];
         if(rres.success!=true){ res.message=rres.message; return res; }
         Account acc=KwitkoServiceUtil.findAccount(r.email);
         String want=String.isBlank(r.desiredItem)?'a replacement of the customer choice':r.desiredItem.trim();
+        String description='Desired replacement: '+want+'. Return: '+rres.returnOrderNumber+'. Woo replacement fulfillment still needs operations review.';
         Case c=new Case(AccountId=acc.Id, ContactId=acc.PersonContactId, Origin='Chat', Status='New', Priority='Medium', Category__c='Returns',
-            Subject='Exchange — wants '+want, Summary__c='Exchange: returned via '+rres.returnOrderNumber+'; wants '+want, Description='Desired: '+want+'. Return: '+rres.returnOrderNumber);
+            Subject='Exchange — wants '+want, Summary__c='Exchange request: return '+rres.returnOrderNumber+' created; desired replacement '+want+' requires Woo operations review.', Description=CaseTranscriptUtil.append(description, r.chatSummary));
         insert c; res.caseNumber=[SELECT CaseNumber FROM Case WHERE Id=:c.Id].CaseNumber;
+        CaseTranscriptUtil.insertTask(c.Id, acc.PersonContactId, r.chatSummary);
         try{ JourneyLogger.LogRequest lr=new JourneyLogger.LogRequest(); lr.email=r.email; lr.agent='Service'; lr.action='process_exchange'; lr.stage='Returned'; lr.result='Exchange: return '+rres.returnOrderNumber+', wants '+want+' (case '+res.caseNumber+')';
             JourneyLogger.logInteraction(new List<JourneyLogger.LogRequest>{lr}); }catch(Exception e){}
-        res.success=true; res.message='Started your exchange — return '+rres.returnOrderNumber+' is set up and we will send '+want+'. Case '+res.caseNumber+' is tracking it.';
+        res.success=true; res.message='I set up the return leg for your exchange ('+rres.returnOrderNumber+'). Case '+res.caseNumber+' is open for operations to arrange the WooCommerce replacement for '+want+'; no replacement has shipped yet.';
         return res;
     }
 }

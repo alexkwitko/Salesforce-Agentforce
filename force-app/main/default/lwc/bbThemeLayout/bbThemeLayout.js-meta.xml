@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>B&amp;B Theme Layout</masterLabel>
+    <description>Custom Bean &amp; Brew theme layout (header + footer + content slot) — replaces the stock commerce template chrome.</description>
+    <targets>
+        <target>lightningCommunity__Theme_Layout</target>
+    </targets>
+</LightningComponentBundle>

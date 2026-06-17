@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MktCalcInsightObjectDef xmlns="http://soap.sforce.com/2006/04/metadata">
+    <creationType>Custom</creationType>
+    <expression>SELECT UnifiedLinkssotIndividualCoff__dlm.UnifiedRecordId__c AS UnifiedIndividualId__c, count(ssot__SalesOrder__dlm.ssot__Id__c) AS OrderCount__c, sum(ssot__SalesOrder__dlm.ssot__GrandTotalAmount__c) AS LifetimeValue__c, avg(ssot__SalesOrder__dlm.ssot__GrandTotalAmount__c) AS AvgOrderValue__c, max(ssot__SalesOrder__dlm.ssot__PurchaseOrderDate__c) AS LastOrderDate__c FROM ssot__SalesOrder__dlm JOIN UnifiedLinkssotIndividualCoff__dlm ON UnifiedLinkssotIndividualCoff__dlm.SourceRecordId__c = ssot__SalesOrder__dlm.ssot__SoldToCustomerId__c GROUP BY UnifiedLinkssotIndividualCoff__dlm.UnifiedRecordId__c</expression>
+    <masterLabel>UP Customer Value</masterLabel>
+</MktCalcInsightObjectDef>

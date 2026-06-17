@@ -28,6 +28,8 @@ public without sharing class DataCloudAugmentationService {
         @InvocableVariable public String favoriteCategory;
         @InvocableVariable public Integer returnCount;
         @InvocableVariable public Integer webEventCount;
+        @InvocableVariable public Integer webDeviceCount;
+        @InvocableVariable public Integer webSessionCount;
         @InvocableVariable public Decimal webDwellSeconds;
         @InvocableVariable public String webLastActivity;
         @InvocableVariable public String insightSource;
@@ -44,9 +46,12 @@ public without sharing class DataCloudAugmentationService {
         String favoriteCategory;
         Integer returnCount = 0;
         Integer openCaseCount = 0;
+        Integer totalCaseCount = 0;
         Integer webEventCount = 0;       // from Web_Engagement_Profile CI (Data Cloud)
+        Integer webDeviceCount;
+        Integer webSessionCount;
         Decimal webDwellSeconds = 0;
-        Date webLastActivity;
+        DateTime webLastActivity;
         String segment = 'New';
         String churnRisk = 'Low';
         String nextBestAction;
@@ -75,6 +80,37 @@ public without sharing class DataCloudAugmentationService {
         r.refreshFromDataCloud = false;
         r.updateAccount = true;
         refreshOne(r);
+    }
+
+    public static void refreshAccountFromDataCloudAsync(Id accountId) {
+        if (accountId == null) return;
+        if (Test.isRunningTest()) {
+            if (testRowsBySqlToken != null) refreshAccountFromDataCloud(accountId);
+            return;
+        }
+        System.enqueueJob(new DataCloudRefreshJob(accountId));
+    }
+
+    @TestVisible
+    private static void refreshAccountFromDataCloud(Id accountId) {
+        if (accountId == null) return;
+        Request r = new Request();
+        r.accountId = String.valueOf(accountId);
+        r.refreshFromDataCloud = true;
+        r.updateAccount = true;
+        refreshOne(r);
+    }
+
+    private class DataCloudRefreshJob implements Queueable, Database.AllowsCallouts {
+        private Id accountId;
+
+        DataCloudRefreshJob(Id accountId) {
+            this.accountId = accountId;
+        }
+
+        public void execute(QueueableContext ctx) {
+            refreshAccountFromDataCloud(accountId);
+        }
     }
 
     @TestVisible
@@ -107,7 +143,11 @@ public without sharing class DataCloudAugmentationService {
             && (!Test.isRunningTest() || testRowsBySqlToken != null);
         if (useDataCloud) {
             profile = dcUnifiedProfile(String.isBlank(r.email) ? a.PersonEmail : r.email);
-            applyDataCloudCalculatedInsights(m, a.Id);
+            String unifiedId = applyDataCloudCalculatedInsights(m, a.Id);
+            if (String.isNotBlank(unifiedId)) {
+                profile.found = true;
+                profile.individualId = unifiedId;
+            }
         }
 
         finalizeRules(m, a);
@@ -127,6 +167,8 @@ public without sharing class DataCloudAugmentationService {
         res.favoriteCategory = m.favoriteCategory;
         res.returnCount = m.returnCount;
         res.webEventCount = m.webEventCount;
+        res.webDeviceCount = m.webDeviceCount;
+        res.webSessionCount = m.webSessionCount;
         res.webDwellSeconds = m.webDwellSeconds;
         res.webLastActivity = m.webLastActivity == null ? null : String.valueOf(m.webLastActivity);
         res.insightSource = m.source;
@@ -194,55 +236,114 @@ public without sharing class DataCloudAugmentationService {
         } catch (Exception e) {
             m.openCaseCount = 0;
         }
+        try {
+            m.totalCaseCount = [SELECT count() FROM Case WHERE AccountId = :accountId];
+        } catch (Exception e) {
+            m.totalCaseCount = 0;
+        }
         return m;
     }
 
-    private static void applyDataCloudCalculatedInsights(Metrics m, Id accountId) {
-        try {
-            List<Object> row = firstRow('SELECT AccountId__c, OrderCount__c, LifetimeValue__c, AvgOrderValue__c, LastOrderDate__c '
-                + 'FROM Customer_Agent_Profile__cio WHERE AccountId__c = \'' + String.escapeSingleQuotes(String.valueOf(accountId)) + '\' LIMIT 1');
-            if (row != null) {
-                m.orderCount = intVal(cell(row, 1));
-                m.lifetimeValue = dec(cell(row, 2));
-                m.averageOrderValue = dec(cell(row, 3));
-                m.lastOrderDate = dateVal(cell(row, 4));
-                m.source = 'Data Cloud CI + CRM fallback';
+    private static String applyDataCloudCalculatedInsights(Metrics m, Id accountId) {
+        String unifiedId = unifiedIdForSource(String.valueOf(accountId));
+        Boolean usedUnifiedCustomer = false;
+        Boolean usedUnifiedWeb = false;
+        if (String.isNotBlank(unifiedId)) {
+            try {
+                List<Object> row = firstRow('SELECT OrderCount__c, LifetimeValue__c, AvgOrderValue__c, LastOrderDate__c '
+                    + 'FROM UP_Customer_Value__cio WHERE UnifiedIndividualId__c = \'' + String.escapeSingleQuotes(unifiedId) + '\' LIMIT 1');
+                if (row != null) {
+                    m.orderCount = intVal(cell(row, 0));
+                    m.lifetimeValue = dec(cell(row, 1));
+                    m.averageOrderValue = dec(cell(row, 2));
+                    m.lastOrderDate = dateVal(cell(row, 3));
+                    m.source = 'Data Cloud Unified CI + CRM fallback';
+                    usedUnifiedCustomer = true;
+                }
+            } catch (Exception e) {}
+
+            try {
+                List<Object> row = firstRow('SELECT WebEventCount__c, DeviceCount__c, SessionCount__c, TotalDwellSeconds__c, LastWebActivity__c '
+                    + 'FROM UP_Web_Engagement_Device_Profile__cio WHERE UnifiedIndividualId__c = \'' + String.escapeSingleQuotes(unifiedId) + '\' LIMIT 1');
+                if (row != null && cell(row, 0) != null) {
+                    m.webEventCount = intVal(cell(row, 0));
+                    m.webDeviceCount = intVal(cell(row, 1));
+                    m.webSessionCount = intVal(cell(row, 2));
+                    m.webDwellSeconds = dec(cell(row, 3));
+                    m.webLastActivity = dateTimeVal(cell(row, 4));
+                    m.source = 'Data Cloud Unified CI + CRM fallback';
+                    usedUnifiedWeb = true;
+                }
+            } catch (Exception e) {}
+
+            if (!usedUnifiedWeb) {
+                try {
+                    List<Object> row = firstRow('SELECT WebEventCount__c, LastWebActivity__c '
+                        + 'FROM UP_Web_Engagement__cio WHERE UnifiedIndividualId__c = \'' + String.escapeSingleQuotes(unifiedId) + '\' LIMIT 1');
+                    if (row != null && cell(row, 0) != null) {
+                        m.webEventCount = intVal(cell(row, 0));
+                        m.webLastActivity = dateTimeVal(cell(row, 1));
+                        m.source = 'Data Cloud Unified CI + CRM fallback';
+                        usedUnifiedWeb = true;
+                    }
+                } catch (Exception e) {}
             }
-        } catch (Exception e) {
-            // Calculated insights are best-effort; CRM fallback remains authoritative.
+
+            try {
+                List<Object> row = firstRow('SELECT CaseCount__c, LastCaseDate__c '
+                    + 'FROM UP_Service_Profile__cio WHERE UnifiedIndividualId__c = \'' + String.escapeSingleQuotes(unifiedId) + '\' LIMIT 1');
+                if (row != null && cell(row, 0) != null) {
+                    m.totalCaseCount = intVal(cell(row, 0));
+                    m.source = 'Data Cloud Unified CI + CRM fallback';
+                }
+            } catch (Exception e) {}
         }
 
-        try {
-            List<Object> row = firstRow('SELECT ProductCategory__c, CategoryOrderCount__c '
-                + 'FROM Customer_Category_Affinity__cio WHERE AccountId__c = \'' + String.escapeSingleQuotes(String.valueOf(accountId))
-                + '\' ORDER BY CategoryOrderCount__c DESC LIMIT 1');
-            if (row != null && cell(row, 0) != null) {
-                m.favoriteCategory = String.valueOf(cell(row, 0));
-                m.source = 'Data Cloud CI + CRM fallback';
+        if (!usedUnifiedCustomer) {
+            try {
+                List<Object> row = firstRow('SELECT AccountId__c, OrderCount__c, LifetimeValue__c, AvgOrderValue__c, LastOrderDate__c '
+                    + 'FROM Customer_Agent_Profile__cio WHERE AccountId__c = \'' + String.escapeSingleQuotes(String.valueOf(accountId)) + '\' LIMIT 1');
+                if (row != null) {
+                    m.orderCount = intVal(cell(row, 1));
+                    m.lifetimeValue = dec(cell(row, 2));
+                    m.averageOrderValue = dec(cell(row, 3));
+                    m.lastOrderDate = dateVal(cell(row, 4));
+                    m.source = 'Data Cloud CI + CRM fallback';
+                }
+            } catch (Exception e) {
+                // Calculated insights are best-effort; CRM fallback remains authoritative.
             }
-        } catch (Exception e) {}
+        }
 
-        try {
-            List<Object> row = firstRow('SELECT ReturnCount__c, LastReturnDate__c '
-                + 'FROM Customer_Return_Risk__cio WHERE AccountId__c = \'' + String.escapeSingleQuotes(String.valueOf(accountId)) + '\' LIMIT 1');
-            if (row != null && cell(row, 0) != null) {
-                m.returnCount = intVal(cell(row, 0));
-                m.source = 'Data Cloud CI + CRM fallback';
-            }
-        } catch (Exception e) {}
-
-        // Web engagement (the Web_Engagement_Profile CI aggregates stitched Web_Event__c per account):
-        // event count + total dwell + last activity, so agents/segmentation see browsing behavior too.
+        // Account-keyed web engagement is retained as a fallback. The primary
+        // path above is the Unified-Individual SDK CI with device/session/dwell.
         try {
             List<Object> row = firstRow('SELECT WebEventCount__c, TotalDwellSeconds__c, LastWebActivity__c '
                 + 'FROM Web_Engagement_Profile_v2__cio WHERE AccountId__c = \'' + String.escapeSingleQuotes(String.valueOf(accountId)) + '\' LIMIT 1');
             if (row != null && cell(row, 0) != null) {
-                m.webEventCount = intVal(cell(row, 0));
-                m.webDwellSeconds = dec(cell(row, 1));
-                m.webLastActivity = dateVal(cell(row, 2));
-                m.source = 'Data Cloud CI + CRM fallback';
+                if (!usedUnifiedWeb) {
+                    m.webEventCount = intVal(cell(row, 0));
+                    m.webLastActivity = dateTimeVal(cell(row, 2));
+                    m.source = 'Data Cloud CI + CRM fallback';
+                }
+                if (m.webDwellSeconds == null || m.webDwellSeconds == 0) {
+                    m.webDwellSeconds = dec(cell(row, 1));
+                }
             }
         } catch (Exception e) {}
+
+        return unifiedId;
+    }
+
+    private static String unifiedIdForSource(String sourceId) {
+        if (String.isBlank(sourceId)) return null;
+        try {
+            List<Object> row = firstRow('SELECT UnifiedRecordId__c FROM UnifiedLinkssotIndividualCoff__dlm '
+                + 'WHERE SourceRecordId__c = \'' + String.escapeSingleQuotes(sourceId) + '\' LIMIT 1');
+            return row == null || cell(row, 0) == null ? null : String.valueOf(cell(row, 0));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static void finalizeRules(Metrics m, Account a) {
@@ -279,6 +380,8 @@ public without sharing class DataCloudAugmentationService {
         if (m.returnCount > 0) parts.add(String.valueOf(m.returnCount) + ' return(s)');
         if (m.webEventCount > 0) {
             String web = m.webEventCount + ' web event(s)';
+            if (m.webDeviceCount != null && m.webDeviceCount > 0) web += ', ' + m.webDeviceCount + ' device(s)';
+            if (m.webSessionCount != null && m.webSessionCount > 0) web += ', ' + m.webSessionCount + ' session(s)';
             if (m.webDwellSeconds != null && m.webDwellSeconds > 0) web += ', ' + m.webDwellSeconds.intValue() + 's dwell';
             if (m.webLastActivity != null) web += ', last seen ' + m.webLastActivity.format();
             parts.add(web);
@@ -305,6 +408,26 @@ public without sharing class DataCloudAugmentationService {
         upd.Data_Cloud_Next_Best_Action__c = trunc(m.nextBestAction, 32768);
         upd.Data_Cloud_Last_Augmented_At__c = System.now();
         upd.Data_Cloud_Insight_Source__c = trunc(m.source, 120);
+        upd.Insights_Order_Count__c = m.orderCount == null ? null : Decimal.valueOf(m.orderCount);
+        upd.Insights_LTV__c = m.lifetimeValue;
+        upd.Insights_AOV__c = m.averageOrderValue;
+        upd.Insights_Last_Order_Date__c = m.lastOrderDate;
+        upd.Insights_Days_Since_Last_Order__c = m.lastOrderDate == null ? null : m.lastOrderDate.daysBetween(Date.today());
+        upd.Insights_Lifecycle_Stage__c = trunc(m.segment, 80);
+        upd.Insights_RFM_Segment__c = trunc(m.segment, 80);
+        upd.Insights_Taste_Profile__c = trunc(m.favoriteCategory, 32768);
+        upd.Insights_Returns__c = m.returnCount == null ? null : Decimal.valueOf(m.returnCount);
+        upd.Insights_Open_Cases__c = m.openCaseCount == null ? null : Decimal.valueOf(m.openCaseCount);
+        upd.Insights_Total_Cases__c = m.totalCaseCount == null ? null : Decimal.valueOf(m.totalCaseCount);
+        upd.Insights_Web_Events__c = m.webEventCount == null ? null : Decimal.valueOf(m.webEventCount);
+        if (m.webDeviceCount != null) {
+            upd.Insights_Device_Count__c = Decimal.valueOf(m.webDeviceCount);
+        }
+        if (m.webSessionCount != null) {
+            upd.Insights_Session_Count__c = Decimal.valueOf(m.webSessionCount);
+        }
+        upd.Insights_Last_Web_Activity__c = m.webLastActivity;
+        upd.Insights_Updated__c = System.now();
         update upd;
     }
 
@@ -362,6 +485,20 @@ public without sharing class DataCloudAugmentationService {
         try {
             String s = String.valueOf(v);
             return Date.valueOf(s.length() > 10 ? s.substring(0, 10) : s);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static DateTime dateTimeVal(Object v) {
+        if (v == null) return null;
+        try {
+            String s = String.valueOf(v);
+            if (s.endsWith('+00:00')) s = s.replace('+00:00', 'Z');
+            if (s.endsWith('Z')) return (DateTime) JSON.deserialize('"' + s + '"', DateTime.class);
+            if (s.length() > 19) return DateTime.valueOfGmt(s.substring(0, 19).replace('T', ' '));
+            if (s.length() > 10) return DateTime.valueOfGmt(s.replace('T', ' '));
+            return DateTime.newInstanceGmt(Date.valueOf(s), Time.newInstance(0, 0, 0, 0));
         } catch (Exception e) {
             return null;
         }

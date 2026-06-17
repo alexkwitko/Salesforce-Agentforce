@@ -63,8 +63,41 @@ public without sharing class JourneyService {
     public static String recordInteraction(String email, String agent, String action, String productIds,
             String orderId, String result, String stage, String addRecommendedProductIds,
             String markPostPurchaseDoneOrderId) {
+        return recordInteraction(email, agent, action, productIds, orderId, result, stage,
+            addRecommendedProductIds, markPostPurchaseDoneOrderId, null);
+    }
+
+    /** Append an interaction + update journey memory, optionally carrying chat detail into service Cases. */
+    public static String recordInteraction(String email, String agent, String action, String productIds,
+            String orderId, String result, String stage, String addRecommendedProductIds,
+            String markPostPurchaseDoneOrderId, String chatSummary) {
+        InteractionLog log = insertInteraction(email, agent, action, productIds, orderId, result, stage,
+            addRecommendedProductIds, markPostPurchaseDoneOrderId);
+        if (log == null) return 'No email; nothing logged.';
+        String caseMsg = maybeCreateSolvedServiceCase(email, agent, action, log.orderId, result, stage, chatSummary, log.interactionId);
+        return 'Logged interaction on journey ' + log.journeyId + caseMsg;
+    }
+
+    /** Append an interaction + update journey memory without auto-creating a solved Case. */
+    public static Id recordInteractionOnly(String email, String agent, String action, String productIds,
+            String orderId, String result, String stage, String addRecommendedProductIds,
+            String markPostPurchaseDoneOrderId) {
+        InteractionLog log = insertInteraction(email, agent, action, productIds, orderId, result, stage,
+            addRecommendedProductIds, markPostPurchaseDoneOrderId);
+        return log == null ? null : log.interactionId;
+    }
+
+    private class InteractionLog {
+        Id journeyId;
+        Id orderId;
+        Id interactionId;
+    }
+
+    private static InteractionLog insertInteraction(String email, String agent, String action, String productIds,
+            String orderId, String result, String stage, String addRecommendedProductIds,
+            String markPostPurchaseDoneOrderId) {
         Customer_Journey__c j = getOrCreate(email, null, null);
-        if (j == null) return 'No email; nothing logged.';
+        if (j == null) return null;
         if (String.isNotBlank(addRecommendedProductIds)) {
             j.Recommended_Product_Ids__c = addIds(j.Recommended_Product_Ids__c, csvToSet(addRecommendedProductIds));
         }
@@ -79,10 +112,118 @@ public without sharing class JourneyService {
 
         Id ordId = null;
         if (String.isNotBlank(orderId)) { try { ordId = (Id) orderId; } catch (Exception e) {} }
-        insert new Agent_Interaction__c(
+        Agent_Interaction__c interaction = new Agent_Interaction__c(
             Customer_Journey__c = j.Id, Agent__c = agent, Action__c = action,
             Product_Ids__c = productIds, Order__c = ordId, Result__c = result);
-        return 'Logged interaction on journey ' + j.Id;
+        insert interaction;
+        InteractionLog log = new InteractionLog();
+        log.journeyId = j.Id;
+        log.orderId = ordId;
+        log.interactionId = interaction.Id;
+        return log;
+    }
+
+    private static String maybeCreateSolvedServiceCase(String email, String agent, String action, Id orderId,
+            String result, String stage, String chatSummary, Id interactionId) {
+        if (!isServiceAgent(agent) || shouldSkipAutomaticCase(action, result)) return '';
+        String summary = String.isBlank(result) ? 'Service interaction completed in chat.' : result.trim();
+        Account acc = KwitkoServiceUtil.findAccount(email);
+        Order ord = null;
+        if (orderId != null) {
+            for (Order o : [SELECT Id, Woo_Order_Id__c FROM Order WHERE Id = :orderId LIMIT 1]) ord = o;
+        }
+
+        String resolution = truncate(summary, 4000);
+        String transcript = String.isBlank(chatSummary)
+            ? 'Transcript not provided by agent action.'
+            : CaseTranscriptUtil.sanitizePreActionCaseClaims(chatSummary);
+        String description = '--- Service resolution ---\n' + resolution
+            + '\n\n--- Chat transcript ---\n' + transcript;
+        description = truncate(description, 32000);
+
+        Case c = new Case(
+            AccountId = acc == null ? null : acc.Id,
+            ContactId = acc == null ? null : acc.PersonContactId,
+            SuppliedEmail = String.isBlank(email) ? null : email.trim(),
+            Order__c = orderId,
+            Origin = 'Chat',
+            Status = 'Closed',
+            Priority = 'Low',
+            Category__c = categoryForAction(action),
+            Subject = truncate('Chat service: ' + labelForAction(action), 255),
+            Summary__c = truncate(summary, 4000),
+            Description = description,
+            Resolution__c = resolution,
+            Resolved_By__c = 'Chat Agent (' + UserInfo.getName() + ')',
+            Service_Interaction_Id__c = interactionId == null ? null : String.valueOf(interactionId)
+        );
+        if (ord != null) c.Woo_Order_Id__c = ord.Woo_Order_Id__c;
+
+        try {
+            insert c;
+            Case created = [SELECT CaseNumber FROM Case WHERE Id = :c.Id LIMIT 1];
+            insert new Task(
+                WhatId = c.Id,
+                WhoId = acc == null ? null : acc.PersonContactId,
+                Subject = 'Chat transcript',
+                Status = 'Completed',
+                Priority = 'Normal',
+                ActivityDate = Date.today(),
+                Type = 'Chat',
+                Description = truncate(transcript, 32000)
+            );
+            if (acc != null) {
+                DataCloudAugmentationService.refreshAccount(acc.Id);
+                DataCloudAugmentationService.refreshAccountFromDataCloudAsync(acc.Id);
+            }
+            return '; closed service case ' + created.CaseNumber;
+        } catch (Exception e) {
+            System.debug('automatic service case failed: ' + e.getMessage());
+            return '; service case creation failed: ' + e.getMessage();
+        }
+    }
+
+    private static Boolean isServiceAgent(String agent) {
+        return String.isNotBlank(agent) && agent.trim().equalsIgnoreCase('Service');
+    }
+
+    private static Boolean shouldSkipAutomaticCase(String action, String result) {
+        String a = String.isBlank(action) ? '' : action.trim().toLowerCase();
+        if (a == 'open_case' || a == 'escalate_case' || a == 'resolve_case') return true;
+        String r = String.isBlank(result) ? '' : result.toLowerCase();
+        return r.contains('case ') || r.contains('(case') || r.contains('case#');
+    }
+
+    private static String labelForAction(String action) {
+        String a = String.isBlank(action) ? 'service interaction' : action.trim().toLowerCase();
+        if (a == 'get_order_status') return 'Order status answered';
+        if (a == 'get_tracking') return 'Tracking answered';
+        if (a == 'apply_store_credit') return 'Store credit issued';
+        if (a == 'update_shipping_address') return 'Shipping address updated';
+        if (a == 'handle_failed_payment') return 'Payment question answered';
+        if (a == 'cancel_order') return 'Cancellation handled';
+        if (a == 'process_return') return 'Return handled';
+        if (a == 'reship') return 'Replacement handled';
+        if (a == 'process_exchange') return 'Exchange handled';
+        if (a == 'modify_order') return 'Order modification handled';
+        if (a == 'schedule_callback') return 'Callback handled';
+        return a.replace('_', ' ');
+    }
+
+    private static String categoryForAction(String action) {
+        String a = String.isBlank(action) ? '' : action.trim().toLowerCase();
+        if (a.contains('track') || a.contains('ship') || a == 'reship' || a == 'schedule_callback') return 'Shipping';
+        if (a.contains('return') || a.contains('exchange')) return 'Returns';
+        if (a.contains('refund') || a.contains('credit')) return 'Refund';
+        if (a.contains('payment')) return 'Billing';
+        if (a.contains('address') || a.contains('account')) return 'Account';
+        if (a.contains('case')) return 'Escalation';
+        return 'Order';
+    }
+
+    private static String truncate(String value, Integer maxLen) {
+        if (value == null || maxLen == null || maxLen <= 0) return value;
+        return value.length() > maxLen ? value.substring(0, maxLen) : value;
     }
 
     // ---------- static helpers (Apex callers) ----------

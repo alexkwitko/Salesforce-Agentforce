@@ -17,6 +17,8 @@ public without sharing class JourneyLogger {
         @InvocableVariable(label='Stage') public String stage;
         @InvocableVariable(label='Add Recommended Product Ids (csv)') public String addRecommendedProductIds;
         @InvocableVariable(label='Mark Post-Purchase Done Order Id') public String markPostPurchaseDoneOrderId;
+        @InvocableVariable(label='Chat Summary' description='Faithful summary/transcript of the service chat so a Case can retain what happened.')
+        public String chatSummary;
     }
 
     @InvocableMethod(label='Log Agent Interaction'
@@ -25,7 +27,8 @@ public without sharing class JourneyLogger {
         List<String> out = new List<String>();
         for (LogRequest r : reqs) {
             out.add(JourneyService.recordInteraction(r.email, r.agent, r.action, r.productIds,
-                r.orderId, r.result, r.stage, r.addRecommendedProductIds, r.markPostPurchaseDoneOrderId));
+                r.orderId, r.result, r.stage, r.addRecommendedProductIds, r.markPostPurchaseDoneOrderId,
+                r.chatSummary));
         }
         return out;
     }

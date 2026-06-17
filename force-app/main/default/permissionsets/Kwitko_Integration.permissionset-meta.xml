@@ -3,6 +3,14 @@
     <label>Kwitko Integration</label>
     <description>Field/object access for the WooCommerce↔Salesforce integration and Agentforce agents (Cart objects + custom fields).</description>
     <hasActivationRequired>false</hasActivationRequired>
+    <userPermissions>
+        <enabled>true</enabled>
+        <name>ActivitiesAccess</name>
+    </userPermissions>
+    <userPermissions>
+        <enabled>true</enabled>
+        <name>EditTask</name>
+    </userPermissions>
     <externalCredentialPrincipalAccesses>
         <enabled>true</enabled>
         <externalCredentialPrincipal>WooCommerce-WooApi</externalCredentialPrincipal>
@@ -52,6 +60,8 @@
     <classAccesses><apexClass>AbandonedCartSweep</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>WooCustomerService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>WooCustomerResource</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>WooWebhookResource</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>WooReturnReceiptResource</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>LoginLinkService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>WooOrderActionService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>KwitkoServiceUtil</apexClass><enabled>true</enabled></classAccesses>
@@ -59,6 +69,7 @@
     <classAccesses><apexClass>CaseService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>ShippingService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>ReturnService</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>ReturnReceiptService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>CancellationService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>WinbackService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>WinbackAutoOffer</apexClass><enabled>true</enabled></classAccesses>
@@ -99,6 +110,21 @@
         <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
     </objectPermissions>
     <objectPermissions>
+        <object>Task</object>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>MessagingSession</object>
+        <allowRead>true</allowRead><allowCreate>false</allowCreate><allowEdit>true</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>MessagingEndUser</object>
+        <allowRead>true</allowRead><allowCreate>false</allowCreate><allowEdit>false</allowEdit><allowDelete>false</allowDelete>
+        <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
         <object>ReturnOrder</object>
         <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>false</allowDelete>
         <viewAllRecords>false</viewAllRecords><modifyAllRecords>false</modifyAllRecords>
@@ -129,6 +155,7 @@
     <fieldPermissions><field>Case.Summary__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Case.Resolution__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Case.Resolved_By__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Case.Service_Interaction_Id__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Order_Analytics__c.Order__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Order_Analytics__c.Age_Group__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Order_Analytics__c.Gender__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
@@ -212,6 +239,7 @@
     <fieldPermissions><field>Customer_Journey__c.Last_Agent__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Customer_Journey__c.Last_Stage__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Customer_Journey__c.Last_Interaction__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>MessagingSession.Brand__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>MessagingSession.Kwitko_Cart_Token__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>MessagingSession.Kwitko_Logged_In_Email__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>MessagingSession.Kwitko_Logged_In_First_Name__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
@@ -238,6 +266,7 @@
     <fieldPermissions><field>Order.Fulfillment_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Order.Cancellation_Reason__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Order.Woo_Refund_Id__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>OrderItem.Woo_Line_Item_Id__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Account.Has_Returned_Order__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Account.Last_Return_Reason__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Account.Last_Return_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
@@ -252,6 +281,7 @@
     <fieldPermissions><field>ReturnOrder.Refund_Amount__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>ReturnOrder.Return_Label_Url__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>ReturnOrder.Return_Tracking__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>ReturnOrderLineItem.Woo_Line_Item_Id__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Shipment.Order__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Shipment.Fulfillment_Order__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Shipment.Shipment_Status__c</field><readable>true</readable><editable>true</editable></fieldPermissions>

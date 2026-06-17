@@ -1,0 +1,110 @@
+:host {
+    --bb-espresso: #241612;
+    --bb-roast: #3d2417;
+    --bb-cream: #f6efe4;
+    --bb-crema: #e7d2b0;
+    --bb-copper: #c87a42;
+    --bb-copper-soft: #d9986a;
+    --bb-ink: #1a1310;
+    --bb-serif: 'Fraunces', 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --bb-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: block;
+}
+
+.hero {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(120% 90% at 80% -10%, rgba(200, 122, 66, 0.28), transparent 55%),
+        radial-gradient(90% 80% at 0% 110%, rgba(231, 210, 176, 0.22), transparent 50%),
+        linear-gradient(160deg, var(--bb-espresso) 0%, var(--bb-roast) 60%, #2a1a12 100%);
+    color: var(--bb-cream);
+    padding: clamp(4rem, 9vw, 8.5rem) clamp(1.5rem, 6vw, 6rem) clamp(3.5rem, 7vw, 6rem);
+}
+
+.hero__bg { position: absolute; inset: 0; pointer-events: none; opacity: 0.5; }
+.hero__steam {
+    position: absolute;
+    width: 2px;
+    height: 180px;
+    background: linear-gradient(to top, transparent, rgba(246, 239, 228, 0.5), transparent);
+    filter: blur(3px);
+    border-radius: 999px;
+    animation: steam 7s ease-in-out infinite;
+}
+.hero__steam--1 { right: 14%; top: 8%; animation-delay: 0s; }
+.hero__steam--2 { right: 18%; top: 4%; height: 240px; animation-delay: 1.6s; }
+.hero__steam--3 { right: 10%; top: 12%; height: 140px; animation-delay: 3.1s; }
+@keyframes steam {
+    0% { transform: translateY(20px) scaleY(0.7); opacity: 0; }
+    35% { opacity: 0.8; }
+    100% { transform: translateY(-60px) scaleY(1.15); opacity: 0; }
+}
+
+.hero__inner { position: relative; max-width: 60rem; }
+
+.hero__eyebrow {
+    font-family: var(--bb-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--bb-copper-soft);
+    margin: 0 0 1.4rem;
+}
+
+.hero__headline {
+    font-family: var(--bb-serif);
+    font-weight: 600;
+    line-height: 0.96;
+    letter-spacing: -0.02em;
+    font-size: clamp(3rem, 9vw, 7rem);
+    margin: 0 0 1.6rem;
+}
+.hero__line { display: block; }
+.hero__line:last-child { color: var(--bb-crema); font-style: italic; }
+
+.hero__subhead {
+    font-family: var(--bb-sans);
+    font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+    line-height: 1.6;
+    max-width: 34rem;
+    color: rgba(246, 239, 228, 0.82);
+    margin: 0 0 2.4rem;
+}
+
+.hero__actions { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 3.2rem; }
+
+.btn {
+    font-family: var(--bb-sans);
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 1rem 1.9rem;
+    border-radius: 999px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    cursor: pointer;
+}
+.btn--primary, .btn--primary:link, .btn--primary:visited {
+    background: #c87a42 !important;
+    color: #ffffff !important;
+    box-shadow: 0 10px 30px -8px rgba(200, 122, 66, 0.55);
+}
+.btn--primary span, .btn--primary .btn__arrow { color: #ffffff !important; }
+.btn--primary:hover { transform: translateY(-2px); background: #d9986a !important; box-shadow: 0 16px 40px -10px rgba(200, 122, 66, 0.65); }
+.btn__arrow { transition: transform 0.25s ease; }
+.btn--primary:hover .btn__arrow { transform: translateX(4px); }
+.btn--ghost, .btn--ghost:link, .btn--ghost:visited {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #f6efe4 !important;
+    border: 1.5px solid rgba(246, 239, 228, 0.8) !important;
+}
+.btn--ghost span { color: #f6efe4 !important; }
+.btn--ghost:hover { border-color: #f6efe4 !important; background: rgba(246, 239, 228, 0.2) !important; }
+
+.hero__stats { display: flex; flex-wrap: wrap; gap: clamp(1.5rem, 4vw, 3.5rem); margin: 0; padding-top: 2rem; border-top: 1px solid rgba(246, 239, 228, 0.16); }
+.hero__stat dt { font-family: var(--bb-serif); font-size: 1.9rem; font-weight: 600; color: #fff; }
+.hero__stat dd { font-family: var(--bb-sans); margin: 0.2rem 0 0; font-size: 0.85rem; letter-spacing: 0.02em; color: rgba(246, 239, 228, 0.7); }

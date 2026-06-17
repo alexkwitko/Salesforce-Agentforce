@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MktCalcInsightObjectDef xmlns="http://soap.sforce.com/2006/04/metadata">
+    <creationType>Custom</creationType>
+    <expression>SELECT Order_Home__dll.AccountId__c AS AccountId__c, &apos;USD&apos; AS CurrencyCode__c, count(Order_Home__dll.Id__c) AS OrderCount__c, sum(TRY_CONVERT_CURRENCY(Order_Home__dll.TotalAmount__c, &apos;USD&apos;, &apos;USD&apos;)) AS LifetimeValue__c, avg(TRY_CONVERT_CURRENCY(Order_Home__dll.TotalAmount__c, &apos;USD&apos;, &apos;USD&apos;)) AS AvgOrderValue__c, min(Order_Home__dll.EffectiveDate__c) AS FirstOrderDate__c, max(Order_Home__dll.EffectiveDate__c) AS LastOrderDate__c FROM Order_Home__dll GROUP BY Order_Home__dll.AccountId__c, &apos;USD&apos;</expression>
+    <masterLabel>Customer Value Profile</masterLabel>
+</MktCalcInsightObjectDef>

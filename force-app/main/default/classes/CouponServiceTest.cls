@@ -8,6 +8,16 @@ private class CouponServiceTest {
         Test.stopTest();
         System.assert(res.success, 'should succeed in test (callout skipped)');
         System.assert(res.couponCode.startsWith('KW-ALEX-10-'), 'personalized code: ' + res.couponCode);
+        Coupon__c c = [
+            SELECT Code__c, Discount_Percent__c, Status__c, Woo_Coupon_Id__c, Recommendation_Summary__c
+            FROM Coupon__c
+            WHERE Code__c = :res.couponCode
+            LIMIT 1
+        ];
+        System.assertEquals(10, c.Discount_Percent__c, 'coupon audit keeps the issued discount');
+        System.assertEquals('Issued', c.Status__c, 'coupon audit starts issued');
+        System.assertEquals('test', c.Woo_Coupon_Id__c, 'Woo id is retained for audit/idempotency');
+        System.assert(c.Recommendation_Summary__c.contains('nobody@example.com'), 'audit carries shopper context');
     }
 
     @isTest static void refusesBlockedDiscount() {

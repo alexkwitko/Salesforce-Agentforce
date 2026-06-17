@@ -15,6 +15,13 @@ public without sharing class WooOrderService {
         List<Order> existingOrders = [SELECT Id, Fulfillment_Status__c, Status FROM Order WHERE Woo_Order_Id__c = :wooOrderId LIMIT 1];
         if (!existingOrders.isEmpty()) { reconcileFromWoo(existingOrders[0], o); return existingOrders[0].Id; }
 
+        // Don't CREATE an SF Order for a WooCommerce non-order status (checkout-draft, auto-draft,
+        // trash, pending, failed) — these are abandoned/incomplete checkouts, NOT placed orders.
+        // They will sync once the checkout completes and the order reaches a real status (a fresh
+        // webhook fires then). This stops phantom "orders" like the checkout-draft 00000732.
+        String createStatus = o.get('status') == null ? '' : String.valueOf(o.get('status')).toLowerCase();
+        if (KwitkoServiceUtil.NON_ORDER_WOO_STATUSES.contains(createStatus)) return null;
+
         Map<String, Object> billing = (Map<String, Object>) o.get('billing');
         String email = billing != null ? (String) billing.get('email') : null;
         if (String.isBlank(email)) return null;
@@ -88,6 +95,9 @@ public without sharing class WooOrderService {
         // Map WooCommerce status → fulfillment/payment/tracking on create (Woo is source of truth).
         String wooStatus = o.get('status') == null ? '' : String.valueOf(o.get('status')).toLowerCase();
         ord.Woo_Status__c = wooStatus;
+        // Capture the WooCommerce GRAND total (incl. shipping/tax) — what the customer sees on the
+        // storefront. Standard Order.TotalAmount is only the product subtotal (no shipping).
+        try { if (o.get('total') != null) ord.Woo_Order_Total__c = Decimal.valueOf(String.valueOf(o.get('total'))); } catch (Exception e) {}
         Map<String, String> trk = extractTracking(o);
         String mappedFul = mapFulfillment(wooStatus);
         if (String.isNotBlank(mappedFul)) ord.Fulfillment_Status__c = mappedFul;
@@ -120,8 +130,10 @@ public without sharing class WooOrderService {
                 if (!pbe.containsKey(pid)) continue;
                 Decimal qty = li.get('quantity') != null ? Decimal.valueOf(String.valueOf(li.get('quantity'))) : 1;
                 Decimal unit = li.get('price') != null ? Decimal.valueOf(String.valueOf(li.get('price'))) : 0;
-                items.add(new OrderItem(OrderId = ord.Id, PricebookEntryId = pbe.get(pid).Id,
-                    Product2Id = pbe.get(pid).Product2Id, Quantity = qty, UnitPrice = unit));
+                OrderItem item = new OrderItem(OrderId = ord.Id, PricebookEntryId = pbe.get(pid).Id,
+                    Product2Id = pbe.get(pid).Product2Id, Quantity = qty, UnitPrice = unit);
+                if (li.get('id') != null) item.Woo_Line_Item_Id__c = String.valueOf(li.get('id'));
+                items.add(item);
             }
         }
         if (!items.isEmpty()) insert items;
@@ -169,6 +181,7 @@ public without sharing class WooOrderService {
 
         // Refresh agent-facing augmentation immediately after the purchase so agents do not rely on stale segments.
         DataCloudAugmentationService.refreshAccount(acc.Id);
+        DataCloudAugmentationService.refreshAccountFromDataCloudAsync(acc.Id);
 
         ord.Status = 'Activated';
         update ord;
@@ -199,12 +212,15 @@ public without sharing class WooOrderService {
         Order upd = new Order(Id = existing.Id);
         upd.Woo_Status__c = wooStatus;
         upd.Last_Woo_Sync__c = System.now();
+        try { if (o.get('total') != null) upd.Woo_Order_Total__c = Decimal.valueOf(String.valueOf(o.get('total'))); } catch (Exception e) {}
         upd.Payment_Status__c = mapPayment(wooStatus, o.get('date_paid'));
         Datetime dp = parseDt(o.get('date_paid'));
         if (dp != null) upd.Date_Paid__c = dp;
         Map<String, String> trk = extractTracking(o);
         if (trk.get('number') != null) { upd.Tracking_Number__c = trk.get('number'); upd.Carrier__c = trk.get('carrier'); upd.Tracking_Url__c = trk.get('url'); }
-        if (String.isNotBlank(newFul) && newFul != existing.Fulfillment_Status__c) {
+        reconcileLineItemIds(existing.Id, o);
+        Boolean preserveLocalReturn = preserveLocalReturnState(existing, wooStatus);
+        if (String.isNotBlank(newFul) && newFul != existing.Fulfillment_Status__c && !preserveLocalReturn) {
             upd.Fulfillment_Status__c = newFul;
             upd.Last_Status_Change__c = System.now();
             if (wooStatus == 'cancelled') {
@@ -222,12 +238,79 @@ public without sharing class WooOrderService {
         FulfillmentTruthService.syncFromWoo(existing, wooStatus, trk);
     }
 
+    private static Boolean preserveLocalReturnState(Order existing, String wooStatus) {
+        if (existing == null || existing.Id == null) return false;
+        if (wooStatus == 'cancelled' || wooStatus == 'refunded') return false;
+        if (existing.Fulfillment_Status__c != 'Return Pending' && existing.Fulfillment_Status__c != 'Returned') return false;
+        return [SELECT count() FROM ReturnOrder WHERE Order__c = :existing.Id AND Status != 'Closed'] > 0;
+    }
+
+    private static void reconcileLineItemIds(Id orderId, Map<String, Object> o) {
+        if (orderId == null || o == null || !(o.get('line_items') instanceof List<Object>)) return;
+        List<WooLine> wooLines = new List<WooLine>();
+        Set<String> wooProductIds = new Set<String>();
+        for (Object rawLine : (List<Object>) o.get('line_items')) {
+            if (!(rawLine instanceof Map<String, Object>)) continue;
+            Map<String, Object> li = (Map<String, Object>) rawLine;
+            WooLine wl = new WooLine();
+            wl.id = strv(li.get('id'));
+            wl.productId = strv(li.get('product_id'));
+            wl.quantity = decv(li.get('quantity'));
+            wl.unitPrice = decv(li.get('price'));
+            if (String.isBlank(wl.id) || String.isBlank(wl.productId)) continue;
+            wooLines.add(wl);
+            wooProductIds.add(wl.productId);
+        }
+        if (wooLines.isEmpty()) return;
+
+        Map<String, List<OrderItem>> byWooProduct = new Map<String, List<OrderItem>>();
+        for (OrderItem item : [
+            SELECT Id, Product2.Woo_Product_Id__c, Quantity, UnitPrice, Woo_Line_Item_Id__c
+            FROM OrderItem
+            WHERE OrderId = :orderId
+              AND Product2.Woo_Product_Id__c IN :wooProductIds
+        ]) {
+            String pid = item.Product2.Woo_Product_Id__c;
+            if (!byWooProduct.containsKey(pid)) byWooProduct.put(pid, new List<OrderItem>());
+            byWooProduct.get(pid).add(item);
+        }
+
+        List<OrderItem> updates = new List<OrderItem>();
+        Set<Id> usedOrderItemIds = new Set<Id>();
+        for (WooLine wl : wooLines) {
+            OrderItem match = chooseLineItemMatch(byWooProduct.get(wl.productId), wl, usedOrderItemIds);
+            if (match == null || match.Woo_Line_Item_Id__c == wl.id) continue;
+            match.Woo_Line_Item_Id__c = wl.id;
+            updates.add(match);
+            usedOrderItemIds.add(match.Id);
+        }
+        if (!updates.isEmpty()) update updates;
+    }
+
+    private static OrderItem chooseLineItemMatch(List<OrderItem> candidates, WooLine wl, Set<Id> usedIds) {
+        if (candidates == null || candidates.isEmpty()) return null;
+        List<OrderItem> usable = new List<OrderItem>();
+        List<OrderItem> exact = new List<OrderItem>();
+        for (OrderItem item : candidates) {
+            if (usedIds.contains(item.Id)) continue;
+            if (String.isNotBlank(item.Woo_Line_Item_Id__c) && item.Woo_Line_Item_Id__c != wl.id) continue;
+            usable.add(item);
+            Boolean qtyMatches = wl.quantity == null || item.Quantity == wl.quantity;
+            Boolean unitMatches = wl.unitPrice == null || item.UnitPrice == wl.unitPrice;
+            if (qtyMatches && unitMatches) exact.add(item);
+        }
+        if (exact.size() == 1) return exact[0];
+        if (usable.size() == 1) return usable[0];
+        return null;
+    }
+
     /** WooCommerce status → Order.Fulfillment_Status__c (restricted picklist). Null = leave as-is. */
     @TestVisible
     private static String mapFulfillment(String s) {
         if (String.isBlank(s)) return null;
         if (s == 'processing') return 'Processing';
         if (s == 'completed') return 'Shipped';
+        if (s == 'delivered') return 'Delivered';
         if (s == 'cancelled') return 'Cancelled';
         if (s == 'refunded') return 'Refunded';
         if (s == 'pending' || s == 'on-hold' || s == 'failed') return 'Not Shipped';
@@ -248,6 +331,13 @@ public without sharing class WooOrderService {
         if (v == null) return null;
         try { return Datetime.valueOfGmt(String.valueOf(v).replace('T', ' ').replace('Z', '').substringBefore('.')); }
         catch (Exception e) { return null; }
+    }
+
+    private class WooLine {
+        String id;
+        String productId;
+        Decimal quantity;
+        Decimal unitPrice;
     }
 
     /** Pull AST shipment tracking from order meta_data (number/carrier/url), best-effort. */
@@ -274,4 +364,9 @@ public without sharing class WooOrderService {
         return out;
     }
     private static String strv(Object o) { return o == null ? null : String.valueOf(o); }
+    private static Decimal decv(Object o) {
+        if (o == null) return null;
+        try { return Decimal.valueOf(String.valueOf(o)); }
+        catch (Exception e) { return null; }
+    }
 }

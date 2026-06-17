@@ -1,0 +1,21 @@
+{
+  "required" : [ "productIdsCsv" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "couponCode" : {
+      "title" : "Coupon Code",
+      "description" : "Optional. Pass only a real couponCode already returned by issue_coupon.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "productIdsCsv" : {
+      "title" : "Product Ids CSV",
+      "description" : "Comma-separated Salesforce product ids. Repeat the same primaryProductId for quantity, e.g. two bags is ID,ID.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

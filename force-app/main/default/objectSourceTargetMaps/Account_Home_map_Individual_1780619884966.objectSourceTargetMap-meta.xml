@@ -70,7 +70,7 @@
         <filterApplied>false</filterApplied>
         <filterOperationType>Equal</filterOperationType>
         <isSourceFormula>false</isSourceFormula>
-        <sourceField>Account_Home__dll.Id__c</sourceField>
+        <sourceField>Account_Home__dll.PersonIndividualId__c</sourceField>
         <targetField>ssot__Individual__dlm.ssot__Id__c</targetField>
     </fieldSourceTargetMaps>
     <fieldSourceTargetMaps>
@@ -104,6 +104,14 @@
         <isSourceFormula>false</isSourceFormula>
         <sourceField>Account_Home__dll.Coffee_Preferences_c__c</sourceField>
         <targetField>ssot__Individual__dlm.Coffee_Preferences__c</targetField>
+    </fieldSourceTargetMaps>
+    <fieldSourceTargetMaps>
+        <creationType>Standard</creationType>
+        <filterApplied>false</filterApplied>
+        <filterOperationType>Equal</filterOperationType>
+        <isSourceFormula>false</isSourceFormula>
+        <sourceField>Account_Home__dll.Id__c</sourceField>
+        <targetField>ssot__Individual__dlm.ssot__Id__c</targetField>
     </fieldSourceTargetMaps>
     <masterLabel>Account_Home_map_Individual_1780619884966</masterLabel>
     <sourceObjectName>Account_Home__dll</sourceObjectName>

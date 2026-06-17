@@ -51,6 +51,38 @@ private class JourneyServiceTest {
     }
 
     @isTest
+    static void testServiceInteractionCaseLinksToJourneyLog() {
+        JourneyLogger.LogRequest r = new JourneyLogger.LogRequest();
+        r.email = 'service-log@example.com';
+        r.agent = 'Service';
+        r.action = 'get_tracking';
+        r.stage = 'Resolved';
+        r.result = 'Order #123 tracking is UPS 1Z999.';
+        r.chatSummary = 'Shopper asked for the tracking number and the agent answered it.';
+
+        Test.startTest();
+        JourneyLogger.logInteraction(new List<JourneyLogger.LogRequest>{ r });
+        Test.stopTest();
+
+        Agent_Interaction__c interaction = [
+            SELECT Id
+            FROM Agent_Interaction__c
+            WHERE Customer_Journey__r.Email__c = 'service-log@example.com'
+            LIMIT 1
+        ];
+        Case auditCase = [
+            SELECT Status, Service_Interaction_Id__c, Resolution__c
+            FROM Case
+            WHERE SuppliedEmail = 'service-log@example.com'
+            LIMIT 1
+        ];
+        System.assertEquals('Closed', auditCase.Status, 'generic service answer creates a closed solved case');
+        System.assertEquals(String.valueOf(interaction.Id), auditCase.Service_Interaction_Id__c,
+            'case carries the Agent_Interaction__c id for audit traceability');
+        System.assert(auditCase.Resolution__c.contains('UPS 1Z999'), auditCase.Resolution__c);
+    }
+
+    @isTest
     static void testUnknownEmail() {
         JourneyService.StateRequest req = new JourneyService.StateRequest();
         req.email = 'nobody@example.com';

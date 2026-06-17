@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <decisions>
+        <name>Not_Yet_Nurtured</name>
+        <label>Not Yet Nurtured?</label>
+        <locationX>176</locationX>
+        <locationY>288</locationY>
+        <defaultConnectorLabel>Already nurtured — allow close</defaultConnectorLabel>
+        <rules>
+            <name>First_Failed_Conversion</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Nurture_Last_Run__c</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Reroute_To_Nurture</targetReference>
+            </connector>
+            <label>First failed conversion</label>
+        </rules>
+    </decisions>
+    <description>When Inside Sales marks a lead Closed - Not Converted and it has never been nurtured, reroute it into the 30-day Nurture track instead of closing, so the autonomous Lead Copilot can attempt conversion.</description>
+    <environments>Default</environments>
+    <interviewLabel>Inside Sales Handoff To Nurture {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Inside Sales Handoff To Nurture</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <assignments>
+        <name>Reroute_To_Nurture</name>
+        <label>Reroute To Nurture</label>
+        <locationX>50</locationX>
+        <locationY>396</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.Status</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Nurture</stringValue>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>$Record.Nurture_Since__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Flow.CurrentDate</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Not_Yet_Nurtured</targetReference>
+        </connector>
+        <filterFormula>AND( ISCHANGED({!$Record.Status}), TEXT({!$Record.Status}) = &apos;Closed - Not Converted&apos; )</filterFormula>
+        <object>Lead</object>
+        <recordTriggerType>Update</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

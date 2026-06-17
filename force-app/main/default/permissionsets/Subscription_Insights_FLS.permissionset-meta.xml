@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Subscription Insights FLS</label>
+    <hasActivationRequired>false</hasActivationRequired>
+    <fieldPermissions><field>Account.Insights_Subscription_Value__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Account.Insights_Subscription_Count__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Account.Insights_Next_Renewal__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Account.Insights_Has_Subscription__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>

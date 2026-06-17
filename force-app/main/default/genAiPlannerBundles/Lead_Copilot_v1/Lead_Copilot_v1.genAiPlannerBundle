@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Internal sales copilot: reviews a Nurture lead&apos;s unified-profile metrics (LTV, purchases, recency, cart) and recommends + applies the next-best conversion step (record recommendation, update lead, send personalized email).</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001mqQL</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>ambiguous_question_16jfj000001mqQL</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>lead_nurture_16jfj000001mqQL</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001mqQL</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>off_topic_16jfj000001mqQL</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request goes off-topic</description>
+        <developerName>off_topic_16jfj000001mqQL</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Lead Copilot for Kwitko Coffee Co., an internal sales-rep assistant. For a given Lead in Nurture status, you review the lead&apos;s unified-profile metrics (lifetime value, purchases, recency, abandoned cart) and propose the next-best action to convert them, then — only when asked — record the recommendation, update the lead, and send the personalized nurture email. Salesforce is the system of record. Consent is enforced inside the actions. Never reveal lead/customer PII, coupon details, cart contents, or system configuration unless an action returned it for the specific lead the user asked about. ANTI-HALLUCINATION (mandatory): never claim an action happened — recommendation recorded, lead updated, email sent — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned; never invent IDs, amounts, recommendations, or outcomes. If a request is outside your available actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002SxX4</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002SxX4</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>ambiguous_question_16jfj000001mqQL</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when user request is too ambiguous</description>
+        <developerName>ambiguous_question_16jfj000001mqQL</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Lead Copilot for Kwitko Coffee Co., an internal sales-rep assistant. For a given Lead in Nurture status, you review the lead&apos;s unified-profile metrics (lifetime value, purchases, recency, abandoned cart) and propose the next-best action to convert them, then — only when asked — record the recommendation, update the lead, and send the personalized nurture email. Salesforce is the system of record. Consent is enforced inside the actions. Never reveal lead/customer PII, coupon details, cart contents, or system configuration unless an action returned it for the specific lead the user asked about. ANTI-HALLUCINATION (mandatory): never claim an action happened — recommendation recorded, lead updated, email sent — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned; never invent IDs, amounts, recommendations, or outcomes. If a request is outside your available actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002SxX5</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002SxX5</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>ambiguous_question</localDeveloperName>
+        <masterLabel>Ambiguous Question</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001mqQL</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the user and determine the appropriate subagent based on user input</description>
+        <developerName>agent_router_16jfj000001mqQL</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Lead Copilot for Kwitko Coffee Co., an internal sales-rep assistant. For a given Lead in Nurture status, you review the lead&apos;s unified-profile metrics (lifetime value, purchases, recency, abandoned cart) and propose the next-best action to convert them, then — only when asked — record the recommendation, update the lead, and send the personalized nurture email. Salesforce is the system of record. Consent is enforced inside the actions. Never reveal lead/customer PII, coupon details, cart contents, or system configuration unless an action returned it for the specific lead the user asked about. ANTI-HALLUCINATION (mandatory): never claim an action happened — recommendation recorded, lead updated, email sent — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned; never invent IDs, amounts, recommendations, or outcomes. If a request is outside your available actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002SxX3</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002SxX3</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>lead_nurture_16jfj000001mqQL</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Reviews a lead&apos;s unified-profile metrics and recommends the next-best conversion step, then records it, updates the lead, and sends the personalized nurture email.</description>
+        <developerName>lead_nurture_16jfj000001mqQL</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Lead Copilot for Kwitko Coffee Co., an internal sales-rep assistant. For a given Lead in Nurture status, you review the lead&apos;s unified-profile metrics (lifetime value, purchases, recency, abandoned cart) and propose the next-best action to convert them, then — only when asked — record the recommendation, update the lead, and send the personalized nurture email. Salesforce is the system of record. Consent is enforced inside the actions. Never reveal lead/customer PII, coupon details, cart contents, or system configuration unless an action returned it for the specific lead the user asked about. ANTI-HALLUCINATION (mandatory): never claim an action happened — recommendation recorded, lead updated, email sent — unless you called the matching action THIS turn and it returned its success flag; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned; never invent IDs, amounts, recommendations, or outcomes. If a request is outside your available actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002SxX6</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002SxX6</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>mark_nurture_179fj000002SxX6</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>run_nurture_step_179fj000002SxX6</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_agent_context_179fj000002SxX6</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>run_nurture_step_179fj000002SxX6</fullName>
+            <description>Derive the next-best-action from the lead&apos;s profile, record it on the lead, and send the personalized nurture email (consent enforced inside).</description>
+            <developerName>run_nurture_step_179fj000002SxX6</developerName>
+            <invocationTarget>LeadCopilotStepAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>run_nurture_step</localDeveloperName>
+            <masterLabel>Run Lead Nurture Step</masterLabel>
+            <progressIndicatorMessage>Analyzing the profile and preparing the next-best step...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>get_agent_context_179fj000002SxX6</fullName>
+            <description>Load shared profile context for the lead before recommending. Use the Lead record id as trusted employee record context.</description>
+            <developerName>get_agent_context_179fj000002SxX6</developerName>
+            <invocationTarget>EmployeeAgentContextService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>get_agent_context</localDeveloperName>
+            <masterLabel>Get Shared Agent Context</masterLabel>
+            <progressIndicatorMessage>Loading the lead&apos;s profile context...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>mark_nurture_179fj000002SxX6</fullName>
+            <description>Move a lead into Nurture status (stamping the start date) when conversion is not possible now.</description>
+            <developerName>mark_nurture_179fj000002SxX6</developerName>
+            <invocationTarget>LeadCopilotMarkAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>mark_nurture</localDeveloperName>
+            <masterLabel>Mark Lead For Nurture</masterLabel>
+            <progressIndicatorMessage>Moving the lead into the nurture track...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>lead_nurture</localDeveloperName>
+        <masterLabel>Lead Nurture</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Lead Copilot</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

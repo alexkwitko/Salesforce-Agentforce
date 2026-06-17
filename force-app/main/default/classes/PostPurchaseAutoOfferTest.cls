@@ -10,8 +10,8 @@ private class PostPurchaseAutoOfferTest {
         }
     }
 
-    @isTest
-    static void testHeadlessEnqueueCreatesOffer() {
+    @testSetup
+    static void setup() {
         Id paRt = [SELECT Id FROM RecordType WHERE SObjectType='Account' AND IsPersonType=true LIMIT 1].Id;
         Account pa = new Account(FirstName='Auto', LastName='Buyer', PersonEmail='auto.buyer@example.com',
             Email_Consent__c=true, RecordTypeId=paRt);
@@ -29,6 +29,11 @@ private class PostPurchaseAutoOfferTest {
         insert ord;
         insert new OrderItem(OrderId=ord.Id, PricebookEntryId=pbe.Id, Product2Id=bought.Id, Quantity=2, UnitPrice=19);
         update new Order(Id=ord.Id, Status='Activated', Fulfillment_Status__c='Shipped', Woo_Status__c='completed');
+    }
+
+    @isTest
+    static void testHeadlessEnqueueCreatesOffer() {
+        Order ord = [SELECT Id FROM Order WHERE Woo_Order_Id__c='A-1' LIMIT 1];
 
         Test.setMock(HttpCalloutMock.class, new WooMock());
         Test.startTest();

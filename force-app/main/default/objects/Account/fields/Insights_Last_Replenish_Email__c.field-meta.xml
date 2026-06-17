@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Insights_Last_Replenish_Email__c</fullName>
+    <label>Insights: Last Replenishment Email</label>
+    <type>Date</type>
+</CustomField>

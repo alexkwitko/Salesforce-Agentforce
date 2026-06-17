@@ -1,0 +1,21 @@
+{
+  "required" : [ "newDate" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "email" : {
+      "title" : "Email",
+      "description" : "Pass the verified email (loggedInEmail or OTP-verified).",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "newDate" : {
+      "title" : "New date (YYYY-MM-DD)",
+      "description" : "New date (YYYY-MM-DD)",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

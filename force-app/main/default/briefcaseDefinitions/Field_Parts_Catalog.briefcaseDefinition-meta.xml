@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BriefcaseDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <briefcaseRules>
+        <briefcaseRuleFilters>
+            <filterOperator>e</filterOperator>
+            <filterSeqNumber>1</filterSeqNumber>
+            <filterValue>true</filterValue>
+            <targetEntityField>IsActive</targetEntityField>
+        </briefcaseRuleFilters>
+        <filterLogic>1</filterLogic>
+        <isAscendingOrder>false</isAscendingOrder>
+        <orderBy>SystemModstamp</orderBy>
+        <queryScope>Everything</queryScope>
+        <recordLimit>500</recordLimit>
+        <targetEntity>Product2</targetEntity>
+    </briefcaseRules>
+    <isActive>true</isActive>
+    <masterLabel>Field Parts Catalog</masterLabel>
+</BriefcaseDefinition>

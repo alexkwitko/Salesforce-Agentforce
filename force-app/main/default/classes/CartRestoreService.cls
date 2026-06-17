@@ -8,7 +8,7 @@
  */
 public without sharing class CartRestoreService {
 
-    private static final String CART_URL = 'https://deepskyblue-deer-920559.hostingersite.com/cart';
+    private static final String CART_URL = 'https://deepskyblue-deer-920559.hostingersite.com/cart-2/';
 
     public class Request {
         @InvocableVariable(label='Email' required=true) public String email;
@@ -47,16 +47,26 @@ public without sharing class CartRestoreService {
 
         List<Cart_Item__c> items = [SELECT Quantity__c, SKU__c, Product__c, Product__r.Name
             FROM Cart_Item__c WHERE Cart__c = :carts[0].Id ORDER BY Line_Total__c DESC];
+        if (items.isEmpty()) {
+            res.message = 'The saved cart has no restorable items.';
+            return res;
+        }
         List<Id> prodIds = new List<Id>();
         List<String> parts = new List<String>();
         for (Cart_Item__c it : items) {
             Integer q = it.Quantity__c == null ? 1 : it.Quantity__c.intValue();
             String nm = (it.Product__r != null && it.Product__r.Name != null) ? it.Product__r.Name : (String.isBlank(it.SKU__c) ? 'item' : it.SKU__c);
             parts.add(q + '× ' + nm);
-            if (it.Product__c != null) prodIds.add(it.Product__c);
+            if (it.Product__c != null) {
+                for (Integer i = 0; i < q; i++) prodIds.add(it.Product__c);
+            }
         }
         res.itemCount = items.size();
         res.itemsSummary = String.join(parts, ', ');
+        if (prodIds.isEmpty()) {
+            res.message = 'The saved cart items are not linked to Salesforce products, so a restore link cannot be built.';
+            return res;
+        }
 
         // unredeemed coupon already waiting for this shopper (cross-agent: e.g. the cart-recovery coupon)
         for (Customer_Journey__c j : [SELECT Coupon_Code__c, Coupon_Redeemed__c FROM Customer_Journey__c WHERE Email__c = :email LIMIT 1]) {
@@ -64,14 +74,19 @@ public without sharing class CartRestoreService {
         }
 
         res.restoreUrl = CART_URL;
-        if (!prodIds.isEmpty()) {
-            try {
-                CartLinkService.Request cr = new CartLinkService.Request();
-                cr.productIdsCsv = idsToCsv(prodIds);
-                cr.couponCode = res.couponCode;
-                CartLinkService.Result lr = CartLinkService.build(new List<CartLinkService.Request>{ cr })[0];
-                if (String.isNotBlank(lr.addToCartUrl)) res.restoreUrl = lr.addToCartUrl;
-            } catch (Exception e) { /* keep cart url fallback */ }
+        try {
+            CartLinkService.Request cr = new CartLinkService.Request();
+            cr.productIdsCsv = idsToCsv(prodIds);
+            cr.couponCode = res.couponCode;
+            CartLinkService.Result lr = CartLinkService.build(new List<CartLinkService.Request>{ cr })[0];
+            if (String.isNotBlank(lr.addToCartUrl)) res.restoreUrl = lr.addToCartUrl;
+        } catch (Exception e) { /* checked below */ }
+        if (res.restoreUrl == CART_URL) {
+            res.message = 'The saved cart products are not synced to WooCommerce, so a restore link cannot be built.';
+            res.itemsSummary = null;
+            res.couponCode = null;
+            res.itemCount = 0;
+            return res;
         }
 
         res.found = true;

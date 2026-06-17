@@ -6,7 +6,7 @@
  * (A class can have only one @InvocableMethod, so this is separate from
  *  PostPurchaseService, which the assisted agent calls.)
  */
-public with sharing class PostPurchaseAutoOffer {
+public without sharing class PostPurchaseAutoOffer {
 
     public class Request {
         @InvocableVariable(label='Order ID' required=true) public Id orderId;

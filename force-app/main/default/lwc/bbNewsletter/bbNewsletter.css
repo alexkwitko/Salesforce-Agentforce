@@ -1,0 +1,35 @@
+:host {
+    --bb-espresso: #241612;
+    --bb-cream: #f6efe4;
+    --bb-crema: #e7d2b0;
+    --bb-copper: #c87a42;
+    --bb-serif: 'Fraunces', 'Playfair Display', Georgia, serif;
+    --bb-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: block;
+}
+
+.nl {
+    background:
+        radial-gradient(80% 120% at 100% 0%, rgba(200, 122, 66, 0.22), transparent 55%),
+        var(--bb-cream);
+    padding: clamp(3.5rem, 7vw, 6rem) clamp(1.5rem, 6vw, 6rem);
+}
+.nl__inner { max-width: 44rem; margin: 0 auto; text-align: center; }
+.nl__heading { font-family: var(--bb-serif); font-size: clamp(2rem, 4.5vw, 3.4rem); font-weight: 600; letter-spacing: -0.02em; color: var(--bb-espresso); margin: 0 0 0.9rem; line-height: 1; }
+.nl__sub { font-family: var(--bb-sans); font-size: 1.02rem; line-height: 1.6; color: rgba(42, 32, 26, 0.7); margin: 0 auto 2rem; max-width: 34rem; }
+
+.nl__form { display: flex; gap: 0.6rem; max-width: 28rem; margin: 0 auto; }
+@media (max-width: 460px) { .nl__form { flex-direction: column; } }
+.nl__input {
+    flex: 1; font-family: var(--bb-sans); font-size: 1rem; padding: 0.95rem 1.2rem;
+    border: 1px solid rgba(36, 22, 18, 0.2); border-radius: 999px; background: #fff; color: var(--bb-espresso);
+    outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.nl__input:focus { border-color: var(--bb-copper); box-shadow: 0 0 0 3px rgba(200, 122, 66, 0.18); }
+.nl__btn {
+    font-family: var(--bb-sans); font-weight: 600; font-size: 1rem; color: #fff; cursor: pointer;
+    background: var(--bb-espresso); border: none; border-radius: 999px; padding: 0.95rem 1.8rem;
+    transition: background 0.25s ease, transform 0.25s ease;
+}
+.nl__btn:hover { background: var(--bb-copper); transform: translateY(-1px); }
+.nl__done { font-family: var(--bb-sans); font-size: 1.05rem; font-weight: 600; color: var(--bb-espresso); margin: 0; }

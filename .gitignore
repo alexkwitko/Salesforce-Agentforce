@@ -63,3 +63,6 @@ docs/*.html
 **/__pycache__/
 **/.venv/
 **/venv/
+tmp/
+.codex-sf-home/
+**/keys/

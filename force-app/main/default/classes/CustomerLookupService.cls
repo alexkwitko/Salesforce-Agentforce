@@ -194,9 +194,16 @@ public without sharing class CustomerLookupService {
         String summary;
     }
 
+    // The synchronous Data Cloud CdpQuery JOIN below hangs / times out (60-100s+) on this Developer Edition
+    // org, which BLOCKS the live web chat on the verified path (the widget shows "Thinking" indefinitely and
+    // never replies). CRM (Account/Order) already holds the customer + purchase data and dcUnifiedProfile()
+    // fails soft to CRM anyway, so we skip the live Data Cloud enrichment here. Set to true again only on an
+    // org where Data Cloud `queryAnsiSqlV2` returns promptly.
+    @TestVisible private static Boolean DC_UNIFIED_PROFILE_ENABLED = false;
+
     private static DataCloudProfile dcUnifiedProfile(String email) {
         DataCloudProfile profile = new DataCloudProfile();
-        if (Test.isRunningTest() || String.isBlank(email)) return profile;
+        if (!DC_UNIFIED_PROFILE_ENABLED || Test.isRunningTest() || String.isBlank(email)) return profile;
         try {
             String sql = 'SELECT cpe.ssot__EmailAddress__c em, ind.ssot__Id__c individualId, '
                 + 'ind.ssot__FirstName__c firstName, ind.Coffee_Preferences__c coffeePreferences '

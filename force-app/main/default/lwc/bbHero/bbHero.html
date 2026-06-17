@@ -1,0 +1,30 @@
+<template>
+    <section class="hero">
+        <div class="hero__bg" aria-hidden="true">
+            <div class="hero__steam hero__steam--1"></div>
+            <div class="hero__steam hero__steam--2"></div>
+            <div class="hero__steam hero__steam--3"></div>
+        </div>
+        <div class="hero__inner">
+            <p class="hero__eyebrow">{eyebrow}</p>
+            <h1 class="hero__headline">
+                <template for:each={headlineLines} for:item="line">
+                    <span key={line.key} class="hero__line">{line.text}</span>
+                </template>
+            </h1>
+            <p class="hero__subhead">{subhead}</p>
+            <div class="hero__actions">
+                <a class="btn btn--primary" href={primaryUrl}>
+                    {primaryLabel}
+                    <span class="btn__arrow" aria-hidden="true">&#8594;</span>
+                </a>
+                <a class="btn btn--ghost" href={secondaryUrl}>{secondaryLabel}</a>
+            </div>
+            <dl class="hero__stats">
+                <div class="hero__stat"><dt>15-yr</dt><dd>parts &amp; labor warranty</dd></div>
+                <div class="hero__stat"><dt>72 hr</dt><dd>white-glove install</dd></div>
+                <div class="hero__stat"><dt>4.9&#9733;</dt><dd>2,400+ café reviews</dd></div>
+            </dl>
+        </div>
+    </section>
+</template>

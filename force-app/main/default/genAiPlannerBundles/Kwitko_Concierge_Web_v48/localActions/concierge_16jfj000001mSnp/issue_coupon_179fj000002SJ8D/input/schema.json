@@ -1,0 +1,28 @@
+{
+  "required" : [ "email", "discountPercent" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "discountPercent" : {
+      "title" : "Discount Percent",
+      "description" : "Use the discountPercent from the recommendation strategy — never invent it.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "The shopper's email.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "firstName" : {
+      "title" : "First Name",
+      "description" : "The shopper's first name, for a personalized coupon code.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

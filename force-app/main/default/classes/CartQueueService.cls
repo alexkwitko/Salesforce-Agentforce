@@ -12,12 +12,13 @@
 public without sharing class CartQueueService {
 
     // Must match KWITKO_WHK_SECRET in wp-config (and the storefront cart-capture HMAC).
-    private static final String HMAC_SECRET = 'kwitko_whk_191b7c0315601372f98523adb3471095a8f1b05bf2bf8936';
 
     public class Request {
         @InvocableVariable(label='Cart Token' required=true) public String cartToken;
         @InvocableVariable(label='Woo Product Ids CSV' required=true) public String wooProductIdsCsv;
         @InvocableVariable(label='Coupon Code') public String couponCode;
+        @InvocableVariable(label='Replace Existing Cart' description='True only when the shopper explicitly wants the recommendation to replace the existing cart.')
+        public Boolean replaceExistingCart;
     }
     public class Result {
         @InvocableVariable public Boolean success;
@@ -43,11 +44,11 @@ public without sharing class CartQueueService {
         }
         Map<String, Object> body = new Map<String, Object>{
             'token' => r.cartToken, 'items' => items,
-            'coupon' => (r.couponCode == null ? '' : r.couponCode) };
+            'coupon' => (r.couponCode == null ? '' : r.couponCode),
+            'clear' => r.replaceExistingCart == true };
         String raw = JSON.serialize(body);
-        if (Test.isRunningTest()) { res.success = true; res.message = 'test'; return res; }
         try {
-            Blob mac = Crypto.generateMac('hmacSHA256', Blob.valueOf(raw), Blob.valueOf(HMAC_SECRET));
+            Blob mac = Crypto.generateMac('hmacSHA256', Blob.valueOf(raw), Blob.valueOf(KwitkoSecrets.whk()));
             HttpRequest req = new HttpRequest();
             req.setEndpoint('callout:WooCommerce/wp-json/kwitko/v1/cart');
             req.setMethod('POST');

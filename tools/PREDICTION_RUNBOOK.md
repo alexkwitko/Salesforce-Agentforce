@@ -5,16 +5,37 @@ only fit *transiently* — leaving them in place breaks the live web tracker wit
 `STORAGE_LIMIT_EXCEEDED` (the REST POST returns an APEX_ERROR; browser `fetch` will not
 throw unless the response is inspected). So scoring is a deliberate, short-lived operation:
 
-## Status: the pipeline DOES produce model output (proven 2026-06-12 PM)
-End-to-end verified this session:
+## Current status snapshot (2026-06-15)
+Do not overclaim this as a currently certified active Einstein model:
+- `MLPredictionDefinition` rows: `0`.
+- `MktMLModel` rows: `0`.
+- `MLModel` rows: `0`.
+- `MktMLPredictionJob` rows: `1`; job `Churn Prediction Job` last ran `2026-06-12T17:13:08Z`
+  with `LastRunStatus=SUCCESS`, `LastProcessedRecords=483`, `ScoreUpdated=483`.
+- `Churn_Predictions__dlm` rows: `161`.
+- Active Accounts with `Data_Cloud_Churn_Risk__c` containing `AI model`: `10`.
+- Active Accounts with operational heuristic `Churn_Score__c`: `11`.
+- Win-back activation: `1` CampaignMember is currently `Emailed` on `DC - High-Value At-Risk Win-Back`.
+
+Interpretation: prediction artifacts and historical model-looking writeback exist, but the
+current org does **not** expose an API-visible `MLPredictionDefinition`, `MktMLModel`, or
+`MLModel`. Treat the real Model Builder definition/model as UI-verification-required until
+it is confirmed in Einstein Studio. The operational `ChurnScoreService` is heuristic Apex,
+not AI.
+
+## Historical proof: the pipeline produced model output (2026-06-12 PM)
+Historical end-to-end verification:
 - Model **"Predicted Churned" v2** ACTIVE; predict job **"Churn_Prediction_Job"** (Integrations
   tab) → its row-action **Run** produced **161 rows in `Churn_Predictions__dlm`**.
 - Output schema: `PredictedChurned_c1__c`='TRUE' / `PredictedChurned_c1Value__c`=P(churn);
   `PrimaryObjectPk__c` = the `Churn_Training__c` record id (NOT the Account id).
-- `tools/sync_model_scores.apex` joins predictions→Account and wrote **161 Accounts** with
+- `tools/sync_model_scores.apex` joins predictions→Account and wrote **161 Accounts** at the time with
   `Data_Cloud_Churn_Risk__c` = e.g. `"0.96 (AI model v2)"` — and they diverge from the
   heuristic (model 0.96 vs heuristic 0.49), i.e. genuinely different real predictions.
-- `AtRiskCampaignBuilder` now selects on this model score when present (E1).
+- `AtRiskCampaignBuilder` now selects on this model score when present (E1). If the current
+  Account cache contains a textual unified-profile risk tier such as `High`, it maps that tier
+  before falling back to the operational heuristic score. This is what certified the `2026-06-15`
+  live win-back send for `alexkwitko@gmail.com`.
 
 The daily operational scorer (`Kwitko Churn Scoring Daily`, 03:00) keeps `Account.Churn_Score__c`
 fresh regardless (purchase + web-engagement heuristics) — the two-tier design.

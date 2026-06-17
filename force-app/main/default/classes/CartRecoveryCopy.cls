@@ -6,7 +6,7 @@
  */
 public without sharing class CartRecoveryCopy {
     private static final String MODEL = 'sfdc_ai__DefaultGPT4OmniMini';
-    private static final String CART = 'https://deepskyblue-deer-920559.hostingersite.com/cart';
+    private static final String CART = 'https://deepskyblue-deer-920559.hostingersite.com/cart-2/';
 
     public static String generate(String firstName, String heroImg, Integer pct, String code, Date expiry) {
         Map<String,String> ai = tryAi(firstName);

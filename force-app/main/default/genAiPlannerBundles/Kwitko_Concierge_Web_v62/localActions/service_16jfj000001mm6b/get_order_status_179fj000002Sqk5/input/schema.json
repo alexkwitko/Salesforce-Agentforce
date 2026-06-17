@@ -1,0 +1,35 @@
+{
+  "required" : [ ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "chatSummary" : {
+      "title" : "Chat Summary",
+      "description" : "ALWAYS pass this. A faithful, detailed summary/transcript of the conversation so the solved service Case stores what the shopper asked, what you checked, and what you answered.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "Optional. Use the shopper's email only when they are signed in or voluntarily provided it for shopping/profile use. Leave blank for an anonymous single-use coupon.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "orderIdentifier" : {
+      "title" : "Order Identifier",
+      "description" : "Order number or WooCommerce order id. Leave blank to use their most recent order.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "Pass the loggedInEmail variable. Required for the action to return order data; if empty the action returns a sign-in message.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

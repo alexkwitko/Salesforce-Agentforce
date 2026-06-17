@@ -1,0 +1,70 @@
+{
+  "required" : [ "email" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "beanType" : {
+      "title" : "Bean Type",
+      "description" : "single-origin or blend. Independent of brew/roast/caffeine.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "brew" : {
+      "title" : "Brew Method",
+      "description" : "espresso, pour-over, cold brew, french press, etc.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "caffeine" : {
+      "title" : "Caffeine",
+      "description" : "regular or decaf. Set this when the shopper states caffeine preference (e.g. 'no decaf' -> regular, 'I want decaf' -> decaf).",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "dislikeItem" : {
+      "title" : "Dislike",
+      "description" : "Something the shopper does NOT want, e.g. decaf, flavored, dark roast.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "The shopper's email.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "flavored" : {
+      "title" : "Flavored Preference",
+      "description" : "avoid or ok. Set 'avoid' when the shopper dislikes flavored coffees.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "format" : {
+      "title" : "Format",
+      "description" : "whole bean or ground.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "likeItem" : {
+      "title" : "Like",
+      "description" : "Something the shopper likes, e.g. single-origin, fruity.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "roast" : {
+      "title" : "Roast Level",
+      "description" : "light, medium, or dark.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

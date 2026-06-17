@@ -40,6 +40,43 @@ private class WooCartLiveCaptureTest {
     }
 
     @isTest
+    static void testCartValueUsesMerchandiseLinesNotInflatedPayloadTotal() {
+        Map<String, Object> p = payload('line.total@example.com');
+        p.put('total', 99.00);
+
+        Id cartId = WooCartResource.upsertCart(p);
+
+        Cart__c c = [SELECT Cart_Value__c FROM Cart__c WHERE Id = :cartId];
+        System.assertEquals(38.00, c.Cart_Value__c,
+            'abandoned-cart value should match reconstructed merchandise lines, not a Woo total that may include estimates');
+    }
+
+    @isTest
+    static void testDuplicateCartRowsCollapseToOneCanonicalCart() {
+        Cart__c staleA = new Cart__c(Woo_Cart_Id__c = 'sess-abc-123', Status__c = 'Active',
+            Cart_Value__c = 1, Item_Count__c = 1);
+        Cart__c staleB = new Cart__c(Woo_Cart_Id__c = 'sess-abc-123', Status__c = 'Active',
+            Shopper_Email__c = 'canonical@example.com', Cart_Value__c = 2, Item_Count__c = 1);
+        insert new List<Cart__c>{ staleA, staleB };
+        insert new Cart_Item__c(Cart__c = staleA.Id, Quantity__c = 1, Unit_Price__c = 1, Line_Total__c = 1);
+        insert new Cart_Item__c(Cart__c = staleB.Id, Quantity__c = 1, Unit_Price__c = 2, Line_Total__c = 2);
+
+        Test.startTest();
+        Id cartId = WooCartResource.upsertCart(payload('live.cart@example.com'));
+        Test.stopTest();
+
+        System.assertEquals(staleB.Id, cartId, 'cart with identity context is kept as canonical');
+        System.assertEquals(1, [SELECT COUNT() FROM Cart__c WHERE Woo_Cart_Id__c = 'sess-abc-123'],
+            'duplicate cart rows for one Woo token are collapsed');
+        System.assertEquals(1, [SELECT COUNT() FROM Cart_Item__c WHERE Cart__c = :cartId],
+            'canonical cart lines are replaced once');
+        Cart__c kept = [SELECT Shopper_Email__c, Cart_Value__c, Item_Count__c FROM Cart__c WHERE Id = :cartId];
+        System.assertEquals('live.cart@example.com', kept.Shopper_Email__c);
+        System.assertEquals(38.00, kept.Cart_Value__c);
+        System.assertEquals(2, kept.Item_Count__c);
+    }
+
+    @isTest
     static void testHmacPost() {
         String json = JSON.serialize(payload('hmac.cart@example.com'));
         Blob bodyBlob = Blob.valueOf(json);

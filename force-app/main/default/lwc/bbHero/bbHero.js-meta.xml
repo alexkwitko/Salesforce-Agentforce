@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>B&amp;B Hero</masterLabel>
+    <description>Bean &amp; Brew premium homepage hero with headline, CTAs, and trust stats.</description>
+    <targets>
+        <target>lightningCommunity__Page</target>
+        <target>lightningCommunity__Default</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightningCommunity__Default">
+            <property name="eyebrow" type="String" label="Eyebrow text"/>
+            <property name="headline" type="String" label="Headline (use \n for line break)"/>
+            <property name="subhead" type="String" label="Subheading"/>
+            <property name="primaryLabel" type="String" label="Primary button label"/>
+            <property name="primaryUrl" type="String" label="Primary button URL"/>
+            <property name="secondaryLabel" type="String" label="Secondary button label"/>
+            <property name="secondaryUrl" type="String" label="Secondary button URL"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

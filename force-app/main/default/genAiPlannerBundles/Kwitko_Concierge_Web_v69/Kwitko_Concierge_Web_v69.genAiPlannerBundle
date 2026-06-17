@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Concierge orchestrator: help anonymous shoppers first, capture lead details only when offered or needed, recognize returning customers from verified context, and build buyer-aware recommendations via the shared strategy engine.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001mutl</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>cart_builder_16jfj000001mutl</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>concierge_16jfj000001mutl</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>identity_gate_16jfj000001mutl</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001mutl</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>service_16jfj000001mutl</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>identity_gate_16jfj000001mutl</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Verify an unverified shopper by emailing a one-time code BEFORE any account help. This subagent has NO order, return, cancel, refund, tracking, or case tools — it can ONLY verify identity, so it cannot start or promise any account action.</description>
+        <developerName>identity_gate_16jfj000001mutl</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record and WooCommerce is the storefront. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. &apos;Hi Alex,&apos;) no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply &apos;you&apos;re signed in&apos;, do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing ANY account action (return, cancel, refund, address change). Be consistent: if you said you would help, the very next step for a guest is verification, not a promise.</description>
+            <developerName>instruction0_179fj000002T5OB</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002T5OB</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>link_web_identity_179fj000002T5OB</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>verify_code_179fj000002T5OB</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>sign_in_link_179fj000002T5OB</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>request_verification_code_179fj000002T5OB</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>sign_in_link_179fj000002T5OB</fullName>
+            <description>Return the storefront sign-in link. One of TWO verification options for a guest (loggedInEmail empty) who needs account help — offer it ALONGSIDE the email-code option in the same message and let the shopper choose. If they sign in, loggedInEmail becomes non-empty and they are auto-recognized.</description>
+            <developerName>sign_in_link_179fj000002T5OB</developerName>
+            <invocationTarget>LoginLinkService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>sign_in_link</localDeveloperName>
+            <masterLabel>Get Sign-In Link</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>verify_code_179fj000002T5OB</fullName>
+            <description>Verify the one-time code the shopper typed. On verified=true the shopper is identity-verified for the session.</description>
+            <developerName>verify_code_179fj000002T5OB</developerName>
+            <invocationTarget>VerifyCodeAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>verify_code</localDeveloperName>
+            <masterLabel>Verify Code</masterLabel>
+            <progressIndicatorMessage>Verifying...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>link_web_identity_179fj000002T5OB</fullName>
+            <description>Stitch this browser&apos;s anonymous web activity to the now-verified shopper by linking their device to their email. Call ONCE, silently, right after verify_code returns verified=true, only if a cart token is present. Do not mention it to the shopper.</description>
+            <developerName>link_web_identity_179fj000002T5OB</developerName>
+            <invocationTarget>WebIdentityService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>link_web_identity</localDeveloperName>
+            <masterLabel>Link Web Identity</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>request_verification_code_179fj000002T5OB</fullName>
+            <description>Email the shopper a 6-digit one-time verification code (Tier-2 identity). One of TWO verification options for a guest — offer it ALONGSIDE sign_in_link in the same message and let the shopper choose (it works even if they can&apos;t sign in). Ask for their account email first, then call this immediately in the same turn after the email is provided; never say a code will be sent unless this action returned success=true.</description>
+            <developerName>request_verification_code_179fj000002T5OB</developerName>
+            <invocationTarget>RequestVerificationCodeAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>request_verification_code</localDeveloperName>
+            <masterLabel>Request Verification Code</masterLabel>
+            <progressIndicatorMessage>Sending your verification code...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>identity_gate</localDeveloperName>
+        <masterLabel>Identity Gate</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001mutl</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the shopper and route to the concierge subagent.</description>
+        <developerName>agent_router_16jfj000001mutl</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record and WooCommerce is the storefront. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. &apos;Hi Alex,&apos;) no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply &apos;you&apos;re signed in&apos;, do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing ANY account action (return, cancel, refund, address change). Be consistent: if you said you would help, the very next step for a guest is verification, not a promise.</description>
+            <developerName>instruction0_179fj000002T5OA</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002T5OA</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>verify_code_179fj000002T5OA</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>request_verification_code_179fj000002T5OA</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>sign_in_link_179fj000002T5OA</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>request_verification_code_179fj000002T5OA</fullName>
+            <description>Email the shopper a 6-digit one-time verification code. Router safety fallback: use this when the current message is an email address after the assistant asked for account verification or an email-code.</description>
+            <developerName>request_verification_code_179fj000002T5OA</developerName>
+            <invocationTarget>RequestVerificationCodeAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>request_verification_code</localDeveloperName>
+            <masterLabel>Request Verification Code</masterLabel>
+            <progressIndicatorMessage>Sending your verification code...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>verify_code_179fj000002T5OA</fullName>
+            <description>Verify the one-time code the shopper typed after a code was sent.</description>
+            <developerName>verify_code_179fj000002T5OA</developerName>
+            <invocationTarget>VerifyCodeAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>verify_code</localDeveloperName>
+            <masterLabel>Verify Code</masterLabel>
+            <progressIndicatorMessage>Verifying...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>sign_in_link_179fj000002T5OA</fullName>
+            <description>Return the storefront sign-in link. Router safety fallback: use this when an unverified guest chooses sign-in for account/service verification. This action does not require the shopper&apos;s email.</description>
+            <developerName>sign_in_link_179fj000002T5OA</developerName>
+            <invocationTarget>LoginLinkService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>sign_in_link</localDeveloperName>
+            <masterLabel>Get Sign-In Link</masterLabel>
+        </localActions>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>service_16jfj000001mutl</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Customer service: order status, shipping/delivery, returns, refunds, cancellations, and support cases. Acts only on the shopper&apos;s own orders and enforces lifecycle eligibility.</description>
+        <developerName>service_16jfj000001mutl</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record and WooCommerce is the storefront. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. &apos;Hi Alex,&apos;) no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply &apos;you&apos;re signed in&apos;, do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing ANY account action (return, cancel, refund, address change). Be consistent: if you said you would help, the very next step for a guest is verification, not a promise.</description>
+            <developerName>instruction0_179fj000002T5OD</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002T5OD</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>update_shipping_address_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>lookup_customer_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>process_return_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>handle_failed_payment_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_order_status_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>verify_code_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>open_case_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>password_reset_link_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>sign_in_link_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>schedule_callback_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>cancel_order_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>request_verification_code_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_agent_context_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_tracking_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>modify_order_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>process_exchange_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>resolve_case_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>apply_store_credit_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>reship_179fj000002T5OD</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>resolve_case_179fj000002T5OD</fullName>
+            <description>Close a support case with a resolution summary once the issue is ACTUALLY fixed. A real fix tool, not just an audit.</description>
+            <developerName>resolve_case_179fj000002T5OD</developerName>
+            <invocationTarget>CaseResolutionService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>resolve_case</localDeveloperName>
+            <masterLabel>Resolve Case</masterLabel>
+            <progressIndicatorMessage>Closing your case...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>get_tracking_179fj000002T5OD</fullName>
+            <description>Return carrier, tracking number, and tracking link for the shopper&apos;s order (synced from WooCommerce). Read-only, verified shopper only.</description>
+            <developerName>get_tracking_179fj000002T5OD</developerName>
+            <invocationTarget>TrackingService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>get_tracking</localDeveloperName>
+            <masterLabel>Get Tracking</masterLabel>
+            <progressIndicatorMessage>Looking up tracking...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>get_order_status_179fj000002T5OD</fullName>
+            <description>Look up the shopper&apos;s order status, items, fulfillment stage, and whether it can currently be cancelled or returned. Read-only.</description>
+            <developerName>get_order_status_179fj000002T5OD</developerName>
+            <invocationTarget>OrderStatusService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>get_order_status</localDeveloperName>
+            <masterLabel>Get Order Status</masterLabel>
+            <progressIndicatorMessage>Checking your order...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>open_case_179fj000002T5OD</fullName>
+            <description>Open a categorized support case for the shopper, optionally linked to an order, and optionally escalate to a human agent. Use immediately when the shopper explicitly asks to open a case, create a ticket, file a complaint, or log a support issue; do not offer store credit, replacement, return, or refund before the requested case exists.</description>
+            <developerName>open_case_179fj000002T5OD</developerName>
+            <invocationTarget>CaseService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>open_case</localDeveloperName>
+            <masterLabel>Open Support Case</masterLabel>
+            <progressIndicatorMessage>Logging your request...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>request_verification_code_179fj000002T5OD</fullName>
+            <description>Email the shopper a 6-digit one-time verification code (Tier-2 identity). One of TWO verification options for a guest — offer it ALONGSIDE sign_in_link and let the shopper choose (it works even if they can&apos;t sign in, e.g. login/password help). Ask for their account email first, then call this immediately in the same turn after the email is provided; never say a code will be sent unless this action returned success=true.</description>
+            <developerName>request_verification_code_179fj000002T5OD</developerName>
+            <invocationTarget>RequestVerificationCodeAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>request_verification_code</localDeveloperName>
+            <masterLabel>Request Verification Code</masterLabel>
+            <progressIndicatorMessage>Sending your verification code...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>modify_order_179fj000002T5OD</fullName>
+            <description>Record a modification request (change items/quantities) on a NOT-yet-shipped order and route it to fulfillment. Verified shopper only.</description>
+            <developerName>modify_order_179fj000002T5OD</developerName>
+            <invocationTarget>OrderModifyService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>modify_order</localDeveloperName>
+            <masterLabel>Modify Order</masterLabel>
+            <progressIndicatorMessage>Requesting your change...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>apply_store_credit_179fj000002T5OD</fullName>
+            <description>Issue goodwill store credit (a REAL make-it-right tool) after a delay, damage, or service failure. Confirm with the shopper first. Capped at $50.</description>
+            <developerName>apply_store_credit_179fj000002T5OD</developerName>
+            <invocationTarget>StoreCreditService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>apply_store_credit</localDeveloperName>
+            <masterLabel>Apply Store Credit</masterLabel>
+            <progressIndicatorMessage>Applying store credit...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>verify_code_179fj000002T5OD</fullName>
+            <description>Verify the one-time code the shopper typed. On verified=true the shopper&apos;s email is identity-verified for the session and gated account actions are allowed.</description>
+            <developerName>verify_code_179fj000002T5OD</developerName>
+            <invocationTarget>VerifyCodeAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>verify_code</localDeveloperName>
+            <masterLabel>Verify Code</masterLabel>
+            <progressIndicatorMessage>Verifying...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>update_shipping_address_179fj000002T5OD</fullName>
+            <description>Update the shipping address on a NOT-yet-shipped order (Salesforce + WooCommerce). Verified shopper only.</description>
+            <developerName>update_shipping_address_179fj000002T5OD</developerName>
+            <invocationTarget>AddressUpdateService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>update_shipping_address</localDeveloperName>
+            <masterLabel>Update Shipping Address</masterLabel>
+            <progressIndicatorMessage>Updating your shipping address...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>schedule_callback_179fj000002T5OD</fullName>
+            <description>Log a callback request for a human agent (creates a case + task). Verified shopper only.</description>
+            <developerName>schedule_callback_179fj000002T5OD</developerName>
+            <invocationTarget>CallbackService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>schedule_callback</localDeveloperName>
+            <masterLabel>Schedule Callback</masterLabel>
+            <progressIndicatorMessage>Scheduling your callback...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>cancel_order_179fj000002T5OD</fullName>
+            <description>Cancel an order that has NOT shipped yet, with a WooCommerce cancel + refund. The action enforces eligibility (cannot cancel once shipped).</description>
+            <developerName>cancel_order_179fj000002T5OD</developerName>
+            <invocationTarget>CancellationService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>cancel_order</localDeveloperName>
+            <masterLabel>Cancel Order</masterLabel>
+            <progressIndicatorMessage>Cancelling your order...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>sign_in_link_179fj000002T5OD</fullName>
+            <description>Return the storefront sign-in link. One of TWO verification options for a guest (loggedInEmail empty) who needs account help — offer it ALONGSIDE the email-code option in the same message and let the shopper choose. If they sign in, loggedInEmail becomes non-empty and they are auto-recognized.</description>
+            <developerName>sign_in_link_179fj000002T5OD</developerName>
+            <invocationTarget>LoginLinkService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>sign_in_link</localDeveloperName>
+            <masterLabel>Get Sign-In Link</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>password_reset_link_179fj000002T5OD</fullName>
+            <description>Return the secure password-reset link for the storefront. Never sets or reveals passwords; safe for anyone.</description>
+            <developerName>password_reset_link_179fj000002T5OD</developerName>
+            <invocationTarget>PasswordResetService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>password_reset_link</localDeveloperName>
+            <masterLabel>Password Reset Link</masterLabel>
+            <progressIndicatorMessage>Getting your reset link...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>handle_failed_payment_179fj000002T5OD</fullName>
+            <description>Check payment status and give a secure pay-now link to retry a failed/pending payment, opening a billing case. Verified shopper only.</description>
+            <developerName>handle_failed_payment_179fj000002T5OD</developerName>
+            <invocationTarget>FailedPaymentService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>handle_failed_payment</localDeveloperName>
+            <masterLabel>Handle Failed Payment</masterLabel>
+            <progressIndicatorMessage>Checking your payment...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>process_return_179fj000002T5OD</fullName>
+            <description>Start a return for a DELIVERED order: creates the return, sends a return shipping label through WooCommerce, opens a case, and records the expected refund amount. The WooCommerce refund is processed only after returned merchandise is received.</description>
+            <developerName>process_return_179fj000002T5OD</developerName>
+            <invocationTarget>ReturnService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>process_return</localDeveloperName>
+            <masterLabel>Process Return</masterLabel>
+            <progressIndicatorMessage>Setting up your return...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>process_exchange_179fj000002T5OD</fullName>
+            <description>Start a return of a DELIVERED order and open an exchange case for the desired replacement. Verified shopper only.</description>
+            <developerName>process_exchange_179fj000002T5OD</developerName>
+            <invocationTarget>ExchangeService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>process_exchange</localDeveloperName>
+            <masterLabel>Process Exchange</masterLabel>
+            <progressIndicatorMessage>Setting up your exchange...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>reship_179fj000002T5OD</fullName>
+            <description>Create a FREE replacement order (same items) for a lost or damaged delivery and open a case. Verified shopper only.</description>
+            <developerName>reship_179fj000002T5OD</developerName>
+            <invocationTarget>ReshipService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>reship</localDeveloperName>
+            <masterLabel>Reship Order</masterLabel>
+            <progressIndicatorMessage>Setting up your replacement...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>lookup_customer_179fj000002T5OD</fullName>
+            <description>Load the shopper&apos;s history AND cross-agent context (saved cart, active coupon, what OTHER agents already did, open cases, returns). Call at the START of a service conversation so you have full context.</description>
+            <developerName>lookup_customer_179fj000002T5OD</developerName>
+            <invocationTarget>CustomerLookupService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>lookup_customer</localDeveloperName>
+            <masterLabel>Lookup Customer</masterLabel>
+            <progressIndicatorMessage>Pulling up your account...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>get_agent_context_179fj000002T5OD</fullName>
+            <description>Load the shared privacy-gated context packet before any service action or handoff. This is the standard cross-agent context envelope.</description>
+            <developerName>get_agent_context_179fj000002T5OD</developerName>
+            <invocationTarget>AgentContextService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>get_agent_context</localDeveloperName>
+            <masterLabel>Get Shared Agent Context</masterLabel>
+            <progressIndicatorMessage>Loading shared customer context...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>service</localDeveloperName>
+        <masterLabel>Service</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>cart_builder_16jfj000001mutl</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Handles add-to-cart, buy, checkout, and quantity requests by returning a real clickable storefront link. This subagent never claims items are already in the cart.</description>
+        <developerName>cart_builder_16jfj000001mutl</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record and WooCommerce is the storefront. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. &apos;Hi Alex,&apos;) no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply &apos;you&apos;re signed in&apos;, do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing ANY account action (return, cancel, refund, address change). Be consistent: if you said you would help, the very next step for a guest is verification, not a promise.</description>
+            <developerName>instruction0_179fj000002T5OC</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002T5OC</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>build_strategy_179fj000002T5OC</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>add_to_cart_179fj000002T5OC</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>build_strategy_179fj000002T5OC</fullName>
+            <description>Build or refresh the deterministic recommendation so the cart link uses real Salesforce product ids. Email is optional; anonymous cart links are allowed.</description>
+            <developerName>build_strategy_179fj000002T5OC</developerName>
+            <invocationTarget>RecommendationStrategyService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>build_strategy</localDeveloperName>
+            <masterLabel>Build Recommendation Strategy</masterLabel>
+            <progressIndicatorMessage>Finding the right item...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>add_to_cart_179fj000002T5OC</fullName>
+            <description>Build a REAL working add-to-cart link. The shopper must click the returned URL before anything is in the cart.</description>
+            <developerName>add_to_cart_179fj000002T5OC</developerName>
+            <invocationTarget>CartLinkService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>add_to_cart</localDeveloperName>
+            <masterLabel>Build Add-to-Cart Links</masterLabel>
+            <progressIndicatorMessage>Preparing your cart link...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>cart_builder</localDeveloperName>
+        <masterLabel>Cart Link Builder</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>concierge_16jfj000001mutl</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Helps shoppers browse and get recommendations without forcing sign-in, captures name/email only when offered or needed, recognizes returning customers, and builds recommendations.</description>
+        <developerName>concierge_16jfj000001mutl</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record and WooCommerce is the storefront. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. &apos;Hi Alex,&apos;) no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply &apos;you&apos;re signed in&apos;, do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing ANY account action (return, cancel, refund, address change). Be consistent: if you said you would help, the very next step for a guest is verification, not a promise.</description>
+            <developerName>instruction0_179fj000002T5OE</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002T5OE</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>sign_in_link_179fj000002T5OE</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>lookup_customer_179fj000002T5OE</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>issue_coupon_179fj000002T5OE</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>capture_lead_179fj000002T5OE</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>add_to_cart_179fj000002T5OE</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_agent_context_179fj000002T5OE</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>save_preferences_179fj000002T5OE</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>restore_cart_179fj000002T5OE</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>build_strategy_179fj000002T5OE</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>restore_cart_179fj000002T5OE</fullName>
+            <description>Bring back a returning shopper&apos;s SAVED or ABANDONED cart. Call this when lookup_customer&apos;s summary shows a saved cart (CROSS-AGENT CONTEXT: OFFER TO RESTORE), or when the shopper says they lost their cart or had items before. Returns the saved items and a one-click link that re-adds them all and auto-applies any waiting coupon. The cart is saved on our servers, so nothing is lost.</description>
+            <developerName>restore_cart_179fj000002T5OE</developerName>
+            <invocationTarget>CartRestoreService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>restore_cart</localDeveloperName>
+            <masterLabel>Restore Saved Cart</masterLabel>
+            <progressIndicatorMessage>Finding your saved cart...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>lookup_customer_179fj000002T5OE</fullName>
+            <description>Look up whether this email is a returning customer and summarize their history.</description>
+            <developerName>lookup_customer_179fj000002T5OE</developerName>
+            <invocationTarget>CustomerLookupService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>lookup_customer</localDeveloperName>
+            <masterLabel>Lookup Customer</masterLabel>
+            <progressIndicatorMessage>Checking if we know you...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>save_preferences_179fj000002T5OE</fullName>
+            <description>Persist a stated coffee preference (a like, a dislike, roast level, format, or brew method) to the customer&apos;s profile and unified profile. Call this WHENEVER the shopper states or implies a preference, especially a dislike or a rejection of a recommendation.</description>
+            <developerName>save_preferences_179fj000002T5OE</developerName>
+            <invocationTarget>CustomerPreferenceService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>save_preferences</localDeveloperName>
+            <masterLabel>Save Customer Preferences</masterLabel>
+            <progressIndicatorMessage>Updating your preferences...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>sign_in_link_179fj000002T5OE</fullName>
+            <description>Return the storefront sign-in link. One of TWO verification options for a guest (loggedInEmail empty) who needs account help — offer it ALONGSIDE the email-code option in the same message and let the shopper choose. If they sign in, loggedInEmail becomes non-empty and they are auto-recognized.</description>
+            <developerName>sign_in_link_179fj000002T5OE</developerName>
+            <invocationTarget>LoginLinkService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>sign_in_link</localDeveloperName>
+            <masterLabel>Get Sign-In Link</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>build_strategy_179fj000002T5OE</fullName>
+            <description>Build the deterministic recommendation: primary coffee, complementary gear, quantities, and discount policy. Email is optional; anonymous storefront recommendations must run with email blank instead of asking for email.</description>
+            <developerName>build_strategy_179fj000002T5OE</developerName>
+            <invocationTarget>RecommendationStrategyService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>build_strategy</localDeveloperName>
+            <masterLabel>Build Recommendation Strategy</masterLabel>
+            <progressIndicatorMessage>Building your personalized recommendation...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>get_agent_context_179fj000002T5OE</fullName>
+            <description>Load the shared privacy-gated context packet before shopping help, lead capture, recommendation, cart restore, or handoff.</description>
+            <developerName>get_agent_context_179fj000002T5OE</developerName>
+            <invocationTarget>AgentContextService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>get_agent_context</localDeveloperName>
+            <masterLabel>Get Shared Agent Context</masterLabel>
+            <progressIndicatorMessage>Loading shared customer context...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>issue_coupon_179fj000002T5OE</fullName>
+            <description>Create a REAL, single-use, personalized discount coupon for this shopper in the store and return its code. Call only when the shopper explicitly asks for a coupon/discount or the current flow already decided to issue one. Never call this just because add_to_cart is next, and never mention a discount until this action returns success=true with a non-blank couponCode.</description>
+            <developerName>issue_coupon_179fj000002T5OE</developerName>
+            <invocationTarget>CouponService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>issue_coupon</localDeveloperName>
+            <masterLabel>Issue Personalized Coupon</masterLabel>
+            <progressIndicatorMessage>Creating your personal discount...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>capture_lead_179fj000002T5OE</fullName>
+            <description>Create or update a Website Chat lead with the shopper&apos;s name, email, marketing consent, and interest.</description>
+            <developerName>capture_lead_179fj000002T5OE</developerName>
+            <invocationTarget>ChatLeadService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>capture_lead</localDeveloperName>
+            <masterLabel>Capture Lead</masterLabel>
+            <progressIndicatorMessage>Saving your details...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>add_to_cart_179fj000002T5OE</fullName>
+            <description>Build a REAL working add-to-cart link for the recommended products. Call this when the shopper asks to add items to their cart or check out. You CANNOT add items yourself — this returns a link the shopper clicks to add them. A cart request is NOT answered unless the final response includes the literal @outputs.addToCartUrl, starting with https://, or @outputs.perItemLinks if addToCartUrl is unavailable.</description>
+            <developerName>add_to_cart_179fj000002T5OE</developerName>
+            <invocationTarget>CartLinkService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>add_to_cart</localDeveloperName>
+            <masterLabel>Build Add-to-Cart Links</masterLabel>
+            <progressIndicatorMessage>Preparing your cart link...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>concierge</localDeveloperName>
+        <masterLabel>Concierge</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001mutl</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Redirect conversation to relevant topics when the request goes off-topic.</description>
+        <developerName>off_topic_16jfj000001mutl</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Kwitko Concierge for Kwitko Coffee Co., an online specialty coffee retailer. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-brand and on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record and WooCommerce is the storefront. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. &apos;Hi Alex,&apos;) no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply &apos;you&apos;re signed in&apos;, do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing ANY account action (return, cancel, refund, address change). Be consistent: if you said you would help, the very next step for a guest is verification, not a promise.</description>
+            <developerName>instruction0_179fj000002T5O9</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002T5O9</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Kwitko Concierge Web</masterLabel>
+    <plannerSurfaces>
+        <adaptiveResponseAllowed>true</adaptiveResponseAllowed>
+        <callRecordingAllowed>false</callRecordingAllowed>
+        <surface>SurfaceAction__Messaging</surface>
+        <surfaceType>Messaging</surfaceType>
+    </plannerSurfaces>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

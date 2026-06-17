@@ -11,6 +11,7 @@
  * Profile source: CRM real-time facts plus Account-level Data Cloud augmentation fallback.
  */
 public without sharing class RecommendationStrategyService {
+    @TestVisible private static List<List<Object>> testDataCloudWebRows;
 
     private static final Set<String> BEAN_FAMILIES = new Set<String>{
         'Single-Origin','Blends','Espresso','Decaf','Flavored','Subscriptions','Gift Sets'};
@@ -26,7 +27,7 @@ public without sharing class RecommendationStrategyService {
     private static final Integer RECURRENT_MIN_12MO = 3;   // 3-4 purchases in last 12 months => Recurrent
 
     public class Request {
-        @InvocableVariable(label='Email' required=true) public String email;
+        @InvocableVariable(label='Email' description='Optional for anonymous storefront recommendations. Pass a verified or voluntarily supplied email only when personalization/account history is needed.') public String email;
         @InvocableVariable(label='Channel' description='post_purchase | abandoned_cart | chat' required=true) public String channel;
         @InvocableVariable(label='Order Id (optional)') public String orderId;
         @InvocableVariable(label='Cart Product Ids CSV (optional)') public String cartProductIdsCsv;
@@ -34,6 +35,7 @@ public without sharing class RecommendationStrategyService {
         @InvocableVariable(label='Dislike Keywords CSV (e.g. decaf,flavored) — never recommend products whose name matches') public String dislikeKeywordsCsv;
         @InvocableVariable(label='Exclude Product Ids CSV (rejected this chat — never re-offer)') public String excludeProductIdsCsv;
         @InvocableVariable(label='Preferred Family (e.g. Single-Origin, Espresso) — bias the primary pick') public String preferredFamily;
+        @InvocableVariable(label='Brand — the SITE the chat is on (Kwitko Coffee | Bean & Brew). Scopes the catalog: Bean & Brew = equipment/accessories; null/Kwitko = coffee. Pass from the session, not the LLM.') public String brand;
         // --- independent coffee preference axes (hard filters when set; orthogonal to each other) ---
         @InvocableVariable(label='Preferred Bean Type (Single-Origin | Blend)') public String preferredBeanType;
         @InvocableVariable(label='Preferred Brew Style (Espresso | Cold Brew | All-Purpose)') public String preferredBrewStyle;
@@ -54,9 +56,13 @@ public without sharing class RecommendationStrategyService {
         @InvocableVariable public String primaryProductId;
         @InvocableVariable public String primaryProductName;
         @InvocableVariable public Decimal primaryQuantity;
+        @InvocableVariable public Decimal primaryUnitPrice;
+        @InvocableVariable public Decimal primaryLinePrice;
         @InvocableVariable public String complementaryProductId;
         @InvocableVariable public String complementaryProductName;
         @InvocableVariable public Decimal complementaryQuantity;
+        @InvocableVariable public Decimal complementaryUnitPrice;
+        @InvocableVariable public Decimal complementaryLinePrice;
         @InvocableVariable public Decimal discountPercent;
         @InvocableVariable public Boolean addsPerk;
         @InvocableVariable public String discountRationale;
@@ -88,6 +94,7 @@ public without sharing class RecommendationStrategyService {
         res.couponEligible = true;
         res.serviceRecoveryRequired = false;
         String channel = String.isBlank(r.channel) ? 'chat' : r.channel.toLowerCase();
+        String brand = normalizeBrand(r.brand);   // site/brand scope — 'Bean & Brew' = equipment catalog; null/Kwitko = coffee
 
         // --- profile (CRM) ---
         List<Account> accs = String.isBlank(r.email) ? new List<Account>()
@@ -95,7 +102,7 @@ public without sharing class RecommendationStrategyService {
                       Data_Cloud_Next_Best_Action__c, Data_Cloud_Order_Count__c,
                       Data_Cloud_Lifetime_Value__c, Data_Cloud_Favorite_Category__c,
                       Data_Cloud_Return_Count__c, Has_Returned_Order__c, Return_Count__c,
-                      Winback_Needed__c
+                      Winback_Needed__c, Data_Cloud_Unified_Individual_Id__c
                FROM Account WHERE PersonEmail = :r.email LIMIT 1];
         Id accountId = accs.isEmpty() ? null : accs[0].Id;
         Account profileAccount = accs.isEmpty() ? null : accs[0];
@@ -142,8 +149,9 @@ public without sharing class RecommendationStrategyService {
             }
         }
 
-        // --- live web engagement (stitched Web_Event__c): what they actually browsed, dwell-weighted ---
+        // --- live web engagement: SDK/Data Cloud first, legacy Web_Event__c fallback, dwell-weighted ---
         Map<String, Decimal> webScoreByWooId = new Map<String, Decimal>();
+        WebSignal dcWebSignal;
         if (accountId != null) {
             Datetime newestAt = null; String newestName = null; Decimal newestDwell = 0;
             for (Web_Event__c we : [SELECT Event_Type__c, Product_Id__c, Product_Name__c,
@@ -152,18 +160,16 @@ public without sharing class RecommendationStrategyService {
                                     WHERE Account__c = :accountId AND Occurred_At__c = LAST_N_DAYS:30
                                     ORDER BY Occurred_At__c DESC LIMIT 200]) {
                 if (String.isBlank(we.Product_Id__c)) continue;
-                Decimal w = 10 + (we.Time_On_Page__c == null ? 0 : we.Time_On_Page__c); // a view + every dwell second
-                Decimal prev = webScoreByWooId.get(we.Product_Id__c);
-                webScoreByWooId.put(we.Product_Id__c, (prev == null ? 0 : prev) + w);
+                addWebScore(webScoreByWooId, we.Product_Id__c, we.Time_On_Page__c);
                 if (newestName == null && String.isNotBlank(we.Product_Name__c)) {
                     newestAt = we.Occurred_At__c; newestName = we.Product_Name__c;
                     newestDwell = we.Time_On_Page__c == null ? 0 : we.Time_On_Page__c;
                 }
             }
             if (newestName != null) {
-                res.webSignal = 'Browsed "' + newestName + '" on ' + newestAt.date().format()
-                    + (newestDwell >= 30 ? ' (' + newestDwell.intValue() + 's on the page)' : '');
+                res.webSignal = formatWebSignal(newestName, newestAt, newestDwell, false);
             }
+            dcWebSignal = mergeDataCloudWebEngagement(profileAccount, webScoreByWooId);
         }
 
         // buyer type — recurrence from TRAILING-12-MONTH purchases + lifetime value (not all-time count)
@@ -201,10 +207,27 @@ public without sharing class RecommendationStrategyService {
         Set<Id> extraExclude = toIdSet(r.excludeProductIdsCsv);     // products rejected this chat
         String prefFam = String.isBlank(r.preferredFamily) ? null : r.preferredFamily.trim();
 
+        // Coffee is a CONSUMABLE — customers SHOULD be re-offered what they like (replenishment).
+        // So we do NOT exclude all-time purchases. We only suppress products bought RECENTLY
+        // (last 30 days — they're still working through that bag) and the specific order we're
+        // following up on. After that window, prior favourites become eligible again. (We also drop
+        // the all-time "already recommended" exclusion for the same reason — re-offering a loved
+        // coffee later is desirable; per-chat de-dup is handled by excludeProductIdsCsv.)
+        Set<Id> recentlyPurchased = new Set<Id>();
+        if (accountId != null) {
+            for (OrderItem oi : [SELECT Product2Id FROM OrderItem
+                                 WHERE Order.AccountId = :accountId
+                                 AND Order.CreatedDate = LAST_N_DAYS:30]) {
+                if (oi.Product2Id != null) recentlyPurchased.add(oi.Product2Id);
+            }
+        }
+
         Set<Id> exclude = new Set<Id>();
-        exclude.addAll(purchased); exclude.addAll(alreadyRecommended);
-        exclude.addAll(orderItemIds); exclude.addAll(cartIds); exclude.addAll(extraExclude);
-        // NEVER re-recommend a product this customer has returned (real-time CRM guardrail).
+        exclude.addAll(recentlyPurchased);   // bought in last 30d — still consuming, don't push again yet
+        exclude.addAll(orderItemIds);        // items from the order we're following up on (post-purchase)
+        exclude.addAll(cartIds);             // already in their cart
+        exclude.addAll(extraExclude);        // rejected in THIS chat (per-session, from the agent)
+        // NEVER re-recommend a product this customer has RETURNED (real-time CRM guardrail).
         if (accountId != null) exclude.addAll(returnedProductIds(accountId));
         if (exclude.isEmpty()) exclude.add(null); // guard for NOT IN
 
@@ -222,6 +245,14 @@ public without sharing class RecommendationStrategyService {
                                WHERE Woo_Product_Id__c IN :wooIds AND IsActive = true AND Stock_On_Hand__c > 0]) {
                 byId.put(p.Id, p);
                 score.put(p.Id, webScoreByWooId.get(p.Woo_Product_Id__c));
+                if (String.isBlank(res.webSignal) && dcWebSignal != null && p.Woo_Product_Id__c == dcWebSignal.newestWooId) {
+                    res.webSignal = formatWebSignal(
+                        String.isBlank(dcWebSignal.newestName) ? p.Name : dcWebSignal.newestName,
+                        dcWebSignal.newestAt,
+                        dcWebSignal.newestDwell,
+                        true
+                    );
+                }
                 if (channel != 'abandoned_cart') anchor.add(p.Id);
             }
             List<Id> ordered = new List<Id>(byId.keySet());
@@ -246,10 +277,12 @@ public without sharing class RecommendationStrategyService {
 
         List<String> relaxed = new List<String>();
 
-        // --- PRIMARY (a buy-again coffee) ---
+        // --- PRIMARY (a buy-again coffee, or Bean & Brew equipment) ---
         Product2 primary = null;
         Boolean axisError = false;
-        if (hasAxisPrefs) {
+        // Brand branch: Bean & Brew = equipment/accessories (no coffee axes, no Woo id). Kwitko path is unchanged below.
+        if (brand == 'Bean & Brew') primary = pickBeanBrew(exclude, dislikeKw, false);
+        if (hasAxisPrefs && brand != 'Bean & Brew') {
             // honor each set axis as a HARD filter; relax least-important first (roast → brew → bean);
             // NEVER relax the caffeine (decaf) or flavored constraints. If the axis code errors for any
             // reason, fall back to the affinity picker rather than fail the whole recommendation.
@@ -288,9 +321,10 @@ public without sharing class RecommendationStrategyService {
         res.primaryProductName = primary.Name;
         res.primaryQuantity = (r.preferredQuantity != null && r.preferredQuantity > 0) ? r.preferredQuantity : 1;
 
-        // --- COMPLEMENTARY (gear) — also dislike-aware ---
+        // --- COMPLEMENTARY (gear / accessory) — also dislike-aware ---
         Set<Id> excludeComp = new Set<Id>(exclude); excludeComp.add(primary.Id);
         Product2 comp = null;
+        if (brand == 'Bean & Brew') comp = pickBeanBrew(excludeComp, dislikeKw, true);
         for (Integer i = 0; i < 8 && comp == null; i++) {
             Product2 cand = coPurchaseAffinity(anchor, excludeComp, GEAR_FAMILIES);
             if (cand == null) cand = bestSellerInFamilies(GEAR_FAMILIES, excludeComp);
@@ -303,6 +337,16 @@ public without sharing class RecommendationStrategyService {
             res.complementaryProductId = comp.Id;
             res.complementaryProductName = comp.Name;
             res.complementaryQuantity = 1;
+        }
+
+        Set<Id> pricedProductIds = new Set<Id>{ primary.Id };
+        if (comp != null) pricedProductIds.add(comp.Id);
+        Map<Id, Decimal> unitPriceByProductId = standardUnitPrices(pricedProductIds);
+        res.primaryUnitPrice = unitPriceByProductId.get(primary.Id);
+        res.primaryLinePrice = linePrice(res.primaryUnitPrice, res.primaryQuantity);
+        if (comp != null) {
+            res.complementaryUnitPrice = unitPriceByProductId.get(comp.Id);
+            res.complementaryLinePrice = linePrice(res.complementaryUnitPrice, res.complementaryQuantity);
         }
 
         // --- discount from Discount_Rule__mdt ---
@@ -368,8 +412,9 @@ public without sharing class RecommendationStrategyService {
                         'build_strategy',
                         recCsv,
                         r.orderId,
-                        'Recommended ' + res.primaryProductName
-                            + (String.isBlank(res.complementaryProductName) ? '' : ' + ' + res.complementaryProductName)
+                        'Recommended ' + productSummary(res.primaryProductName, res.primaryUnitPrice, res.primaryQuantity)
+                            + (String.isBlank(res.complementaryProductName) ? '' : ' + '
+                                + productSummary(res.complementaryProductName, res.complementaryUnitPrice, res.complementaryQuantity))
                             + (res.couponEligible == false ? ' with no sales coupon because service recovery is required'
                                 : ' at ' + pct.intValue() + '% on ' + channel),
                         channel,
@@ -381,8 +426,8 @@ public without sharing class RecommendationStrategyService {
         } catch (Exception e) { /* swallow: tracking is non-critical */ }
 
         res.success = true;
-        res.summary = buyerType + ' buyer → ' + res.primaryProductName
-            + (comp != null ? ' + ' + res.complementaryProductName : '')
+        res.summary = buyerType + ' buyer → ' + productSummary(res.primaryProductName, res.primaryUnitPrice, res.primaryQuantity)
+            + (comp != null ? ' + ' + productSummary(res.complementaryProductName, res.complementaryUnitPrice, res.complementaryQuantity) : '')
             + (res.couponEligible == false
                 ? ' with no sales coupon (' + channel + ') until the return/service issue is resolved.'
                 : ' at ' + pct.intValue() + '% (' + channel + ').')
@@ -395,8 +440,20 @@ public without sharing class RecommendationStrategyService {
             'couponEligible' => res.couponEligible, 'serviceRecoveryRequired' => res.serviceRecoveryRequired,
             'serviceRecoveryReason' => res.serviceRecoveryReason,
             'favoriteCategory' => favCat, 'discountPercent' => pct, 'addsPerk' => perk,
-            'primary' => new Map<String, Object>{ 'id' => res.primaryProductId, 'name' => res.primaryProductName, 'qty' => res.primaryQuantity },
-            'complementary' => (comp == null ? null : new Map<String, Object>{ 'id' => res.complementaryProductId, 'name' => res.complementaryProductName, 'qty' => 1 }),
+            'primary' => new Map<String, Object>{
+                'id' => res.primaryProductId,
+                'name' => res.primaryProductName,
+                'qty' => res.primaryQuantity,
+                'unitPrice' => res.primaryUnitPrice,
+                'linePrice' => res.primaryLinePrice
+            },
+            'complementary' => (comp == null ? null : new Map<String, Object>{
+                'id' => res.complementaryProductId,
+                'name' => res.complementaryProductName,
+                'qty' => res.complementaryQuantity,
+                'unitPrice' => res.complementaryUnitPrice,
+                'linePrice' => res.complementaryLinePrice
+            }),
             'discountRationale' => rationale });
         return res;
     }
@@ -444,6 +501,102 @@ public without sharing class RecommendationStrategyService {
         if (channel == 'post_purchase') return 'Post_Purchase_Growth';
         if (channel == 'chat') return 'Kwitko_Concierge';
         return 'Product_Advisor';
+    }
+
+    private class WebSignal {
+        String newestWooId;
+        String newestName;
+        Datetime newestAt;
+        Decimal newestDwell = 0;
+    }
+
+    private static WebSignal mergeDataCloudWebEngagement(Account a, Map<String, Decimal> webScoreByWooId) {
+        WebSignal signal = new WebSignal();
+        if (a == null || String.isBlank(a.Data_Cloud_Unified_Individual_Id__c)) return signal;
+        for (List<Object> row : dataCloudWebRows(a.Data_Cloud_Unified_Individual_Id__c)) {
+            String wooId = str(cell(row, 0));
+            if (String.isBlank(wooId) || wooId.startsWith('page:')) continue;
+            Decimal dwell = dec(cell(row, 2));
+            addWebScore(webScoreByWooId, wooId, dwell);
+            if (signal.newestWooId == null) {
+                signal.newestWooId = wooId;
+                signal.newestName = str(cell(row, 1));
+                signal.newestDwell = dwell;
+                signal.newestAt = dateTimeVal(cell(row, 3));
+            }
+        }
+        return signal;
+    }
+
+    private static List<List<Object>> dataCloudWebRows(String unifiedId) {
+        List<List<Object>> rows = new List<List<Object>>();
+        if (Test.isRunningTest()) {
+            return testDataCloudWebRows == null ? rows : testDataCloudWebRows;
+        }
+        if (String.isBlank(unifiedId)) return rows;
+        try {
+            String escapedUnifiedId = String.escapeSingleQuotes(unifiedId);
+            String sql = 'SELECT Product_Id_c__c, Product_Name_c__c, Time_On_Page_c__c, Occurred_At_c__c '
+                + 'FROM Web_Event_c_Home__dlm '
+                + 'WHERE Account_c__c IN ('
+                + 'SELECT SourceRecordId__c FROM UnifiedLinkssotIndividualCoff__dlm '
+                + 'WHERE UnifiedRecordId__c = \'' + escapedUnifiedId + '\') '
+                + 'AND Product_Id_c__c IS NOT NULL '
+                + 'ORDER BY Occurred_At_c__c DESC LIMIT 200';
+            ConnectApi.CdpQueryInput inp = new ConnectApi.CdpQueryInput();
+            inp.sql = sql;
+            ConnectApi.CdpQueryOutputV2 out = ConnectApi.CdpQuery.queryAnsiSqlV2(inp);
+            if (out == null || out.data == null || out.data.isEmpty()) return rows;
+            List<Object> rawRows = (List<Object>) JSON.deserializeUntyped(JSON.serialize(out.data));
+            for (Object raw : rawRows) {
+                rows.add((List<Object>) raw);
+            }
+        } catch (Exception e) {}
+        return rows;
+    }
+
+    private static void addWebScore(Map<String, Decimal> webScoreByWooId, String wooId, Decimal dwellSeconds) {
+        if (webScoreByWooId == null || String.isBlank(wooId) || wooId.startsWith('page:')) return;
+        Decimal w = 10 + (dwellSeconds == null ? 0 : dwellSeconds);
+        Decimal prev = webScoreByWooId.get(wooId);
+        webScoreByWooId.put(wooId, (prev == null ? 0 : prev) + w);
+    }
+
+    private static String formatWebSignal(String productName, Datetime at, Decimal dwellSeconds, Boolean fromDataCloud) {
+        if (String.isBlank(productName)) return null;
+        String signal = 'Browsed "' + productName + '"';
+        if (at != null) signal += ' on ' + at.date().format();
+        if (dwellSeconds != null && dwellSeconds >= 30) signal += ' (' + dwellSeconds.intValue() + 's on the page)';
+        if (fromDataCloud == true) signal += ' via Data Cloud SDK';
+        return signal;
+    }
+
+    private static Object cell(List<Object> row, Integer idx) {
+        return row == null || idx == null || row.size() <= idx ? null : row[idx];
+    }
+
+    private static String str(Object v) {
+        return v == null ? null : String.valueOf(v);
+    }
+
+    private static Decimal dec(Object v) {
+        if (v == null) return 0;
+        try { return Decimal.valueOf(String.valueOf(v)); }
+        catch (Exception e) { return 0; }
+    }
+
+    private static Datetime dateTimeVal(Object v) {
+        if (v == null) return null;
+        try {
+            String s = String.valueOf(v);
+            if (s.endsWith('+00:00')) s = s.replace('+00:00', 'Z');
+            if (s.endsWith('Z')) return (Datetime) JSON.deserialize('"' + s + '"', Datetime.class);
+            if (s.length() > 19) return Datetime.valueOfGmt(s.substring(0, 19).replace('T', ' '));
+            if (s.length() > 10) return Datetime.valueOfGmt(s.replace('T', ' '));
+            return Datetime.newInstanceGmt(Date.valueOf(s), Time.newInstance(0, 0, 0, 0));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /** Products this customer has returned — never recommend them again (real-time CRM guardrail). */
@@ -525,6 +678,33 @@ public without sharing class RecommendationStrategyService {
         return Database.query(q);
     }
 
+    // ---- Bean & Brew (D2C equipment) brand scope — no coffee axes, no Woo-id requirement ----
+    // Maps the SITE/brand signal to the canonical Product2.Brand__c value (defensive to free text).
+    private static String normalizeBrand(String s) {
+        if (String.isBlank(s)) return null;
+        String t = s.trim().toLowerCase();
+        if (t.contains('bean') || t.contains('brew') || t == 'b&b' || t.contains('beanbrew')) return 'Bean & Brew';
+        if (t.contains('kwitko') || t.contains('coffee')) return 'Kwitko Coffee';
+        return null;   // unknown brand → fall through to the default (coffee) engine
+    }
+    // Picks a Bean & Brew product: equipment first for the primary, an accessory for the complementary.
+    private static Product2 pickBeanBrew(Set<Id> exclude, List<String> dislikeKw, Boolean preferAccessory) {
+        if (exclude == null || exclude.isEmpty()) exclude = new Set<Id>{ null };
+        Product2 firstAcc = null, firstEquip = null, firstAny = null;
+        for (Product2 p : [SELECT Id, Name, Family, ProductCode, Description, Woo_Product_Id__c, Image_URL__c
+                           FROM Product2
+                           WHERE Brand__c = 'Bean & Brew' AND IsActive = true AND Id NOT IN :exclude
+                           ORDER BY Name ASC]) {
+            if (nameHasDislike(p.Name, dislikeKw)) continue;
+            if (firstAny == null) firstAny = p;
+            String code = p.ProductCode == null ? '' : p.ProductCode.toUpperCase();
+            if (firstAcc == null && code.contains('-ACC-')) firstAcc = p;
+            if (firstEquip == null && code.contains('-EQ-')) firstEquip = p;
+        }
+        if (preferAccessory == true) return firstAcc != null ? firstAcc : firstAny;
+        return firstEquip != null ? firstEquip : firstAny;
+    }
+
     private static String normBean(String s) {
         if (String.isBlank(s)) return null;
         String t = s.trim().toLowerCase();
@@ -597,6 +777,46 @@ public without sharing class RecommendationStrategyService {
     }
     private static Product2 loadProduct(Id pid) {
         return [SELECT Id, Name, Family, Woo_Product_Id__c, Image_URL__c, Description FROM Product2 WHERE Id = :pid LIMIT 1];
+    }
+    private static Map<Id, Decimal> standardUnitPrices(Set<Id> productIds) {
+        Map<Id, Decimal> prices = new Map<Id, Decimal>();
+        if (productIds == null || productIds.isEmpty()) return prices;
+        Id standardPricebookId = standardPricebookId();
+        if (standardPricebookId == null) return prices;
+        for (PricebookEntry pbe : [
+            SELECT Product2Id, UnitPrice
+            FROM PricebookEntry
+            WHERE Product2Id IN :productIds
+              AND IsActive = true
+              AND Pricebook2Id = :standardPricebookId
+            ORDER BY CreatedDate ASC
+        ]) {
+            if (!prices.containsKey(pbe.Product2Id)) prices.put(pbe.Product2Id, pbe.UnitPrice);
+        }
+        return prices;
+    }
+    private static Id standardPricebookId() {
+        if (Test.isRunningTest()) return Test.getStandardPricebookId();
+        List<Pricebook2> books = [SELECT Id FROM Pricebook2 WHERE IsStandard = true LIMIT 1];
+        return books.isEmpty() ? null : books[0].Id;
+    }
+    private static Decimal linePrice(Decimal unitPrice, Decimal quantity) {
+        if (unitPrice == null || quantity == null) return null;
+        return unitPrice * quantity;
+    }
+    private static String productSummary(String name, Decimal unitPrice, Decimal quantity) {
+        if (String.isBlank(name)) return '';
+        String summary = name;
+        if (unitPrice != null) {
+            summary += ' (' + money(unitPrice);
+            if (quantity != null && quantity != 1) summary += ' x ' + quantity.format();
+            summary += ')';
+        }
+        return summary;
+    }
+    private static String money(Decimal amount) {
+        if (amount == null) return '';
+        return '$' + String.valueOf(amount.setScale(2, RoundingMode.HALF_UP));
     }
     private static Set<Id> toIdSet(String csv) {
         Set<Id> out = new Set<Id>();

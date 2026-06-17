@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Lead Copilot</label>
+        <name>Lead_Copilot</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <description>Internal sales copilot: reviews a Nurture lead&apos;s unified-profile metrics (LTV, purchases, recency, cart) and recommends + applies the next-best conversion step (record recommendation, update lead, send personalized email).</description>
+    <label>Lead Copilot</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

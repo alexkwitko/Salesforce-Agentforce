@@ -108,6 +108,29 @@ private class PostPurchaseServiceTest {
     }
 
     @isTest
+    static void testEmailFailureDoesNotClaimSent() {
+        Order ord = [SELECT Id FROM Order WHERE Woo_Order_Id__c='T-9999' LIMIT 1];
+        Test.setMock(HttpCalloutMock.class, new WooCouponMock());
+        PostPurchaseService.forceEmailFailureInTests = true;
+
+        Test.startTest();
+        PostPurchaseService.Result r = PostPurchaseService.buildOffer(ord.Id);
+        Test.stopTest();
+
+        System.assertEquals(false, r.success, 'email failure means the offer is not successful');
+        System.assert(r.summary.contains('Email was not sent'), 'summary must be honest: ' + r.summary);
+        System.assertEquals(
+            0,
+            [SELECT count() FROM Agent_Interaction__c WHERE Action__c='generate_offer' AND Order__c=:ord.Id],
+            'do not log a sent post-purchase interaction when email failed'
+        );
+        System.assertEquals(0, [SELECT count() FROM Coupon__c WHERE Order__c=:ord.Id],
+            'do not persist an issued coupon when the email did not send');
+        System.assertEquals(null, [SELECT Coupon_Code__c FROM Order WHERE Id=:ord.Id].Coupon_Code__c,
+            'do not stamp the order with a code the customer never received');
+    }
+
+    @isTest
     static void testCancelledOrderSkipsOfferEvenWithConsent() {
         Order base = [SELECT AccountId, Pricebook2Id FROM Order WHERE Woo_Order_Id__c='T-9999' LIMIT 1];
         PricebookEntry pbe = [SELECT Id, Product2Id, UnitPrice FROM PricebookEntry WHERE Pricebook2Id=:base.Pricebook2Id LIMIT 1];

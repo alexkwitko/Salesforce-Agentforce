@@ -7,7 +7,7 @@
 public without sharing class CouponService {
 
     public class Request {
-        @InvocableVariable(label='Email' required=true) public String email;
+        @InvocableVariable(label='Email' required=false) public String email;
         @InvocableVariable(label='Discount Percent' required=true) public Decimal discountPercent;
         @InvocableVariable(label='First Name (for a personalized code)') public String firstName;
     }
@@ -39,15 +39,21 @@ public without sharing class CouponService {
         rnd = rnd.length() >= 4 ? rnd.right(4) : rnd.leftPad(4, '0');
         String code = 'KW-' + who + '-' + pct + '-' + rnd;
 
+        Date expiry = Date.today().addDays(30);
+        String shopperEmail = String.isBlank(r.email) ? null : r.email.trim().toLowerCase();
         String wooId = Test.isRunningTest() ? 'test'
-            : WooCouponService.createPercentCoupon(code, pct, Date.today().addDays(30), null, null);
+            : WooCouponService.createPercentCoupon(code, pct, expiry, shopperEmail, null);
         if (wooId == null) { res.message = 'Could not create the coupon in the store.'; return res; }
 
         res.couponCode = code; res.success = true;
         res.message = 'Created single-use coupon ' + code + ' for ' + pct + '% off.';
 
-        if (String.isNotBlank(r.email)) {
-            Customer_Journey__c j = JourneyService.getOrCreate(r.email, null, null);
+        Id accountId;
+        if (String.isNotBlank(shopperEmail)) {
+            Account acc = KwitkoServiceUtil.findAccount(shopperEmail);
+            if (acc != null) accountId = acc.Id;
+
+            Customer_Journey__c j = JourneyService.getOrCreate(shopperEmail, null, null);
             if (j != null) {
                 j.Coupon_Code__c = code;
                 j.Coupon_Issued_Date__c = System.now();
@@ -55,6 +61,21 @@ public without sharing class CouponService {
                 j.Coupon_Redeemed__c = false;   // fresh issue; redemption set later at order ingestion
                 update j;
             }
+        }
+        if ([SELECT count() FROM Coupon__c WHERE Code__c = :code] == 0) {
+            String summary = 'Chat sales coupon'
+                + (String.isBlank(shopperEmail) ? '' : ' for ' + shopperEmail)
+                + ' — single-use ' + pct + '% off; email-restricted in WooCommerce.';
+            insert new Coupon__c(
+                Name = code,
+                Code__c = code,
+                Account__c = accountId,
+                Discount_Percent__c = pct,
+                Expiry_Date__c = expiry,
+                Status__c = 'Issued',
+                Woo_Coupon_Id__c = wooId,
+                Recommendation_Summary__c = summary
+            );
         }
         return res;
     }

@@ -64,6 +64,8 @@ private class RecommendationStrategyServiceTest {
         System.assertNotEquals(beanAId, r.primaryProductId, 'must NOT recommend the purchased bean');
         System.assertEquals(15, r.discountPercent, 'Occasional/post_purchase = 15% (matrix)');
         System.assert(String.isNotBlank(r.packetJson), 'packet json present');
+        System.assert(r.packetJson.contains('"unitPrice":20'), 'packet json carries grounded unit prices');
+        System.assert(r.summary.contains('$20.00'), 'summary carries grounded price when available');
     }
 
     @isTest
@@ -92,6 +94,27 @@ private class RecommendationStrategyServiceTest {
         System.assertEquals('New', r.buyerType);
         System.assertEquals(25, r.discountPercent, 'New/abandoned_cart = 25% (matrix)');
         System.assert(r.success, r.summary);
+    }
+
+    @isTest
+    static void testAnonymousChatRecommendationDoesNotNeedEmail() {
+        RecommendationStrategyService.Request req = new RecommendationStrategyService.Request();
+        req.channel = 'chat';
+        req.preferredRoast = 'Dark';
+
+        Test.startTest();
+        RecommendationStrategyService.Result r =
+            RecommendationStrategyService.buildStrategy(new List<RecommendationStrategyService.Request>{ req })[0];
+        Test.stopTest();
+
+        System.assertEquals(true, r.success, r.summary);
+        System.assertEquals('New', r.buyerType, 'anonymous shoppers are treated as new until verified');
+        System.assert(String.isNotBlank(r.primaryProductName), 'guest recommendation returns a real product');
+        System.assert(String.isNotBlank(r.complementaryProductName), 'guest recommendation can still include a public add-on');
+        System.assertEquals(Decimal.valueOf(20), r.primaryUnitPrice, 'primary unit price is grounded from standard pricebook');
+        System.assertEquals(Decimal.valueOf(20), r.primaryLinePrice, 'primary line price reflects quantity');
+        System.assertEquals(Decimal.valueOf(20), r.complementaryUnitPrice, 'add-on unit price is grounded from standard pricebook');
+        System.assertEquals(Decimal.valueOf(20), r.complementaryLinePrice, 'add-on line price reflects quantity');
     }
 
     @isTest
@@ -199,6 +222,34 @@ private class RecommendationStrategyServiceTest {
     }
 
     @isTest
+    static void testDataCloudSdkBrowsingBeatsGenericAffinityWhenLegacyWebEventsAreGone() {
+        Account a1 = [SELECT Id FROM Account WHERE PersonEmail = 'reco@example.com' LIMIT 1];
+        update new Account(Id = a1.Id, Data_Cloud_Unified_Individual_Id__c = 'uid-reco-sdk');
+        Product2 sdkBrowsed = mkProd('Bean D SDK Browse', 'Single-Origin');
+        sdkBrowsed.Stock_On_Hand__c = 95;
+        insert sdkBrowsed;
+
+        RecommendationStrategyService.testDataCloudWebRows = new List<List<Object>>{
+            new List<Object>{ sdkBrowsed.Woo_Product_Id__c, null, 125, String.valueOf(Date.today()) }
+        };
+
+        RecommendationStrategyService.Request req = new RecommendationStrategyService.Request();
+        req.email = 'reco@example.com';
+        req.channel = 'chat';
+
+        Test.startTest();
+        RecommendationStrategyService.Result r =
+            RecommendationStrategyService.buildStrategy(new List<RecommendationStrategyService.Request>{ req })[0];
+        Test.stopTest();
+
+        System.assertEquals(true, r.success, r.summary);
+        System.assertEquals(sdkBrowsed.Id, r.primaryProductId, 'SDK/Data Cloud browsed product wins even with no legacy Web_Event__c rows');
+        System.assert(String.isNotBlank(r.webSignal), 'SDK web signal surfaced for the agent');
+        System.assert(r.webSignal.contains('Bean D SDK Browse'), r.webSignal);
+        System.assert(r.webSignal.contains('Data Cloud SDK'), r.webSignal);
+    }
+
+    @isTest
     static void testBrowsedButPurchasedProductIsNotReoffered() {
         // browsing your OWN past purchase must not bring it back — exclusion still wins
         Account a1 = [SELECT Id FROM Account WHERE PersonEmail = 'reco@example.com' LIMIT 1];
@@ -218,5 +269,31 @@ private class RecommendationStrategyServiceTest {
 
         System.assertEquals(true, r.success, r.summary);
         System.assertNotEquals(beanA.Id, r.primaryProductId, 'already-purchased product stays excluded even if browsed');
+    }
+
+    @isTest
+    static void testBeanBrewBrandScopesToEquipment() {
+        Id stdPb = Test.getStandardPricebookId();
+        Product2 machine = new Product2(Name = 'BB Pro Machine', IsActive = true,
+            Brand__c = 'Bean & Brew', ProductCode = 'BB-EQ-TEST');
+        Product2 acc = new Product2(Name = 'BB Descaler', IsActive = true,
+            Brand__c = 'Bean & Brew', ProductCode = 'BB-ACC-TEST');
+        insert new List<Product2>{ machine, acc };
+        insert new List<PricebookEntry>{
+            new PricebookEntry(Pricebook2Id = stdPb, Product2Id = machine.Id, UnitPrice = 2199, IsActive = true),
+            new PricebookEntry(Pricebook2Id = stdPb, Product2Id = acc.Id, UnitPrice = 16, IsActive = true)
+        };
+        RecommendationStrategyService.Request req = new RecommendationStrategyService.Request();
+        req.channel = 'chat';
+        req.brand = 'Bean & Brew';   // the SITE the chat is on
+
+        Test.startTest();
+        RecommendationStrategyService.Result res =
+            RecommendationStrategyService.buildStrategy(new List<RecommendationStrategyService.Request>{ req })[0];
+        Test.stopTest();
+
+        // Bean & Brew site → equipment primary + accessory complementary; NEVER coffee
+        System.assertEquals('BB Pro Machine', res.primaryProductName, 'B&B site must recommend equipment, not coffee');
+        System.assertEquals('BB Descaler', res.complementaryProductName, 'complementary should be a B&B accessory');
     }
 }

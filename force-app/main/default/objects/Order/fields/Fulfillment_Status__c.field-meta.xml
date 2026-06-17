@@ -15,6 +15,7 @@
             <value><fullName>In Transit</fullName><default>false</default><label>In Transit</label></value>
             <value><fullName>Out for Delivery</fullName><default>false</default><label>Out for Delivery</label></value>
             <value><fullName>Delivered</fullName><default>false</default><label>Delivered</label></value>
+            <value><fullName>Return Pending</fullName><default>false</default><label>Return Pending</label></value>
             <value><fullName>Returned</fullName><default>false</default><label>Returned</label></value>
             <value><fullName>Cancelled</fullName><default>false</default><label>Cancelled</label></value>
             <value><fullName>Refunded</fullName><default>false</default><label>Refunded</label></value>

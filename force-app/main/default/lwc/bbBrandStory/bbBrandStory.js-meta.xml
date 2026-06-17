@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>B&amp;B Brand Story</masterLabel>
+    <description>Bean &amp; Brew editorial brand-story split section.</description>
+    <targets>
+        <target>lightningCommunity__Page</target>
+        <target>lightningCommunity__Default</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightningCommunity__Default">
+            <property name="kicker" type="String" label="Kicker"/>
+            <property name="headline" type="String" label="Headline"/>
+            <property name="body" type="String" label="Body"/>
+            <property name="ctaLabel" type="String" label="CTA label"/>
+            <property name="ctaUrl" type="String" label="CTA URL"/>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

@@ -33,6 +33,23 @@ private class AtRiskCampaignBuilderTest {
         System.assertEquals(a.PersonContactId, c.CampaignMembers[0].ContactId, 'the model-flagged account is the member');
     }
 
+    @isTest static void testTextualDataCloudHighRiskOverridesHeuristic() {
+        // The Account cache can store a textual unified-profile risk tier. It should qualify a
+        // high-value buyer even when the operational heuristic is low.
+        Account a = scored('TextHighRisk', 0.04, 500, 'C', true);
+        a.Data_Cloud_Churn_Risk__c = 'High';
+        update a;
+
+        Test.startTest();
+        Integer added = AtRiskCampaignBuilder.run();
+        Test.stopTest();
+
+        System.assertEquals(1, added, 'textual High risk from the Account cache must qualify');
+        Campaign c = [SELECT Id, (SELECT ContactId FROM CampaignMembers)
+                      FROM Campaign WHERE Name=:AtRiskCampaignBuilder.CAMPAIGN_NAME LIMIT 1];
+        System.assertEquals(a.PersonContactId, c.CampaignMembers[0].ContactId, 'the high-risk cache account is the member');
+    }
+
     @isTest static void testHeuristicUsedWhenNoModelScore() {
         // No model score on file -> falls back to the heuristic (low churn -> excluded).
         scored('NoModel', 0.20, 600, 'C', true);

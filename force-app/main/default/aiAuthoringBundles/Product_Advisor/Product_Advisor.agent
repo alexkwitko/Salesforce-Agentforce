@@ -11,7 +11,7 @@ config:
     agent_type: "AgentforceEmployeeAgent"
 
 variables:
-    last_discount: mutable string = ""
+    last_discount: mutable number = 0
         description: "The most recent discount percent produced in this session."
 
 language:
@@ -162,7 +162,6 @@ subagent recommend:
                     label: "How Many"
                     description: "How many extra suggestions to return."
                     complex_data_type_name: "lightning__integerType"
-                    developer_name: "howMany"
                     is_required: False
             outputs:
                 productNames: string

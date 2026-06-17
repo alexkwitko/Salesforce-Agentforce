@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Active_Subscriptions</fullName>
+    <label>Active Subscriptions</label>
+    <filterScope>Everything</filterScope>
+    <columns>ASSET.NAME</columns>
+    <columns>ACCOUNT.NAME</columns>
+    <columns>ASSET.QUANTITY</columns>
+    <columns>ASSET.PRICE</columns>
+    <columns>ASSET.STATUS</columns>
+    <columns>ASSET.INSTALL_DATE</columns>
+    <columns>ASSET.USAGE_END_DATE</columns>
+    <filters>
+        <field>ASSET.STATUS</field>
+        <operation>equals</operation>
+        <value>Installed</value>
+    </filters>
+    <filters>
+        <field>ASSET.NAME</field>
+        <operation>contains</operation>
+        <value>Subscription</value>
+    </filters>
+</ListView>

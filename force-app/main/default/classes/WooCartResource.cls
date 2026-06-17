@@ -56,22 +56,33 @@ global without sharing class WooCartResource {
 
         String name = (str(p.get('first_name')) + ' ' + str(p.get('last_name'))).trim();
         Boolean consent = p.get('consent') == true || str(p.get('consent')) == 'true' || str(p.get('consent')) == '1';
-        Decimal total = dec(p.get('total'));
+        Decimal payloadTotal = dec(p.get('total'));
 
         List<Object> items = (p.get('items') instanceof List<Object>) ? (List<Object>) p.get('items') : new List<Object>();
         Integer count = 0;
+        Decimal merchandiseTotal = 0;
         for (Object io : items) {
             Map<String, Object> it = (Map<String, Object>) io;
-            count += (Integer) (dec(it.get('quantity')) == null ? 0 : dec(it.get('quantity')).intValue());
+            Decimal qty = dec(it.get('quantity'));
+            Decimal price = dec(it.get('price'));
+            Decimal normalizedQty = qty == null ? 0 : qty;
+            count += (Integer) normalizedQty.intValue();
+            merchandiseTotal += normalizedQty * (price == null ? 0 : price);
         }
 
-        List<Cart__c> existing = [SELECT Id, Status__c, Email_Consent__c FROM Cart__c WHERE Woo_Cart_Id__c = :cartKey LIMIT 1];
-        Cart__c c = existing.isEmpty() ? new Cart__c(Woo_Cart_Id__c = cartKey) : existing[0];
+        List<Cart__c> existing = [
+            SELECT Id, Status__c, Email_Consent__c, Shopper_Email__c, Customer__c, Lead__c, CreatedDate
+            FROM Cart__c
+            WHERE Woo_Cart_Id__c = :cartKey
+            FOR UPDATE
+        ];
+        Cart__c c = existing.isEmpty() ? new Cart__c(Woo_Cart_Id__c = cartKey) : canonicalCart(existing);
+        deleteDuplicateCarts(existing, c.Id);
         // never resurrect a converted cart
         if (!existing.isEmpty() && c.Status__c == 'Converted') return c.Id;
         c.Status__c = 'Active';
         c.Last_Activity__c = System.now();
-        c.Cart_Value__c = total;
+        c.Cart_Value__c = merchandiseTotal > 0 ? merchandiseTotal : payloadTotal;
         c.Item_Count__c = count;
         if (String.isNotBlank(email)) c.Shopper_Email__c = email;
         if (String.isNotBlank(name)) c.Shopper_Name__c = name;
@@ -103,6 +114,51 @@ global without sharing class WooCartResource {
         }
         if (!lines.isEmpty()) insert lines;
         return c.Id;
+    }
+
+    private static Cart__c canonicalCart(List<Cart__c> carts) {
+        Cart__c fallback = oldest(carts);
+        for (Cart__c cart : carts) {
+            if (cart.Status__c == 'Converted') return cart;
+        }
+        Cart__c withIdentity;
+        for (Cart__c cart : carts) {
+            if (String.isNotBlank(cart.Shopper_Email__c) || cart.Customer__c != null || cart.Lead__c != null) {
+                if (withIdentity == null || cart.CreatedDate < withIdentity.CreatedDate) {
+                    withIdentity = cart;
+                }
+            }
+        }
+        if (withIdentity != null) return withIdentity;
+        return fallback;
+    }
+
+    private static Cart__c oldest(List<Cart__c> carts) {
+        Cart__c winner = carts[0];
+        for (Cart__c cart : carts) {
+            if (cart.CreatedDate < winner.CreatedDate) winner = cart;
+        }
+        return winner;
+    }
+
+    private static void deleteDuplicateCarts(List<Cart__c> existing, Id keepId) {
+        if (existing == null || existing.size() <= 1 || keepId == null) return;
+        List<Cart__c> duplicates = new List<Cart__c>();
+        Set<Id> duplicateIds = new Set<Id>();
+        for (Cart__c cart : existing) {
+            if (cart.Id != keepId) {
+                duplicates.add(new Cart__c(Id = cart.Id));
+                duplicateIds.add(cart.Id);
+            }
+        }
+        if (duplicates.isEmpty()) return;
+
+        delete [
+            SELECT Id
+            FROM Cart_Item__c
+            WHERE Cart__c IN :duplicateIds
+        ];
+        delete duplicates;
     }
 
     static String getSecret() { Woo_Settings__c s = Woo_Settings__c.getOrgDefaults(); return s != null ? s.Webhook_Secret__c : null; }

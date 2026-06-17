@@ -1,15 +1,16 @@
 /**
- * ChurnScoreService — daily operational churn/LTV scorer (rule-based features) that
- * COMPLEMENTS the trained Einstein Studio model "Predicted Churned" (Data Cloud Model
- * Builder, binary classification, ACTIVE; trained on Churn_Training__c point-in-time
- * snapshots — see tools/generate_churn_training.apex). This class writes the live
+ * ChurnScoreService — daily operational churn/LTV scorer (rule-based, not AI) that
+ * complements Data Cloud prediction output when that output has been generated and
+ * written back. The trained-model setup is managed outside Apex in Einstein Studio /
+ * Data Cloud, so current model-definition status must be verified in the org. This class writes the live
  * Churn_Score__c (0-1), Predicted_LTV__c, and value-at-risk Tier every night and
- * adjusts churn with live website engagement (Web_Event__c): a customer who is
- * overdue to buy but actively browsing is far from lost — the engagement damper
- * keeps them out of the "gone" bucket and the Web_* fields make them segmentable.
- * The Einstein model's batch predictions land in Data_Cloud_Churn_Risk__c via the
- * Data Cloud prediction job; when both exist, the model score is the strategic
- * truth and this score is the always-fresh operational signal.
+ * adjusts churn with website engagement from the Data Cloud Account cache first
+ * and legacy Web_Event__c rows as fallback: a customer who is overdue to buy but
+ * actively browsing is far from lost — the engagement damper keeps them out of
+ * the "gone" bucket and the Web_* fields make them segmentable.
+ * If Einstein/Data Cloud predictions are available, their written-back probability
+ * lives in Data_Cloud_Churn_Risk__c. When both exist, downstream activation should
+ * prefer the model-looking probability and fall back to this operational signal.
  * Runs as a scheduled job ("Kwitko Churn Scoring Daily"); bulk-safe.
  */
 public with sharing class ChurnScoreService {
@@ -33,7 +34,9 @@ public with sharing class ChurnScoreService {
             byAcct.put((Id) ar.get('acct'), st);
         }
 
-        // website engagement signals (stitched events only)
+        // website engagement signals. Legacy Web_Event__c rows are still supported,
+        // but the SDK-first path now comes from DataCloudAugmentationService's
+        // Account cache after Web_Event__c was decommissioned as the active store.
         Map<Id, Web> webByAcct = new Map<Id, Web>();
         for (AggregateResult ar : [
                 SELECT Account__c acct, MAX(Occurred_At__c) mx
@@ -49,6 +52,23 @@ public with sharing class ChurnScoreService {
                 GROUP BY Account__c ]) {
             Web w = webByAcct.get((Id) ar.get('acct'));
             if (w != null) w.cnt30 = (Integer) ar.get('c');
+        }
+        for (Account a : [
+                SELECT Id, Insights_Web_Events__c, Insights_Last_Web_Activity__c
+                FROM Account
+                WHERE Insights_Last_Web_Activity__c != null OR Insights_Web_Events__c > 0 ]) {
+            Web w = webByAcct.get(a.Id);
+            if (w == null) {
+                w = new Web();
+                webByAcct.put(a.Id, w);
+            }
+            if (a.Insights_Last_Web_Activity__c != null
+                    && (w.lastSeen == null || a.Insights_Last_Web_Activity__c > w.lastSeen)) {
+                w.lastSeen = a.Insights_Last_Web_Activity__c;
+            }
+            if ((w.cnt30 == null || w.cnt30 == 0) && a.Insights_Web_Events__c != null) {
+                w.cnt30 = a.Insights_Web_Events__c.intValue();
+            }
         }
 
         if (byAcct.isEmpty() && webByAcct.isEmpty()) return 0;

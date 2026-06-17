@@ -1,0 +1,18 @@
+<template>
+    <section class="story">
+        <div class="story__media" aria-hidden="true">
+            <div class="story__cup">
+                <div class="story__cup-body"></div>
+                <div class="story__saucer"></div>
+                <div class="story__steam"></div>
+                <div class="story__steam story__steam--b"></div>
+            </div>
+        </div>
+        <div class="story__content">
+            <p class="story__kicker">{kicker}</p>
+            <h2 class="story__headline">{headline}</h2>
+            <p class="story__body">{body}</p>
+            <a class="story__cta" href={ctaUrl}>{ctaLabel} <span aria-hidden="true">&#8594;</span></a>
+        </div>
+    </section>
+</template>

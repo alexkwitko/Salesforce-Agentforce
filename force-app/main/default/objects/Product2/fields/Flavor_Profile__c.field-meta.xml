@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Flavor_Profile__c</fullName>
+    <label>Flavor Profile</label>
+    <type>Text</type>
+    <length>120</length>
+    <description>Headline flavor profile — pushed to Woo as the Flavor Profile facet.</description>
+</CustomField>

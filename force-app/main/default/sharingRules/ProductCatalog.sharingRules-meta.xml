@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SharingRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sharingGuestRules>
+        <fullName>BeanBrew_Guest_AllCatalogs</fullName>
+        <accessLevel>Read</accessLevel>
+        <label>BeanBrew Guest All Catalogs</label>
+        <sharedTo><guestUser>Bean_Brew</guestUser></sharedTo>
+        <criteriaItems><field>Name</field><operation>notEqual</operation><value>zzz_nomatch</value></criteriaItems>
+    </sharingGuestRules>
+</SharingRules>

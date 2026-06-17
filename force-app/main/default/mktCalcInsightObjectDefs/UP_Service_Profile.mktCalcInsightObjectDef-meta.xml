@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MktCalcInsightObjectDef xmlns="http://soap.sforce.com/2006/04/metadata">
+    <creationType>Custom</creationType>
+    <expression>SELECT UnifiedLinkssotIndividualCoff__dlm.UnifiedRecordId__c AS UnifiedIndividualId__c, APPROX_COUNT_DISTINCT(ssot__Case__dlm.ssot__Id__c) AS CaseCount__c, max(ssot__Case__dlm.ssot__CreatedDate__c) AS LastCaseDate__c FROM ssot__Case__dlm JOIN UnifiedLinkssotIndividualCoff__dlm ON UnifiedLinkssotIndividualCoff__dlm.SourceRecordId__c = ssot__Case__dlm.ssot__IndividualId__c OR UnifiedLinkssotIndividualCoff__dlm.SourceRecordId__c = ssot__Case__dlm.ssot__AccountId__c GROUP BY UnifiedLinkssotIndividualCoff__dlm.UnifiedRecordId__c</expression>
+    <masterLabel>UP Service Profile</masterLabel>
+</MktCalcInsightObjectDef>

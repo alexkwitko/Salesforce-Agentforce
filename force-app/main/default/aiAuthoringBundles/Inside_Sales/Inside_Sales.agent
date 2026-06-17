@@ -74,7 +74,6 @@ subagent cart_recovery:
                     label: "Lead ID"
                     description: "The Salesforce Lead record ID."
                     complex_data_type_name: "lightning__recordIdType"
-                    developer_name: "recordId"
                     is_required: True
                 agentName: string
                     label: "Agent Name"
@@ -108,7 +107,6 @@ subagent cart_recovery:
                     label: "Lead ID"
                     description: "The Salesforce Lead record ID whose email consent should be checked."
                     complex_data_type_name: "lightning__recordIdType"
-                    developer_name: "recordId"
                     is_required: True
             outputs:
                 hasConsent: boolean
@@ -130,7 +128,6 @@ subagent cart_recovery:
                     label: "Lead ID"
                     description: "The Salesforce Lead record ID to re-engage with a recovery offer."
                     complex_data_type_name: "lightning__recordIdType"
-                    developer_name: "leadId"
                     is_required: True
             outputs:
                 couponCode: string

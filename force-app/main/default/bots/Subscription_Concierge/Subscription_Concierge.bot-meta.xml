@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Subscription Concierge</label>
+        <name>Subscription_Concierge</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <description>Natural-language front door to RLM coffee subscriptions: view install base, provision, amend (seats), renew, and cancel — backed by the SubscriptionConcierge Apex actions on the Asset object.</description>
+    <label>Subscription Concierge</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

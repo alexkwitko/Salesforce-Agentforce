@@ -5,8 +5,9 @@ private class PostPurchaseSweepTest {
             HttpResponse r = new HttpResponse(); r.setStatusCode(201); r.setBody('{"id":1,"code":"x"}'); return r;
         }
     }
-    @isTest
-    static void testSweepGeneratesOffers() {
+
+    @testSetup
+    static void setup() {
         Id paRt = [SELECT Id FROM RecordType WHERE SObjectType='Account' AND IsPersonType=true LIMIT 1].Id;
         Account pa = new Account(FirstName='Sweep', LastName='Buyer', PersonEmail='sweep@example.com',
             Email_Consent__c=true, RecordTypeId=paRt);
@@ -23,7 +24,12 @@ private class PostPurchaseSweepTest {
             Pricebook2Id=pb, Woo_Order_Id__c='S-1', Source__c='Ecommerce');
         insert o;
         insert new OrderItem(OrderId=o.Id, PricebookEntryId=pbe.Id, Product2Id=b.Id, Quantity=1, UnitPrice=20);
-        update new Order(Id=o.Id, Status='Activated'); // valid path: Draft -> Activated
+        update new Order(Id=o.Id, Status='Activated', Fulfillment_Status__c='Shipped', Woo_Status__c='completed'); // valid path: Draft -> Activated
+    }
+
+    @isTest
+    static void testSweepGeneratesOffers() {
+        Order o = [SELECT Id FROM Order WHERE Woo_Order_Id__c='S-1' LIMIT 1];
 
         Test.setMock(HttpCalloutMock.class, new WooMock());
         Test.startTest();

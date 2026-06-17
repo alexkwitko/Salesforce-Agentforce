@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Kwitko Entitlement &amp; SLA Access</label>
+    <description>FLS for Case entitlement/SLA fields (EntitlementId, SlaStartDate/ExitDate, MilestoneStatus). They default to hidden FLS even for admins, which makes SOQL report "No such column". Assign to the service agent + human service users.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <fieldPermissions><field>Case.EntitlementId</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Case.SlaStartDate</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Case.SlaExitDate</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Case.MilestoneStatus</field><readable>true</readable><editable>false</editable></fieldPermissions>
+</PermissionSet>

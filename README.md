@@ -304,3 +304,30 @@ Secrets (SFDX auth URLs, JWT keys, WooCommerce keys) are never committed — see
 - `docs/CHAT-AGENT-ORCHESTRATION-DESIGN.md` — multi-agent orchestration design.
 - `docs/AGENTFORCE_WOO_DATACLOUD_AUDIT_2026-06-07.md` — system audit.
 - `docs/mcp-agent-consumer.md` — MCP agent-consumer design.
+
+---
+
+## Reusable Claude Code skills (`/skills`)
+
+This repo ships the **Claude Code skills** used to build it — product-agnostic, DX-first playbooks you can drop into `~/.claude/skills/` (or a project's `.claude/skills/`) and reuse on any org:
+
+| Skill | What it covers |
+|---|---|
+| `salesforce-rlm` | Revenue Lifecycle Management / Revenue Cloud — catalog, pricing, quoting, the **Asset lifecycle**, RLM↔Field-Service, the headless-vs-RCA fork, and the **engine-gated org playbook** (build the AI layer on standard objects when Place Quote is gated). |
+| `salesforce-agentforce` | Agentforce agents (Agent Script bundles), Data Cloud, MIAW chat, page-layouts/Dynamic-Forms, the CRM-vs-Data-Cloud decision, multi-turn agent testing. |
+| `salesforce-service` | Service Cloud — cases, Knowledge, Omni-Channel, order-service flows. |
+| `salesforce-field-service` | Field Service — enablement, managed package, work orders/appointments, scheduling, Maintenance Plans, mobile. |
+| `salesforce-d2c-setup` | D2C/B2B Commerce — storefront, catalog, checkout, payments/tax, promotions, OrderSummary. |
+
+## RLM / Subscription / Field-Service AI agents (this build)
+
+On top of the commerce build, this repo adds an Agentforce layer over **Revenue Lifecycle Management** (proven on a *headless* Subscription Management org — no RCA builder/Place-Quote engine):
+
+- **Subscription Concierge** — NL view/provision/amend/renew/cancel subscriptions on the `Asset` object.
+- **Renewal & Retention Copilot** — proactive book-of-business with churn-tier-driven next-best actions.
+- **Maintenance Concierge** — customer self-service over Field Service (coverage, book/reschedule/cancel visits), identity-gated; also folded into the customer web Concierge.
+- **Quote Copilot** — AI quoting on the **standard `Quote`** object (no engine needed).
+- **RLM↔Field-Service coupling** (`AssetSubscriptionLifecycle` trigger) — renew/cancel keeps `MaintenancePlan` + `ServiceContract` in lockstep.
+- **Real-time subscription insights** — `SubscriptionInsightsService` recomputes `Account.Insights_Subscription_*` synchronously on every Asset change (no batch lag), surfacing subscription value/renewal/count on the unified profile.
+
+See `skills/salesforce-rlm/use-cases-and-agent-patterns.md` → *"engine-gated org playbook"* for the full pattern set and gotchas.

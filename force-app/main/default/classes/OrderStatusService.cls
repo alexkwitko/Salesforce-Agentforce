@@ -10,6 +10,8 @@ public without sharing class OrderStatusService {
         @InvocableVariable(label='Email' required=true) public String email;
         @InvocableVariable(label='Order Identifier (Woo id / order number, optional — defaults to latest)') public String orderIdentifier;
         @InvocableVariable(label='Verified Email (the signed-in verified email — pass loggedInEmail; required to return order data)') public String verifiedEmail;
+        @InvocableVariable(label='Chat Summary' description='Faithful summary/transcript of the conversation so the solved service Case has context.')
+        public String chatSummary;
     }
     public class Result {
         @InvocableVariable public Boolean found;
@@ -32,6 +34,8 @@ public without sharing class OrderStatusService {
         @InvocableVariable public String carrier;
         @InvocableVariable public String trackingUrl;
         @InvocableVariable public String statusSource;
+        @InvocableVariable public String caseNumber;
+        @InvocableVariable public String openCaseSummary;
         @InvocableVariable public String summary;
     }
 
@@ -51,12 +55,20 @@ public without sharing class OrderStatusService {
             return res;
         }
         Account acc = KwitkoServiceUtil.findAccount(r.email);
-        if (acc == null) { res.summary = 'No account found for that email — ask the shopper to confirm their email or sign in.'; return res; }
+        if (acc == null) {
+            res.summary = 'No account found for that email — ask the shopper to confirm their email or sign in.';
+            res.caseNumber = logSolvedService(r, null, res.summary);
+            return res;
+        }
         Order o = KwitkoServiceUtil.findOrder(acc.Id, r.orderIdentifier);
-        if (o == null) { res.summary = 'No orders found on this account yet.'; return res; }
+        if (o == null) {
+            res.summary = 'No orders found on this account yet.';
+            res.caseNumber = logSolvedService(r, null, res.summary);
+            return res;
+        }
 
         res.found = true;
-        res.orderNumber = o.OrderNumber;
+        res.orderNumber = KwitkoServiceUtil.displayOrderNumber(o);
         res.wooOrderId = o.Woo_Order_Id__c;
         FulfillmentTruthService.Snapshot truth = FulfillmentTruthService.forOrder(o);
         res.fulfillmentStatus = truth.effectiveStatus;
@@ -73,8 +85,10 @@ public without sharing class OrderStatusService {
         res.itemsSummary = String.join(items, ', ');
 
         // Cancellation/status traceability — so the agent can truthfully answer "who cancelled it / why".
-        Order full = [SELECT Cancelled_By__c, Cancellation_Reason__c, Cancellation_Source__c, Cancelled_Date__c, Status_Note__c, Tracking_Number__c
+        Order full = [SELECT Cancelled_By__c, Cancellation_Reason__c, Cancellation_Source__c, Cancelled_Date__c, Status_Note__c, Tracking_Number__c, Woo_Order_Total__c
                       FROM Order WHERE Id = :o.Id LIMIT 1];
+        // Customer-facing total = WooCommerce grand total (incl. shipping), not the product-only subtotal.
+        if (full.Woo_Order_Total__c != null) res.total = full.Woo_Order_Total__c;
         res.cancelledBy = full.Cancelled_By__c;
         res.cancellationReason = full.Cancellation_Reason__c;
         res.cancelledDate = full.Cancelled_Date__c == null ? null : full.Cancelled_Date__c.format();
@@ -85,13 +99,25 @@ public without sharing class OrderStatusService {
         res.statusSource = truth.statusSource;
         // full service picture: return lifecycle + open cases on this order
         for (ReturnOrder ro : [SELECT Status FROM ReturnOrder WHERE Order__c = :o.Id ORDER BY CreatedDate DESC LIMIT 1]) res.returnStatus = ro.Status;
-        res.openCaseCount = [SELECT count() FROM Case WHERE Order__c = :o.Id AND IsClosed = false];
+        List<Case> openCases = [
+            SELECT CaseNumber, Category__c, Subject, Status
+            FROM Case
+            WHERE Order__c = :o.Id AND IsClosed = false
+            ORDER BY CreatedDate DESC
+            LIMIT 3
+        ];
+        res.openCaseCount = openCases.size();
+        res.openCaseSummary = summarizeOpenCases(openCases);
 
-        res.summary = 'Order ' + o.OrderNumber + ' — ' + res.fulfillmentStatus
+        // Refer to the order by the WooCommerce order number the customer actually sees on the
+        // storefront (e.g. "#506"), not the internal Salesforce OrderNumber.
+        String displayNo = KwitkoServiceUtil.displayOrderNumber(o);
+        res.summary = 'Order ' + displayNo + ' — ' + res.fulfillmentStatus
             + (String.isBlank(res.itemsSummary) ? '' : (': ' + res.itemsSummary))
-            + (o.TotalAmount == null ? '' : (' (total ' + o.TotalAmount.setScale(2) + ')'))
+            + (res.total == null ? '' : (' (total $' + res.total.setScale(2) + ')'))
             + '. ' + (res.canReturn ? 'Eligible for return.' : (res.canCancel ? 'Can still be cancelled.' : 'No cancel/return available at this stage.'));
-        if (res.fulfillmentStatus == 'Cancelled' || res.fulfillmentStatus == 'Refunded' || res.fulfillmentStatus == 'Returned') {
+        if (res.fulfillmentStatus == 'Cancelled' || res.fulfillmentStatus == 'Refunded'
+                || res.fulfillmentStatus == 'Returned' || res.fulfillmentStatus == 'Return Pending') {
             res.summary += String.isNotBlank(full.Status_Note__c)
                 ? (' ' + full.Status_Note__c)
                 : (' ' + res.fulfillmentStatus + (String.isBlank(full.Cancellation_Reason__c) ? '' : ('; reason: ' + full.Cancellation_Reason__c))
@@ -105,7 +131,102 @@ public without sharing class OrderStatusService {
         if (res.fulfillmentStatus == 'Shipped' && truth.hasDeliveryProof != true) {
             res.summary += ' This means it has shipped/been fulfilled; it is not marked delivered yet.';
         }
-        if (res.openCaseCount != null && res.openCaseCount > 0) res.summary += ' ' + res.openCaseCount + ' open support case(s) on this order.';
+        if (String.isNotBlank(res.openCaseSummary)) res.summary += ' Open support case(s): ' + res.openCaseSummary + '.';
+        res.caseNumber = logSolvedService(r, o.Id, res.summary);
         return res;
+    }
+
+    private static String summarizeOpenCases(List<Case> cases) {
+        if (cases == null || cases.isEmpty()) return null;
+        List<String> bits = new List<String>();
+        for (Case c : cases) {
+            List<String> parts = new List<String>();
+            if (String.isNotBlank(c.Category__c)) parts.add(c.Category__c);
+            if (String.isNotBlank(c.Status)) parts.add(c.Status);
+            String label = c.CaseNumber + (parts.isEmpty() ? '' : ' (' + String.join(parts, ', ') + ')');
+            if (String.isNotBlank(c.Subject)) label += ': ' + truncate(c.Subject, 80);
+            bits.add(label);
+        }
+        return String.join(bits, '; ');
+    }
+
+    private static String logSolvedService(Request r, Id orderId, String result) {
+        Id interactionId = null;
+        try {
+            interactionId = JourneyService.recordInteractionOnly(
+                r.email,
+                'Service',
+                'get_order_status',
+                null,
+                orderId == null ? null : String.valueOf(orderId),
+                result,
+                'Resolved',
+                null,
+                null
+            );
+        } catch (Exception e) {
+            System.debug('journey log failed: ' + e.getMessage());
+        }
+        String caseNumber = createSolvedCase(r, orderId, result, interactionId);
+        if (interactionId != null && String.isNotBlank(caseNumber)) {
+            try {
+                update new Agent_Interaction__c(
+                    Id = interactionId,
+                    Result__c = result + ' Case ' + caseNumber + ' created.'
+                );
+            } catch (Exception e) {
+                System.debug('journey log case stamp failed: ' + e.getMessage());
+            }
+        }
+        return caseNumber;
+    }
+
+    private static String createSolvedCase(Request r, Id orderId, String result, Id interactionId) {
+        try {
+            Account acc = KwitkoServiceUtil.findAccount(r.email);
+            Order ord = null;
+            if (orderId != null) {
+                for (Order o : [SELECT Id, Woo_Order_Id__c FROM Order WHERE Id = :orderId LIMIT 1]) ord = o;
+            }
+            String transcript = String.isBlank(r.chatSummary)
+                ? 'Transcript not provided by agent action.'
+                : CaseTranscriptUtil.sanitizePreActionCaseClaims(r.chatSummary);
+            String resolution = truncate(String.isBlank(result) ? 'Service interaction completed in chat.' : result.trim(), 4000);
+            String description = truncate('--- Service resolution ---\n' + resolution
+                + '\n\n--- Chat transcript ---\n' + transcript, 32000);
+            Case c = new Case(
+                AccountId = acc == null ? null : acc.Id,
+                ContactId = acc == null ? null : acc.PersonContactId,
+                SuppliedEmail = String.isBlank(r.email) ? null : r.email.trim(),
+                Order__c = orderId,
+                Origin = 'Chat',
+                Status = 'Closed',
+                Priority = 'Low',
+                Category__c = 'Order',
+                Subject = 'Chat service: Order status answered',
+                Summary__c = resolution,
+                Description = description,
+                Resolution__c = resolution,
+                Resolved_By__c = 'Chat Agent (' + UserInfo.getName() + ')',
+                Service_Interaction_Id__c = interactionId == null ? null : String.valueOf(interactionId)
+            );
+            if (ord != null) c.Woo_Order_Id__c = ord.Woo_Order_Id__c;
+            insert c;
+            Case created = [SELECT CaseNumber FROM Case WHERE Id = :c.Id LIMIT 1];
+            CaseTranscriptUtil.insertTaskWithResolution(c.Id, acc == null ? null : acc.PersonContactId, resolution, transcript);
+            if (acc != null) {
+                DataCloudAugmentationService.refreshAccount(acc.Id);
+                DataCloudAugmentationService.refreshAccountFromDataCloudAsync(acc.Id);
+            }
+            return created.CaseNumber;
+        } catch (Exception e) {
+            System.debug('order status case creation failed: ' + e.getMessage());
+            return null;
+        }
+    }
+
+    private static String truncate(String value, Integer maxLen) {
+        if (value == null || maxLen == null || maxLen <= 0) return value;
+        return value.length() > maxLen ? value.substring(0, maxLen) : value;
     }
 }

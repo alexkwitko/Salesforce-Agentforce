@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Insights_Taste_Profile__c</fullName>
+    <label>Insights: Taste Profile</label>
+    <type>LongTextArea</type>
+    <length>4000</length>
+    <visibleLines>6</visibleLines>
+</CustomField>

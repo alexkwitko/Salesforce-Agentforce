@@ -27,7 +27,7 @@ public without sharing class LoginLinkService {
         r.linkTitle = 'Sign in to your account';
         r.linkUrl = STORE + '/?kwitko_login=1';
         r.linkImageUrl = STORE + '/wp-content/uploads/kwitko-logo.png';
-        r.description = 'To protect your privacy, please sign in to view your account details.';
+        r.description = 'To protect your privacy, please sign in to view your account details: ' + r.linkUrl;
         r.success = true;
         return new List<Result>{ r };
     }

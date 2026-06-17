@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AssignmentRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <assignmentRule>
+        <fullName>Standard</fullName>
+        <active>true</active>
+        <!-- Web/Email/manual cases that are High priority or explicitly an Escalation go straight to the
+             Kwitko Escalations queue. Chat cases are created by the agent with explicit ownership and do
+             not run assignment rules (Apex insert without the assignment-rule header), so this only affects
+             non-chat intake. Cases matching nothing keep the owner set at creation. -->
+        <ruleEntry>
+            <criteriaItems>
+                <field>Case.Priority</field>
+                <operation>equals</operation>
+                <value>High</value>
+            </criteriaItems>
+            <assignedTo>Kwitko_Escalations</assignedTo>
+            <assignedToType>Queue</assignedToType>
+        </ruleEntry>
+        <ruleEntry>
+            <criteriaItems>
+                <field>Case.Category__c</field>
+                <operation>equals</operation>
+                <value>Escalation</value>
+            </criteriaItems>
+            <assignedTo>Kwitko_Escalations</assignedTo>
+            <assignedToType>Queue</assignedToType>
+        </ruleEntry>
+    </assignmentRule>
+</AssignmentRules>

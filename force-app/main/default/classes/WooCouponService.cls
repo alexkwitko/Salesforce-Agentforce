@@ -42,6 +42,24 @@ public with sharing class WooCouponService {
         return post(body);
     }
 
+    /** Best-effort cleanup for coupons created before a downstream email/action fails. */
+    public static Boolean deleteCoupon(String wooCouponId) {
+        if (String.isBlank(wooCouponId)) return false;
+        try {
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint('callout:WooCommerce/wp-json/wc/v3/coupons/' + EncodingUtil.urlEncode(wooCouponId, 'UTF-8') + '?force=true');
+            req.setMethod('DELETE');
+            req.setTimeout(60000);
+            HttpResponse resp = new Http().send(req);
+            Integer status = resp.getStatusCode();
+            if ((status >= 200 && status < 300) || status == 404) return true;
+            System.debug('Woo coupon delete failed: ' + status + ' ' + resp.getBody());
+        } catch (Exception e) {
+            System.debug('Woo coupon delete exception: ' + e.getMessage());
+        }
+        return false;
+    }
+
     private static String post(Map<String, Object> body) {
         try {
             HttpRequest req = new HttpRequest();

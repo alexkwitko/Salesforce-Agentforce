@@ -1,0 +1,32 @@
+.section-title {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05rem;
+    color: #3e3e3c;
+    margin: 0.25rem 0;
+    border-bottom: 1px solid #e5e5e5;
+    padding-bottom: 0.25rem;
+}
+.ms-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #f3f3f3;
+}
+.ms-name { flex: 1; font-weight: 600; }
+.countdown {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.8rem;
+    color: #444;
+    min-width: 9rem;
+    text-align: right;
+}
+.countdown.soon { color: #a86403; font-weight: 700; }
+.countdown.overdue { color: #c23934; font-weight: 700; }
+.countdown.met { color: #2e844a; }
+.kv { display: flex; justify-content: space-between; gap: 1rem; padding: 0.2rem 0; font-size: 0.85rem; }
+.kv span { color: #706e6b; }
+.kv b { text-align: right; }
+.muted { color: #706e6b; font-style: italic; padding: 0.25rem 0; }

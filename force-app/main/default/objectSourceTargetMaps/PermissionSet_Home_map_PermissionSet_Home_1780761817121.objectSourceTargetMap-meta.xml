@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ObjectSourceTargetMap xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <creationType>Custom</creationType>
+    <fieldSourceTargetMaps>
+        <creationType>Custom</creationType>
+        <filterApplied>false</filterApplied>
+        <isSourceFormula>false</isSourceFormula>
+        <sourceField>PermissionSet_Home.PermissionSetGroupId__c</sourceField>
+        <sourceFormula>PermissionSetGroupId</sourceFormula>
+        <targetField>PermissionSet_Home__dll.PermissionSetGroupId__c</targetField>
+    </fieldSourceTargetMaps>
+    <fieldSourceTargetMaps>
+        <creationType>Custom</creationType>
+        <filterApplied>false</filterApplied>
+        <isSourceFormula>false</isSourceFormula>
+        <sourceField>PermissionSet_Home.SystemModstamp__c</sourceField>
+        <sourceFormula>SystemModstamp</sourceFormula>
+        <targetField>PermissionSet_Home__dll.SystemModstamp__c</targetField>
+    </fieldSourceTargetMaps>
+    <fieldSourceTargetMaps>
+        <creationType>Custom</creationType>
+        <filterApplied>false</filterApplied>
+        <isSourceFormula>false</isSourceFormula>
+        <sourceField>PermissionSet_Home.SfdcOrganizationId__c</sourceField>
+        <sourceFormula>SfdcOrganizationId</sourceFormula>
+        <targetField>PermissionSet_Home__dll.SfdcOrganizationId__c</targetField>
+    </fieldSourceTargetMaps>
+    <fieldSourceTargetMaps>
+        <creationType>Custom</creationType>
+        <filterApplied>false</filterApplied>
+        <isSourceFormula>false</isSourceFormula>
+        <sourceField>PermissionSet_Home.Id__c</sourceField>
+        <sourceFormula>Id</sourceFormula>
+        <targetField>PermissionSet_Home__dll.Id__c</targetField>
+    </fieldSourceTargetMaps>
+    <fieldSourceTargetMaps>
+        <creationType>Custom</creationType>
+        <filterApplied>false</filterApplied>
+        <isSourceFormula>false</isSourceFormula>
+        <sourceField>PermissionSet_Home.PermissionsEinsteinCopilotUser__c</sourceField>
+        <sourceFormula>PermissionsEinsteinCopilotUser</sourceFormula>
+        <targetField>PermissionSet_Home__dll.PermissionsEinsteinCopilotUser__c</targetField>
+    </fieldSourceTargetMaps>
+    <fieldSourceTargetMaps>
+        <creationType>System</creationType>
+        <filterApplied>false</filterApplied>
+        <isSourceFormula>true</isSourceFormula>
+        <sourceField xsi:nil="true"/>
+        <sourceFormula>&quot;PermissionSet&quot;</sourceFormula>
+        <targetField>PermissionSet_Home__dll.DataSourceObject__c</targetField>
+    </fieldSourceTargetMaps>
+    <fieldSourceTargetMaps>
+        <creationType>System</creationType>
+        <filterApplied>false</filterApplied>
+        <isSourceFormula>true</isSourceFormula>
+        <sourceField xsi:nil="true"/>
+        <sourceFormula>&quot;Salesforce_Home&quot;</sourceFormula>
+        <targetField>PermissionSet_Home__dll.DataSource__c</targetField>
+    </fieldSourceTargetMaps>
+    <masterLabel>PermissionSet_Home_map_PermissionSet_Home_1780761817121</masterLabel>
+    <sourceObjectName>PermissionSet_Home</sourceObjectName>
+    <targetObjectName>PermissionSet_Home__dll</targetObjectName>
+</ObjectSourceTargetMap>

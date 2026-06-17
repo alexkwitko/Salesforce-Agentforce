@@ -60,8 +60,9 @@ public with sharing class AtRiskCampaignBuilder {
     }
 
     /** Prefer the Einstein Studio model score when it has been written back: the predict job
-     *  writes Account.Data_Cloud_Churn_Risk__c as e.g. "0.72 (AI model v2)". Parse the leading
-     *  probability; fall back to the operational heuristic Churn_Score__c when no model score. */
+     *  writes Account.Data_Cloud_Churn_Risk__c as e.g. "0.72 (AI model v2)". The unified-profile
+     *  Account cache can also hold a textual risk tier such as "High"; map that tier before
+     *  falling back to the operational heuristic Churn_Score__c. */
     @TestVisible
     private static Decimal effectiveChurn(Account a) {
         if (a != null && String.isNotBlank(a.Data_Cloud_Churn_Risk__c)) {
@@ -69,6 +70,10 @@ public with sharing class AtRiskCampaignBuilder {
             if (m.find()) {
                 try { return Decimal.valueOf(m.group(1)); } catch (Exception e) { /* fall through */ }
             }
+            String tier = a.Data_Cloud_Churn_Risk__c.trim().toLowerCase();
+            if (tier == 'high') return 0.90;
+            if (tier == 'medium' || tier == 'moderate') return 0.50;
+            if (tier == 'low') return 0.10;
         }
         return a == null ? null : a.Churn_Score__c;
     }

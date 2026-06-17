@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Brand__c</fullName>
+    <label>Brand</label>
+    <type>Picklist</type>
+    <description>Which brand catalog this product belongs to. Scopes Concierge recommendations to the site the chat is on (Kwitko Coffee = Woo coffee; Bean &amp; Brew = D2C equipment/accessories).</description>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Kwitko Coffee</fullName><default>false</default><label>Kwitko Coffee</label></value>
+            <value><fullName>Bean &amp; Brew</fullName><default>false</default><label>Bean &amp; Brew</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

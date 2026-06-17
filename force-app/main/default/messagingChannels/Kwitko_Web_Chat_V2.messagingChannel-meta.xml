@@ -14,6 +14,16 @@
     </automatedResponses>
     <customParameters>
         <actionParameterMappings>
+            <actionParameterName>brand</actionParameterName>
+        </actionParameterMappings>
+        <externalParameterName>Brand__c</externalParameterName>
+        <masterLabel>Brand</masterLabel>
+        <maxLength>80</maxLength>
+        <name>Brand</name>
+        <parameterDataType>String</parameterDataType>
+    </customParameters>
+    <customParameters>
+        <actionParameterMappings>
             <actionParameterName>cartToken</actionParameterName>
         </actionParameterMappings>
         <externalParameterName>Kwitko_Cart_Token__c</externalParameterName>

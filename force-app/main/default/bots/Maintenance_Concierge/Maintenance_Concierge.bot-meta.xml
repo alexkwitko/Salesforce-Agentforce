@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Maintenance Concierge</label>
+        <name>Maintenance_Concierge</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <description>Customer self-service for field-service maintenance: check coverage, view/book/reschedule/cancel maintenance visits over WorkOrder/ServiceAppointment/ServiceContract. (Headless-testable employee build; production customer-facing version republishes as a Service Agent on MIAW using the loggedInEmail linked var.)</description>
+    <label>Maintenance Concierge</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

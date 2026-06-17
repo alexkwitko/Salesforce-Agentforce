@@ -37,10 +37,33 @@ public without sharing class EmailService {
         // sending-domain enforcement, so we DON'T use it — instead we leave the From unset and rely on
         // org Deliverability "substitute address for unverified domains", which sends from a
         // Salesforce-authenticated address that actually delivers. Branding is preserved via display name.
-        Id oweaId = null;
+        // Prefer a verified OWEA on a REAL (non-freemail) domain so SPF/DKIM/DMARC pass for ALL recipients.
+        // But if the org ONLY has a freemail OWEA (e.g. gmail), USE IT as a fallback rather than leaving
+        // From unset: an explicit verified From actually delivers (it's how codes arrived before), whereas
+        // the unset-From "substitute address" path is NOT delivering in this org. Freemail From is a
+        // deliverability compromise for arbitrary domains, but it beats sending nothing.
+        Id oweaId = null, fallbackOweaId = null;
         for (OrgWideEmailAddress o : [SELECT Id, Address FROM OrgWideEmailAddress WHERE IsVerified = true ORDER BY DisplayName]) {
+            if (fallbackOweaId == null) fallbackOweaId = o.Id;
             String dom = (o.Address != null && o.Address.contains('@')) ? o.Address.substringAfterLast('@').toLowerCase() : '';
             if (!FREEMAIL.contains(dom)) { oweaId = o.Id; break; }
+        }
+        if (oweaId == null) oweaId = fallbackOweaId;
+
+        // Resolve a "target object" for each request when the record is a Lead/Contact/User/Person-Account.
+        // Emailing a Lead/Contact/User via setTargetObjectId is EXEMPT from the 15/day external-email cap
+        // (only setToAddresses counts). For Person Accounts we need the PersonContactId.
+        Set<Id> acctIds = new Set<Id>();
+        for (Request r : reqs) {
+            if (String.isNotBlank(r.recordId)) {
+                try { if (((Id) r.recordId).getSObjectType() == Account.SObjectType) acctIds.add((Id) r.recordId); } catch (Exception e) {}
+            }
+        }
+        Map<Id, Id> acctToContact = new Map<Id, Id>();
+        if (!acctIds.isEmpty()) {
+            for (Account a : [SELECT Id, PersonContactId FROM Account WHERE Id IN :acctIds AND IsPersonAccount = true]) {
+                if (a.PersonContactId != null) acctToContact.put(a.Id, a.PersonContactId);
+            }
         }
 
         for (Integer i = 0; i < reqs.size(); i++) {
@@ -49,8 +72,30 @@ public without sharing class EmailService {
             out.add(resp);
             if (String.isBlank(r.toEmail)) { resp.message = 'No recipient.'; continue; }
             if (!consentOk(r.recordId, r.isTransactional)) { resp.message = 'No consent on file; email NOT sent.'; continue; }
+
+            // Decide whether we can target a person record (cap-exempt) instead of a raw address.
+            Id targetId = null;
+            if (String.isNotBlank(r.recordId)) {
+                try {
+                    Id rid = (Id) r.recordId;
+                    Schema.SObjectType st = rid.getSObjectType();
+                    if (st == Lead.SObjectType || st == Contact.SObjectType || st == User.SObjectType) {
+                        targetId = rid;
+                    } else if (st == Account.SObjectType && acctToContact.containsKey(rid)) {
+                        targetId = acctToContact.get(rid);
+                    }
+                } catch (Exception e) {}
+            }
+
             Messaging.SingleEmailMessage m = new Messaging.SingleEmailMessage();
-            m.setToAddresses(new List<String>{ r.toEmail });
+            if (targetId != null) {
+                // cap-exempt path: send to the record's email
+                m.setTargetObjectId(targetId);
+                m.setTreatTargetObjectAsRecipient(true);
+            } else {
+                // fallback: raw address (counts against the daily cap)
+                m.setToAddresses(new List<String>{ r.toEmail });
+            }
             m.setSubject(r.subject);
             m.setHtmlBody(r.htmlBody);
             m.setSaveAsActivity(false);
@@ -86,6 +131,7 @@ public without sharing class EmailService {
     }
 
     private static Boolean consentOk(String recordId, Boolean isTransactional) {
+        if (isTransactional == true) return true;
         if (String.isBlank(recordId)) return isTransactional == true;
         try {
             Id id = (Id) recordId;

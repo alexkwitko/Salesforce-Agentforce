@@ -29,7 +29,7 @@ public without sharing class FulfillmentTruthService {
         public String statusSource;
     }
 
-    private static final Set<String> TERMINAL = new Set<String>{ 'Cancelled', 'Refunded', 'Returned' };
+    private static final Set<String> TERMINAL = new Set<String>{ 'Cancelled', 'Refunded', 'Returned', 'Return Pending' };
 
     public static Snapshot forOrder(Order o) {
         Snapshot s = new Snapshot();
@@ -39,7 +39,9 @@ public without sharing class FulfillmentTruthService {
             return s;
         }
         s.orderId = o.Id;
-        s.orderNumber = fieldString(o, 'OrderNumber');
+        String wooOrderId = fieldString(o, 'Woo_Order_Id__c');
+        // Customer-facing chat must never expose the internal Salesforce OrderNumber.
+        s.orderNumber = String.isNotBlank(wooOrderId) ? ('#' + wooOrderId) : 'this order';
         s.orderFulfillmentStatus = fieldString(o, 'Fulfillment_Status__c');
         s.effectiveStatus = orderFallbackStatus(o);
         s.statusSource = 'Order';

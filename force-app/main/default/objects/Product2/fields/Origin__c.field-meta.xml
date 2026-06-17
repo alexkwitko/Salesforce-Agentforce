@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Origin__c</fullName>
+    <label>Origin</label>
+    <type>Text</type>
+    <length>120</length>
+    <description>Country/region of origin (single-origin) — pushed to Woo as the Origin facet.</description>
+</CustomField>
