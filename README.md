@@ -1,56 +1,132 @@
-# Kwitko Coffee — Agentforce + Data Cloud + WooCommerce
+# Kwitko Coffee — a full multi-cloud Agentforce reference org
 
-A Salesforce DX project that turns a WooCommerce storefront into an Agentforce-powered commerce experience:
-multiple Agentforce agents (a customer-facing web Service Agent + headless employee agents), a Data Cloud unified
-customer profile with Calculated Insights, and Messaging-for-Web (MIAW) embedded chat, all wired to WooCommerce
-order/cart data.
+An end-to-end Salesforce build that wires **one coffee business** across **D2C/B2B Commerce, Service Cloud, Field Service, Revenue Lifecycle Management (RLM), Data Cloud (+ the web browsing SDK), Salesforce Payments, and Agentforce** — with **12 AI agents** and a layer of deterministic + generative AI on top. Two brands (Kwitko Coffee on WooCommerce + Bean & Brew on a native LWR storefront) run as **one unified customer profile**.
 
-This README is the **deploy-to-any-org** guide. It documents both a Salesforce DX (`sf` CLI) path and a Salesforce
-MCP path, the ordering constraints, and the manual/API post-deploy steps that are **not** metadata-deployable.
+It's also a **reference + playbook**: it ships the reusable **Claude Code skills** used to build it, a one-command deploy, and a headless **MCP** path to drive the agents.
 
-> **Source API version:** 66.0 (`sfdx-project.json`). The Data Cloud Connect REST examples below use `v62.0`,
-> which is a valid current Data Cloud API version; bump if your org requires a newer one.
+> **Scale:** 172 Apex classes · 12 Agentforce agents · 9 Flows · 8 LWC · 24 custom objects · 14 permission sets · Data Cloud (Identity Resolution + 8 Calculated Insights + Web SDK) · source API 66.0.
+> **Built DX-first.** Most of it deploys from metadata; the genuinely-UI/Salesforce-gated steps are listed explicitly in [Post-deploy](#post-deploy-steps-not-metadata-deployable).
 
 ---
 
-## Architecture summary
+## What each cloud / capability includes
 
-**Agentforce agents** (`force-app/main/default/aiAuthoringBundles/**`, Agent Script authoring bundles):
+### 🛒 Commerce — D2C + B2B (WooCommerce **and** native LWR storefront)
+- **WooCommerce integration** (bi-directional): order pull/push, product sync, customers, coupons, webhooks, return receipts — `WooOrderService`, `WooOrderPull`, `WooOrderActionService`, `WooProductSync`, `WooCustomerService`, `WooCouponService`, `WooWebhookResource`, `WooCartResource`, `WooReturnReceiptResource`. HMAC-verified inbound webhooks; Named-Credential outbound.
+- **Cart & recovery:** `Cart__c`/`Cart_Item__c`, `CartRestoreService`, `CartLinkService`, `CartQueueService`, abandoned-cart capture → lead (`AbandonedCartService`, `Abandoned_Cart_to_Lead` flow), `ReplenishmentService` (consumable re-order).
+- **Bean & Brew native storefront** (LWR, second brand): custom homepage components `bbHero`, `bbBrandStory`, `bbFeaturedCollection`, `bbValueProps`, `bbNewsletter`, `bbThemeLayout`; **CartExtension** calculators `BeanBrewTaxCartCalculator` (tax) + `BeanBrewPromotionsCalculator` (spend-based promo); buyer provisioning (`Bean_Brew_Commerce_Buyer` permset).
+- **Promotions / coupons / pricing:** `CouponService`, `CouponAnalyticsService`, `Discount_Rule__mdt`.
 
-| Agent (developer name) | Type | Role |
+### 🎧 Service Cloud
+- **Case lifecycle:** record types + support processes, queues, escalation, `CaseService`, `CaseResolutionService`, `caseServicePanel` LWC, transcript persistence (`CaseTranscriptUtil`, `CaseMessagingSessionLinker`).
+- **Order-service fix tools (real actions, not just answers):** `ReturnService`, `CancellationService`, `ExchangeService`, `ReshipService`, `AddressUpdateService`, `OrderModifyService`, `FailedPaymentService`, `StoreCreditService`, `PasswordResetService`, `OrderStatusService`, `TrackingService`.
+- **Entitlements / SLA:** `Kwitko_Entitlement_Access`, milestones; **Knowledge** grounding for the agent; **Omni-Channel** routing for web chat (`Kwitko_Web_Chat_Routing` flow + queues).
+- **Consent + identity gate:** `ConsentService`, `IdentityService`, OTP verification (`VerificationService`, `RequestVerificationCodeAction`, `VerifyCodeAction`), `LoginLinkService`, `Chat_Verification__c`.
+
+### 🔧 Field Service (FSL)
+- **Work orders → appointments**, **Maintenance Plans** (preventive, asset-based), **scheduling** (Dispatcher Console / Classic), service territories/resources.
+- **On-site invocables:** `FieldServiceTechActions` (incl. **collect payment**), `FieldQuoteAction` (field quotes), `FieldServiceAutopilot`, `FieldVisitToolkit`, service reports + digital signature.
+- **Field Service AI:** `FieldVisitAI` — a grounded **pre-visit brief + draft service-report notes** via `ConnectApi.EinsteinLLM`, surfaced in the **`fsVisitAssistant`** mobile LWC (record action).
+- **Maintenance self-service:** `Fs*` action classes power the Maintenance Concierge agents (coverage, book/reschedule/cancel visits).
+
+### 💳 Payments
+- **Salesforce Payments** for D2C checkout (Bean & Brew), **field payments** (`FieldServiceTechActions.collectPayment` → Payment record + `WO Payment_Status`, mock gateway), and **pay-now retry links** for failed commerce payments (`FailedPaymentService`). `Field_Service_Payments` permset.
+
+### 🔁 Revenue Lifecycle Management (RLM / Revenue Cloud)
+Built + proven on a **headless Subscription Management** org (no RCA builder/Place-Quote engine — the agents are the front door):
+- **Subscription lifecycle on `Asset`:** provision / amend (seats) / renew / cancel — `SubscriptionConciergeService` + `Sub*` actions.
+- **AI quoting on the standard `Quote` object** (no engine needed): `DraftQuoteAction` + `QuoteDraftService`.
+- **RLM ↔ Field Service coupling:** `AssetSubscriptionLifecycle` trigger keeps `MaintenancePlan` + `ServiceContract` in lockstep on renew/cancel (`AssetLifecycleCouplingService`).
+- **Real-time subscription insights:** `SubscriptionInsightsService` recomputes `Account.Insights_Subscription_*` **synchronously on every Asset change** (trigger-driven, not a nightly batch).
+- See `skills/salesforce-rlm/use-cases-and-agent-patterns.md` → *"engine-gated org playbook."*
+
+### 🧠 Data Cloud (unified profile + predictive)
+- **Unified customer profile** via **Identity Resolution** (both brands → one Individual), DLOs/DMOs (`dataSourceObjects`, `objectSourceTargetMaps`), and **8 Calculated Insights** (customer profile / category affinity / return risk / service risk / return-churn / shipment health / order patterns / web engagement).
+- **Augmentation back to CRM:** `DataCloudAugmentationService` writes unified-profile signals (segment, LTV, churn, NBA) onto the `Account` so agents read them live.
+- **Predictive pipeline:** an **Einstein Studio churn model** + `ChurnScoreService` (writes `Account.Churn_*`), `CustomerInsightsService` (RFM/value/taste), `AtRiskCampaignBuilder` (churn → campaign activation).
+
+### 🌐 Data Cloud SDK — web browsing capture
+- **Web SDK / engagement capture** of anonymous browsing → `Web_Event__c` → the Web_Event DMO; custom ingest endpoint `EngagementRest` (`@RestResource`); **device→person identity stitch** (`IdentityStitchService`, `WebIdentityService`) so anonymous activity resolves to the unified profile after sign-in. `Engagement_Tracking` permset.
+
+### 🏷️ Multi-brand
+One org, two brands as **one profile** — brand is a dimension, not an identity: `MessagingSessionBrandStamp` (chat → brand) + `OrderBrandStamp` (order → brand) so recommendations/segments are brand-aware.
+
+---
+
+## The 12 Agentforce agents
+
+**Service Agents** (customer-facing, MIAW web chat — need a runtime BotUser):
+
+| Agent | What it does |
+|---|---|
+| `Kwitko_Concierge_Web` / `Kwitko_Concierge_Web_Live` | The storefront concierge: shopping + personalized recommendations **and** full order service (status, tracking, returns, refunds, cancellations, cases) **and** field-service maintenance — all in one chat, identity-gated. |
+| `Maintenance_Concierge_Web` | Customer self-service for Field Service maintenance (coverage, book/reschedule/cancel visits) over WorkOrder/ServiceAppointment/ServiceContract. |
+
+**Employee agents** (internal / headless — invoked via `AgentInvoker` / MCP):
+
+| Agent | What it does |
+|---|---|
+| `Kwitko_Concierge` | Concierge orchestrator (internal): greet, capture lead+consent, recognize returning customers, build buyer-aware recommendations. |
+| `Product_Advisor` | The **recommendation brain** — profiles the buyer, picks products + quantities, resolves discounts deterministically (the engine other agents call). |
+| `Inside_Sales` | Re-engages abandoned-cart leads with a personalized one-time recovery discount (consent-gated). |
+| `Post_Purchase_Growth` | Analyzes a completed order, recommends an in-stock product, issues a one-time coupon, emails the customer; winback on return. |
+| `Lead_Copilot` | Reviews a Nurture lead's unified-profile metrics (LTV, purchases, recency, cart) and recommends + applies the next-best conversion step. |
+| `Subscription_Concierge` | NL front door to RLM subscriptions: view / provision / amend / renew / cancel on the `Asset` object. |
+| `Renewal_Retention` | Works the subscription install base: renewals due + **Data Cloud churn risk** → next-best action (at-risk save / renew+upsell), renews, logs plays. |
+| `Quote_Copilot` | Drafts standard Salesforce Quotes (Quote + QuoteLineItem) from natural language, at catalog price with an optional discount. |
+| `Maintenance_Concierge` | Internal/headless field-service maintenance self-service (the employee-agent twin of the web one). |
+
+Agent actions are thin Apex `@InvocableMethod` wrappers; every agent shares **one privacy-gated context envelope** (`AgentContextService` / `EmployeeAgentContextService`) and an **anti-hallucination** instruction grammar (never claim an outcome unless the action returned success this turn).
+
+## The AI (beyond the conversational agents)
+
+| AI | What it does | How |
 |---|---|---|
-| `Kwitko_Concierge_Web` | Service Agent (customer-facing) | Web chat concierge served through MIAW; order status, recommendations, cart restore, case handoff. Needs a runtime BotUser. |
-| `Product_Advisor` | Employee agent (headless) | Personalized product recommendations. |
-| `Inside_Sales` | Employee agent (headless) | Lead/cart-recovery outreach (consent-gated). |
-| `Post_Purchase_Growth` | Employee agent (headless) | Post-purchase tips + offers, winback on return. |
-| `Kwitko_Concierge` | Employee agent (headless) | Internal concierge / orchestration. |
+| **Churn model** | Predicts account churn risk → `Account.Churn_Score__c`/`Churn_Risk_Tier__c`; drives renewal/retention plays + at-risk campaigns. | Einstein Studio model + `ChurnScoreService` + `AtRiskCampaignBuilder` |
+| **Recommendation engine** | Deterministic product/quantity/discount strategy the agents call (so the LLM never invents prices). | `RecommendationStrategyService`, `ProductSuggestionService` |
+| **Field Visit AI** | Grounded pre-visit brief + draft service-report notes for technicians. | `FieldVisitAI` via `ConnectApi.EinsteinLLM` + `fsVisitAssistant` LWC |
+| **Profile insights** | Per-account RFM / value / taste / subscription value + next renewal, written to `Account.Insights_*` (real-time for subscriptions). | `CustomerInsightsService`, `SubscriptionInsightsService`, `DataCloudAugmentationService` |
 
-Employee agents are invoked **headlessly** via `AgentInvoker` (the in-org `generateAiAgentResponse` action) from
-Flows/jobs/Apex — agents are conversational, not event-driven.
+---
 
-**Apex** (`force-app/main/default/classes`, 80+ classes): integration + agent action services — `AgentInvoker`,
-`AgentContextService`/`EmployeeAgentContextService` (one privacy-gated context envelope for all agents),
-`WooOrderService`, `CartRestoreService`, `RecommendationStrategyService`, `FulfillmentTruthService`,
-`DataCloudAugmentationService`, plus tests.
+## Quick start — deploy to a fresh dev/scratch org (one command)
 
-**Data model** (`force-app/main/default/objects`): standard objects (Account as **Person Account**, Order, Case,
-ReturnOrder, Shipment, Product2, Lead, MessagingSession) + custom (`Cart__c`, `Cart_Item__c`, `Coupon__c`,
-`Customer_Journey__c`, `Agent_Interaction__c`, `Order_Analytics__c`, `Woo_Settings__c`) + `Discount_Rule__mdt`
-custom metadata.
+```bash
+# 1) Authenticate to the target org (or create a scratch org with config/project-scratch-def.json)
+sf org login web --alias myOrg --set-default
 
-**Data Cloud**: `dataSourceObjects` (DLO defs), `mktDataTranObjects` + `dataStreamDefinitions` (retrieved CRM
-stream metadata), `objectSourceTargetMaps` (DLO→DMO field + relationship maps), and `mktCalcInsightObjectDefs`
-(Calculated Insights: customer profile/affinity/return-risk/service-risk/return-churn/shipment-health/order-patterns/
-web-engagement). First-time target orgs can still reject stream metadata until the Salesforce CRM source connector
-exists; use the UI fallback in post-deploy, then re-run the deploy.
+# 2) Ordered deploy + permission-set assignment + a printed post-deploy checklist
+scripts/deploy/deploy-to-new-org.sh myOrg
+#   scratch/dev orgs without full Apex coverage:  scripts/deploy/deploy-to-new-org.sh myOrg NoTestRun
+```
 
-**Messaging for Web / routing:** `messagingChannels` (`Kwitko_Web_Chat`, `Kwitko_Web_Chat_V2`),
-`EmbeddedServiceConfig`, a public `sites` entry, `queues` + `queueRoutingConfigs` (Omni-Channel), the
-`Kwitko_Web_Chat_Routing` flow, `namedCredentials` (WooCommerce), `cspTrustedSites` + `corsWhitelistOrigins`.
+The script is **idempotent** (re-runnable), deploys in dependency order (objects → Apex → integration → Omni-Channel → messaging → flows → Data Cloud → security → UI), assigns the core permission sets, and prints the manual steps that can't be deployed.
 
-**Permission sets:** `Kwitko_Integration` (FLS/object access for the Woo↔SF integration + agent actions),
-`Kwitko_Messaging_Ops` (manage stuck messaging sessions), `Engagement_Tracking` (`Web_Event__c` capture/stitch
-access), and `Predictive_Scoring` (churn/LTV fields + `Churn_Training__c` access).
+> **Org prerequisites** (toggle BEFORE deploying — none are metadata): Person Accounts ENABLED, Agentforce/Einstein on, Data Cloud provisioned, Messaging for Web (Enhanced Messaging) on, Omni-Channel on, `sf` CLI authenticated. See the full list the script prints.
+
+---
+
+## Use it — drive the agents headlessly (Apex / MCP / Flow)
+
+Employee agents are **conversational, not event-driven** — fire them headlessly from Apex, a Flow, a scheduled job, or an MCP client.
+
+**From Apex / CLI** (the in-org `generateAiAgentResponse`, no OAuth):
+```bash
+sf apex run --target-org myOrg \
+  --apex 'System.debug(AgentInvoker.callAgent("Subscription_Concierge","I am dana.demo@example.com — what am I subscribed to?").agentResponse);'
+```
+
+**Multi-turn** — pass back the returned `sessionId`:
+```apex
+AgentInvoker.Response r1 = AgentInvoker.callAgent('Quote_Copilot','Quote Acme Roasters 20 of the Coffee Club at 10% off');
+AgentInvoker.Response r2 = AgentInvoker.callAgent('Quote_Copilot','make it 30', r1.sessionId);
+```
+
+**Via MCP (headless):** `tools/agent-mcp/` is a small MCP server exposing `ask_kwitko_agent(agentApiName, message, sessionId?)` over an Apex REST wrapper around `AgentInvoker` — drive any employee agent from any MCP client. Design + registration: [`docs/mcp-agent-consumer.md`](docs/mcp-agent-consumer.md).
+
+**Customer-facing (Service Agents):** reached through the deployed **Messaging-for-Web** channel (not `generateAiAgentResponse`). A storage-free SCRT/SSE smoke test lives in `scripts/ci/web-chat-conversation-smoke.sh`.
+
+> Note: `generateAiAgentResponse` works for **employee** agents; Service Agents are exercised through the messaging channel.
 
 ---
 
@@ -63,8 +139,8 @@ These are org features the deploy depends on — none can be toggled by metadata
 - **Data Cloud provisioned** (for DLO/DMO/Calculated-Insight metadata to import).
 - **Messaging for Web (Enhanced Messaging)** enabled (for `MessagingChannel`/`EmbeddedServiceConfig`).
 - **Omni-Channel** enabled (for `Queue`/`QueueRoutingConfig` + the routing flow).
-- Salesforce CLI (`sf`) installed and authenticated; API version 66.0 compatible.
-- Adequate **data storage** — Developer Edition / small orgs are tight; see gotchas.
+- (Optional, per cloud) **Field Service** managed package, **Revenue Cloud / Subscription Management**, **Salesforce Payments** — enable the ones whose features you want.
+- Salesforce CLI (`sf`) installed and authenticated; API version 66.0 compatible. Adequate **data storage** (DE orgs are tight — see gotchas).
 
 ---
 
@@ -72,262 +148,98 @@ These are org features the deploy depends on — none can be toggled by metadata
 
 ```
 force-app/main/default/   # all metadata (source of truth)
-manifest/package.xml      # deployable metadata manifest (wildcards; excludes non-deployable DC + agent bundles)
+manifest/package.xml      # deployable manifest (wildcards; excludes non-deployable DC + agent bundles)
+config/                   # project-scratch-def.json (scratch org shape)
 scripts/
-  deploy/deploy-to-new-org.sh   # ordered deploy + permset assign + post-deploy checklist
-  ci/                           # CI deploy/smoke scripts (GitHub Actions)
+  deploy/deploy-to-new-org.sh   # ordered, idempotent deploy + permset assign + post-deploy checklist
+  ci/                           # CI deploy/smoke/secret-scan scripts (GitHub Actions)
   apex/  soql/                  # one-off Apex / SOQL helpers
 tools/agent-mcp/          # MCP server exposing ask_kwitko_agent (see docs/mcp-agent-consumer.md)
-docs/                     # design docs, audit, CI runbook, MCP design
+docs/                     # build guides, orchestration design, CI runbook, MCP design, use-cases & QA
+skills/                   # reusable Claude Code skills (salesforce-rlm/agentforce/service/field-service/d2c-setup)
 ```
 
 ---
 
-## Deploy to a fresh org — Salesforce DX (`sf` CLI)
-
-### Quick path (recommended)
-
-```bash
-# 1. Authenticate to the target org
-sf org login web --alias myNewOrg --set-default
-
-# 2. Run the ordered deploy + permission-set assignment + post-deploy checklist
-scripts/deploy/deploy-to-new-org.sh myNewOrg
-# (scratch/dev orgs without full Apex coverage: scripts/deploy/deploy-to-new-org.sh myNewOrg NoTestRun)
-```
-
-The script deploys in dependency order, only includes directories that exist/are non-empty (idempotent, re-runnable),
-assigns `Kwitko_Integration`, `Kwitko_Messaging_Ops`, `Engagement_Tracking`, and `Predictive_Scoring`, and prints
-the manual/API post-deploy checklist.
-
-### Manual ordered path (what the script does)
-
-> Deploys are **async** — for `--metadata` style calls confirm the final `Succeeded` with
-> `sf project deploy report --use-most-recent`. The `--source-dir` calls below wait inline.
-
-```bash
-ORG=myNewOrg
-
-# 1) Data model first — record types/fields must exist before profiles/permsets reference them
-sf project deploy start --source-dir force-app/main/default/objects \
-  --source-dir force-app/main/default/layouts \
-  --source-dir force-app/main/default/customMetadata --target-org $ORG
-
-# 2) Apex (with tests) — services the agents + integration depend on
-sf project deploy start --source-dir force-app/main/default/classes \
-  --source-dir force-app/main/default/triggers --test-level RunLocalTests --target-org $ORG
-
-# 3) Integration plumbing
-sf project deploy start --source-dir force-app/main/default/namedCredentials \
-  --source-dir force-app/main/default/cspTrustedSites \
-  --source-dir force-app/main/default/corsWhitelistOrigins --target-org $ORG
-
-# 4) Omni-Channel routing primitives (before messaging/flows that use them)
-sf project deploy start --source-dir force-app/main/default/queues \
-  --source-dir force-app/main/default/queueRoutingConfigs --target-org $ORG
-
-# 5) Messaging for Web channel + embedded config + site
-sf project deploy start --source-dir force-app/main/default/messagingChannels \
-  --source-dir force-app/main/default/EmbeddedServiceConfig \
-  --source-dir force-app/main/default/sites --target-org $ORG
-
-# 6) Flows (routing + automation) — after objects/queues/Apex exist
-sf project deploy start --source-dir force-app/main/default/flows \
-  --source-dir force-app/main/default/flowDefinitions --target-org $ORG
-
-# 7) Data Cloud, in dependency order: DLO -> streams -> DLO/DMO maps -> Calculated Insights
-sf project deploy start --source-dir force-app/main/default/dataSourceObjects --target-org $ORG
-sf project deploy start --source-dir force-app/main/default/mktDataTranObjects \
-  --source-dir force-app/main/default/dataStreamDefinitions --target-org $ORG
-sf project deploy start --source-dir force-app/main/default/objectSourceTargetMaps --target-org $ORG
-sf project deploy start --source-dir force-app/main/default/mktCalcInsightObjectDefs --target-org $ORG
-
-# 8) Security (after all referenced objects/fields exist)
-sf project deploy start --source-dir force-app/main/default/permissionsets \
-  --source-dir force-app/main/default/profiles --target-org $ORG
-
-# 9) UI + settings
-sf project deploy start --source-dir force-app/main/default/applications \
-  --source-dir force-app/main/default/flexipages --source-dir force-app/main/default/tabs \
-  --source-dir force-app/main/default/lwc --source-dir force-app/main/default/aura \
-  --source-dir force-app/main/default/staticresources \
-  --source-dir force-app/main/default/contentassets \
-  --source-dir force-app/main/default/settings --target-org $ORG
-
-# Assign permission sets to the running user
-sf org assign permset --name Kwitko_Integration --target-org $ORG
-sf org assign permset --name Kwitko_Messaging_Ops --target-org $ORG
-sf org assign permset --name Engagement_Tracking --target-org $ORG
-sf org assign permset --name Predictive_Scoring --target-org $ORG
-```
-
-### Manifest-based alternative
-
-To deploy via the manifest in one call (after preconditions are met):
-
-```bash
-sf project deploy start --manifest manifest/package.xml --target-org $ORG --test-level RunLocalTests
-```
-
-`manifest/package.xml` uses wildcards and includes the retrieved Data Cloud stream metadata
-(`DataStreamDefinition` / `MktDataTranObject`) where present. It still excludes the Agentforce authoring bundles /
-planners / plugins / bots (see `.forceignore`). The ordered script is preferred for a fresh org because it isolates
-failures per group and treats CRM stream metadata as an org-sensitive step with a UI fallback.
-
----
-
-## Deploy / verify via the Salesforce MCP
+## Deploy via the Salesforce MCP
 
 If you use the connected `salesforce` MCP instead of (or alongside) the CLI:
 
-- **`deploy_metadata`** — deploy a source dir or the manifest. Run it once per ordered group above (objects → apex →
-  integration → omni → messaging → flows → data cloud → security → ui), or once with `manifest/package.xml`.
-- **`run_soql_query`** — verification, e.g.
-  - `SELECT QualifiedApiName FROM EntityDefinition WHERE QualifiedApiName LIKE '%__cio'` (Calculated Insights visible)
-  - `SELECT DeveloperName, BotSource, BotUserId FROM BotDefinition` (agent runtime users)
-  - `SELECT COUNT() FROM UnifiedssotIndividual__dlm` (unified profiles populated — should be > 0)
-- **`assign_permission_set`** — assign `Kwitko_Integration`, `Kwitko_Messaging_Ops`, `Engagement_Tracking`, and
-  `Predictive_Scoring`.
+- **`deploy_metadata`** — deploy a source dir or the manifest. Run once per ordered group (objects → apex → integration → omni → messaging → flows → data cloud → security → ui), or once with `manifest/package.xml`.
+- **`run_soql_query`** — verification, e.g. `SELECT DeveloperName, BotUserId FROM BotDefinition`, `SELECT COUNT() FROM UnifiedssotIndividual__dlm` (unified profiles > 0).
+- **`assign_permission_set`** — assign the core permsets (below).
 - **`run_apex_test`** — run the Apex test suite.
-- The Data Cloud Identity-Resolution / Calculated-Insight **run** steps are not MCP deploy operations. CRM stream
-  metadata is in source, but if a target org rejects first-run stream deploys, create the stream once in the Data
-  Cloud UI and re-run the metadata deploy.
+
+Core permission sets: `Kwitko_Integration`, `Kwitko_Messaging_Ops`, `Engagement_Tracking`, `Predictive_Scoring` (+ per-cloud: `Field_Service_Payments`, `Subscription_Insights_FLS`, `Bean_Brew_Commerce_Buyer`, `Kwitko_Entitlement_Access`, `Brand_Catalog_Access`, …).
 
 ---
 
 ## Post-deploy steps (NOT metadata-deployable)
 
 ### A) Agentforce agents
-The agent bundles are `.forceignore`'d (the CLI registry can't infer them reliably here) and are **excluded from the
-manifest**. Author/publish + activate each via `sf agent` (Agent Script) or Agent Builder:
+Bundles are `.forceignore`'d / excluded from the manifest. Publish + activate each via `sf agent` (Agent Script) or Agent Builder:
 ```bash
-sf agent validate authoring-bundle --api-name Kwitko_Concierge_Web --target-org $ORG
-sf agent publish  authoring-bundle --api-name Kwitko_Concierge_Web --target-org $ORG
+sf agent validate authoring-bundle --api-name Subscription_Concierge --target-org myOrg
+sf agent publish  authoring-bundle --api-name Subscription_Concierge --target-org myOrg
+sf agent activate --api-name Subscription_Concierge --version 1 --target-org myOrg   # publish does NOT auto-activate
 ```
-- **Agent type is immutable after first publish** — the web one must stay a Service Agent; the others employee agents.
-- Assign runtime users: the **web Service Agent** needs a BotUser; employee agents run as their `default_agent_user`.
-  A null `BotDefinition.BotUserId` on an *employee* agent is a reporting artifact, not a failure.
-- Verify headless invocation (no deploy of agents needed for this):
-  ```bash
-  sf apex run --target-org $ORG \
-    --apex 'System.debug(AgentInvoker.callAgent("Product_Advisor","hello").agentResponse);'
-  ```
+- **Agent type is immutable after first publish** — Service Agents stay Service Agents; employee agents stay employee.
+- Service Agents need a runtime **BotUser**; employee agents run as their `default_agent_user`.
+- ⚠️ Service Agent bundles carry a `default_agent_user` that is org-specific — set it to your org's Einstein Service Agent `*.ext` user before publishing.
+- Verify an employee agent headlessly: `sf apex run --apex 'System.debug(AgentInvoker.callAgent("Product_Advisor","hello").agentResponse);'`
 
 ### B) Data Cloud — CRM data streams (metadata first, UI fallback)
-This repo carries retrieved CRM stream metadata for `Web_Event__c_Home`, `Churn_Training__c_Home`, and the legacy
-commerce streams. Deploy `mktDataTranObjects` + `dataStreamDefinitions` after `dataSourceObjects`. If a fresh target
-org rejects a stream with **"no MktDataTranObject named <X>_Home found"**, create that stream once in the UI:
-**Data Cloud → Data Streams → New → Salesforce CRM →** pick the source object (`Web_Event__c`,
-`Churn_Training__c`, Account, Order_Analytics__c, Shipment, ReturnOrder, FulfillmentOrder as applicable) → map to
-the matching `*_Home` DLO → **Save & Run**, then re-run the metadata deploy.
+Deploy `mktDataTranObjects` + `dataStreamDefinitions` after `dataSourceObjects`. If a fresh org rejects a stream with **"no MktDataTranObject named &lt;X&gt;_Home found"**, create it once: **Data Cloud → Data Streams → New → Salesforce CRM →** pick the source object → map to the matching `*_Home` DLO → **Save & Run**, then re-run the deploy.
 
 ### C) Data Cloud — Identity Resolution + Calculated Insights (Connect REST API)
-**GOTCHA (root cause from this build):** Identity Resolution silently produces **0 unified profiles** if the
-identity keys source from an **empty** field. The `objectSourceTargetMaps` here already map
-`Account_Home Id__c → ssot__Individual__dlm.ssot__Id__c` and
-`Account_Home Id__c → ssot__ContactPointEmail__dlm.ssot__PartyId__c` (a POPULATED field) — do **not** re-point them
-at `PersonIndividualId__c` (empty).
-
-After the data stream runs and the DLO→DMO reprocess populates keys, run via the Connect API (reuses the CLI session):
+**GOTCHA:** Identity Resolution silently yields **0 unified profiles** if the identity key sources from an **empty** field. The `objectSourceTargetMaps` here map a **populated** field — don't re-point them at an empty one. After the stream runs:
 ```bash
-# Identity Resolution — note the path is /actions/run-now and the body is {}
-sf api request rest "/services/data/v62.0/ssot/identity-resolutions/<RulesetApiName>/actions/run-now" \
-  --method POST --body '{}' --target-org $ORG
-
-# Run each Calculated Insight (path is /actions/run)
-for ci in Customer_Agent_Profile Customer_Category_Affinity Customer_Return_Risk \
-          Customer_Service_Risk Return_Churn_By_Account Shipment_Delivery_Health \
-          Order_Patterns_by_Demographics; do
-  sf api request rest "/services/data/v62.0/ssot/calculated-insights/${ci}__cio/actions/run" \
-    --method POST --body '{}' --target-org $ORG
+sf api request rest "/services/data/v62.0/ssot/identity-resolutions/<Ruleset>/actions/run-now" --method POST --body '{}' --target-org myOrg
+for ci in Customer_Agent_Profile Customer_Category_Affinity Customer_Return_Risk Customer_Service_Risk \
+          Return_Churn_By_Account Shipment_Delivery_Health Order_Patterns_by_Demographics; do
+  sf api request rest "/services/data/v62.0/ssot/calculated-insights/${ci}__cio/actions/run" --method POST --body '{}' --target-org myOrg
 done
-
-# Verify unified profiles + ad-hoc SQL
-sf api request rest "/services/data/v62.0/ssot/query-sql" --method POST \
-  --body '{"sql":"SELECT COUNT(*) FROM UnifiedssotIndividual__dlm"}' --target-org $ORG
 ```
 
 ### D) Person Account default record type (UI-only)
-The `PersonAccount` record type is a system RT the Metadata API does not expose, so native lead→Person-Account
-conversion needs: **Setup → Profiles → System Administrator → Object Settings → Account → Record Types → set
-"Person Account" as default.**
+**Setup → Profiles → System Administrator → Object Settings → Account → Record Types → set "Person Account" as default** (the system RT isn't in metadata).
 
-### E) Messaging for Web — user verification / `authMode` (Salesforce-side)
-For authenticated (non-Guest) chat via `setIdentityToken`, the deployment's `authMode` must accept verified identity
-tokens. There is no Metadata/Tooling field for this — open a **Salesforce support case** to enable user verification
-on the Enhanced Messaging deployment, then register your JWK/JWKS under Enhanced Chat User Verification. (Until then,
-`setIdentityToken` is silently ignored and sessions are Guest.)
+### E) Messaging for Web — user verification (Salesforce-side)
+Authenticated chat via `setIdentityToken` needs the deployment's user-verification enabled (no metadata field) — open a Salesforce support case, then register your JWK/JWKS under Enhanced Chat User Verification. Until then, `setIdentityToken` is ignored and sessions are Guest.
 
-### F) Email deliverability (DNS, external)
-Outbound agent email from a `@gmail.com` (or any unowned-domain) Org-Wide Email Address **fails Gmail DMARC** even
-though Apex reports success. Add a sending subdomain with SPF + Salesforce DKIM + DMARC and verify an OWEA on it.
-
-### G) Storage
-Developer Edition / small orgs are storage-constrained. **Do not run `sf agent test` on a storage-tight org** — its
-AI Evaluation result records are a large, hard-to-delete storage hog (Testing Center UI only). A MIAW
-`POST /conversation` → **412** usually means storage is full, not misconfiguration. Check:
-`sf api request rest "/services/data/v62.0/limits" --target-org $ORG | jq '.DataStorageMB'`.
-
-The web engagement endpoint also fails when data storage is full (`STORAGE_LIMIT_EXCEEDED` from
-`EngagementRest`). After generating transient prediction rows or endpoint probes, run:
-```bash
-sf apex run --file tools/cleanup_transient_storage.apex --target-org $ORG
-```
+### F) Email deliverability (DNS) · G) Storage
+Outbound agent email from an unowned-domain OWEA fails Gmail DMARC — add a sending subdomain with SPF/DKIM/DMARC. DE/small orgs are storage-tight: **don't run `sf agent test` on a storage-tight org** (AI-Evaluation records are a hard-to-delete hog); a MIAW `POST /conversation` → 412 usually means storage is full.
 
 ---
 
 ## Verify the deploy
-
 ```bash
-bash scripts/ci/salesforce-post-deploy-smoke.sh $ORG
+bash scripts/ci/salesforce-post-deploy-smoke.sh myOrg
 ```
-Checks the web messaging channel/config, fails on stuck open `MessagingSession`s, checks the web Service Agent's
-runtime BotUser, and checks Data Cloud Calculated-Insight visibility + Account augmented fields.
-
----
-
-## Consume the agents from an MCP client
-
-`tools/agent-mcp/` is a small MCP server exposing `ask_kwitko_agent(agentApiName, message, sessionId?)`. It calls an
-Apex REST wrapper around `AgentInvoker`. Design + registration: [`docs/mcp-agent-consumer.md`](docs/mcp-agent-consumer.md).
-
----
-
-## CI/CD
-
-GitHub Actions handle PR validation + staging/production deploys; see [`docs/CI_CD_RUNBOOK.md`](docs/CI_CD_RUNBOOK.md).
-Secrets (SFDX auth URLs, JWT keys, WooCommerce keys) are never committed — see `.gitignore`.
-
-## Further docs
-
-- `docs/SALESFORCE-BUILD-GUIDE.md` — full build narrative.
-- `docs/CHAT-AGENT-ORCHESTRATION-DESIGN.md` — multi-agent orchestration design.
-- `docs/AGENTFORCE_WOO_DATACLOUD_AUDIT_2026-06-07.md` — system audit.
-- `docs/mcp-agent-consumer.md` — MCP agent-consumer design.
+Checks the web messaging channel/config, stuck `MessagingSession`s, the Service Agent's BotUser, and Data Cloud Calculated-Insight visibility + Account augmented fields.
 
 ---
 
 ## Reusable Claude Code skills (`/skills`)
 
-This repo ships the **Claude Code skills** used to build it — product-agnostic, DX-first playbooks you can drop into `~/.claude/skills/` (or a project's `.claude/skills/`) and reuse on any org:
+Product-agnostic, DX-first playbooks used to build this — drop into `~/.claude/skills/`:
 
-| Skill | What it covers |
+| Skill | Covers |
 |---|---|
-| `salesforce-rlm` | Revenue Lifecycle Management / Revenue Cloud — catalog, pricing, quoting, the **Asset lifecycle**, RLM↔Field-Service, the headless-vs-RCA fork, and the **engine-gated org playbook** (build the AI layer on standard objects when Place Quote is gated). |
-| `salesforce-agentforce` | Agentforce agents (Agent Script bundles), Data Cloud, MIAW chat, page-layouts/Dynamic-Forms, the CRM-vs-Data-Cloud decision, multi-turn agent testing. |
+| `salesforce-rlm` | Revenue Cloud / RLM — catalog, pricing, Asset lifecycle, RLM↔Field-Service, the headless-vs-RCA fork, the **engine-gated org playbook**. |
+| `salesforce-agentforce` | Agentforce agents (Agent Script), Data Cloud, MIAW chat, page-layouts/Dynamic-Forms, multi-turn agent testing. |
 | `salesforce-service` | Service Cloud — cases, Knowledge, Omni-Channel, order-service flows. |
-| `salesforce-field-service` | Field Service — enablement, managed package, work orders/appointments, scheduling, Maintenance Plans, mobile. |
+| `salesforce-field-service` | Field Service — enablement, managed package, work orders/appointments, scheduling, Maintenance Plans, payments, mobile. |
 | `salesforce-d2c-setup` | D2C/B2B Commerce — storefront, catalog, checkout, payments/tax, promotions, OrderSummary. |
 
-## RLM / Subscription / Field-Service AI agents (this build)
+## Further docs
+- `docs/SALESFORCE-BUILD-GUIDE.md` — full build narrative · `docs/BUILD_TUTORIAL.md` — step-by-step tutorial
+- `docs/CHAT-AGENT-ORCHESTRATION-DESIGN.md` — multi-agent orchestration design
+- `docs/USE-CASES-AND-QA.md` — use cases + Q&A · `docs/AGENT_CERTIFICATION_SUMMARY.md` — agent test/cert summary
+- `docs/mcp-agent-consumer.md` — MCP agent-consumer design · `docs/CI_CD_RUNBOOK.md` — CI/CD
 
-On top of the commerce build, this repo adds an Agentforce layer over **Revenue Lifecycle Management** (proven on a *headless* Subscription Management org — no RCA builder/Place-Quote engine):
+## CI/CD
+GitHub Actions handle PR validation + staging/production deploys (`docs/CI_CD_RUNBOOK.md`). Secrets (SFDX auth URLs, JWT keys, WooCommerce keys) are never committed — see `.gitignore` + `scripts/ci/secret-scan.sh`.
 
-- **Subscription Concierge** — NL view/provision/amend/renew/cancel subscriptions on the `Asset` object.
-- **Renewal & Retention Copilot** — proactive book-of-business with churn-tier-driven next-best actions.
-- **Maintenance Concierge** — customer self-service over Field Service (coverage, book/reschedule/cancel visits), identity-gated; also folded into the customer web Concierge.
-- **Quote Copilot** — AI quoting on the **standard `Quote`** object (no engine needed).
-- **RLM↔Field-Service coupling** (`AssetSubscriptionLifecycle` trigger) — renew/cancel keeps `MaintenancePlan` + `ServiceContract` in lockstep.
-- **Real-time subscription insights** — `SubscriptionInsightsService` recomputes `Account.Insights_Subscription_*` synchronously on every Asset change (no batch lag), surfacing subscription value/renewal/count on the unified profile.
-
-See `skills/salesforce-rlm/use-cases-and-agent-patterns.md` → *"engine-gated org playbook"* for the full pattern set and gotchas.
+## License
+MIT — see [LICENSE](LICENSE). Reference build; not affiliated with or endorsed by Salesforce.
