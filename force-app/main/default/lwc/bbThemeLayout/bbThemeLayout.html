@@ -15,8 +15,12 @@
             <nav class="bb-nav" aria-label="Primary">
                 <a href={homeUrl}>Home</a>
                 <a href={productsUrl}>Shop</a>
-                <a href={searchUrl}>Search</a>
             </nav>
+
+            <div class="bb-search-wrap">
+                <input type="search" class="bb-search" placeholder="Search products…"
+                    aria-label="Search products" onkeydown={handleSearchKey} />
+            </div>
 
             <div class="bb-actions">
                 <a class="bb-account" href={accountUrl}>{accountLabel}</a>

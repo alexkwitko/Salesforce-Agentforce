@@ -36,6 +36,17 @@
 .bb-nav a:hover { color: #fff !important; }
 @media (max-width: 640px) { .bb-nav { display: none; } }
 
+.bb-search-wrap { display: flex; align-items: center; }
+.bb-search {
+    width: clamp(8rem, 18vw, 16rem); font-family: var(--bb-sans); font-size: 0.9rem;
+    color: var(--bb-cream) !important; background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(231,210,176,0.35); border-radius: 999px;
+    padding: 0.5rem 1rem; outline: none; transition: all 0.2s ease;
+}
+.bb-search::placeholder { color: rgba(246,239,228,0.6) !important; }
+.bb-search:focus { border-color: var(--bb-copper); background: rgba(255,255,255,0.14) !important; }
+@media (max-width: 640px) { .bb-search { width: 9rem; } }
+
 .bb-actions { display: flex; align-items: center; gap: 1.1rem; }
 .bb-account { font-family: var(--bb-sans); font-size: 0.9rem; font-weight: 600; color: var(--bb-crema) !important; text-decoration: none !important; padding: 0.5rem 1rem; border: 1px solid rgba(231,210,176,0.4); border-radius: 999px; transition: all 0.2s ease; }
 .bb-account:hover { background: var(--bb-copper) !important; border-color: var(--bb-copper); color: #fff !important; }

@@ -22,8 +22,16 @@ export default class BbThemeLayout extends LightningElement {
     get homeUrl() { return BASE + '/'; }
     get productsUrl() { return BASE + '/category/products/0ZGfj000000IRGHGA4'; }
     get cartUrl() { return BASE + '/cart'; }
-    get searchUrl() { return BASE + '/search'; }
     get accountUrl() { return this.isLoggedIn ? BASE + '/myprofile' : BASE + '/login'; }
     get accountLabel() { return this.isLoggedIn ? 'My Account' : 'Log In'; }
     get hasItems() { return this.cartCount > 0; }
+
+    // Storefront search → the LWR commerce "global-search" route (urlPrefix: global-search)
+    handleSearchKey(event) {
+        if (event.key !== 'Enter') return;
+        const term = (event.target.value || '').trim();
+        if (term) {
+            window.location.assign(BASE + '/global-search/' + encodeURIComponent(term));
+        }
+    }
 }
