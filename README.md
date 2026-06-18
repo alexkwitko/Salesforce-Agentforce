@@ -1,5 +1,11 @@
 # Kwitko Coffee — a full multi-cloud Agentforce reference org
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Salesforce API 66.0](https://img.shields.io/badge/Salesforce_API-66.0-00A1E0?logo=salesforce&logoColor=white)](sfdx-project.json)
+[![PR Validation](https://github.com/alexkwitko/Salesforce-Agentforce/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/alexkwitko/Salesforce-Agentforce/actions/workflows/pr-validation.yml)
+[![Agentforce](https://img.shields.io/badge/Agentforce-12_agents-1798c1)](#the-12-agentforce-agents)
+[![Built with Claude Code](https://img.shields.io/badge/Built_with-Claude_Code-D97757)](https://claude.com/claude-code)
+
 An end-to-end Salesforce build that wires **one coffee business** across **D2C/B2B Commerce, Service Cloud, Field Service, Revenue Lifecycle Management (RLM), Data Cloud (+ the web browsing SDK), Salesforce Payments, and Agentforce** — with **12 AI agents** and a layer of deterministic + generative AI on top. Two brands (Kwitko Coffee on WooCommerce + Bean & Brew on a native LWR storefront) run as **one unified customer profile**.
 
 It's also a **reference + playbook**: it ships the reusable **Claude Code skills** used to build it, a one-command deploy, and a headless **MCP** path to drive the agents.
