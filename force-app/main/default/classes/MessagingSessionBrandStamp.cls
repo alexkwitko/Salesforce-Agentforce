@@ -14,9 +14,8 @@ public without sharing class MessagingSessionBrandStamp {
     @TestVisible
     private static Map<String,String> CHANNEL_BRAND = new Map<String,String>{
         'Kwitko_Web_Chat'    => 'Kwitko Coffee',
-        'Kwitko_Web_Chat_V2' => 'Kwitko Coffee'
-        // When Bean & Brew's LWR chat is surfaced, add its channel here, e.g.:
-        // , 'Bean_Brew_Web_Chat' => 'Bean & Brew'
+        'Kwitko_Web_Chat_V2' => 'Kwitko Coffee',
+        'Bean_Brew_Web_Chat' => 'Bean & Brew'
     };
 
     /** Pure mapping (unit-testable, no DML/SOQL). Returns null for unknown/blank channels. */

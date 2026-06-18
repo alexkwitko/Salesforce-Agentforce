@@ -107,6 +107,31 @@
     <apiVersion>66.0</apiVersion>
     <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
     <decisions>
+        <name>Has_Brand</name>
+        <label>Has Brand</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Has_Identity</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>No Brand</defaultConnectorLabel>
+        <rules>
+            <name>Brand_Provided</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>brand</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Set_Brand_On_Session</targetReference>
+            </connector>
+            <label>Brand Provided</label>
+        </rules>
+    </decisions>
+    <decisions>
         <name>Has_Identity</name>
         <label>Has Identity</label>
         <locationX>0</locationX>
@@ -161,6 +186,30 @@
     </processMetadataValues>
     <processType>RoutingFlow</processType>
     <recordUpdates>
+        <name>Set_Brand_On_Session</name>
+        <label>Set Brand On Session</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Has_Identity</targetReference>
+        </connector>
+        <inputAssignments>
+            <field>Brand__c</field>
+            <value>
+                <elementReference>brand</elementReference>
+            </value>
+        </inputAssignments>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>recordId</elementReference>
+            </value>
+        </filters>
+        <object>MessagingSession</object>
+    </recordUpdates>
+    <recordUpdates>
         <name>Set_Identity_On_Session</name>
         <label>Set Identity On Session</label>
         <locationX>0</locationX>
@@ -200,7 +249,7 @@
         <locationX>0</locationX>
         <locationY>0</locationY>
         <connector>
-            <targetReference>Has_Identity</targetReference>
+            <targetReference>Has_Brand</targetReference>
         </connector>
     </start>
     <status>Active</status>

@@ -25,7 +25,7 @@
         </embeddedServiceFormFields>
         <embeddedServiceFormFields>
             <displayOrder>-1</displayOrder>
-            <formField>Logged_In_Email</formField>
+            <formField>Kwitko_Cart_Token</formField>
             <formFieldType>Text</formFieldType>
             <isHidden>true</isHidden>
             <isRequired>false</isRequired>
@@ -33,7 +33,7 @@
         </embeddedServiceFormFields>
         <embeddedServiceFormFields>
             <displayOrder>-1</displayOrder>
-            <formField>Kwitko_Cart_Token</formField>
+            <formField>Logged_In_Email</formField>
             <formFieldType>Text</formFieldType>
             <isHidden>true</isHidden>
             <isRequired>false</isRequired>
