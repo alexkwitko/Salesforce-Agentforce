@@ -233,9 +233,9 @@ Checks the web messaging channel/config, stuck `MessagingSession`s, the Service 
 
 ---
 
-## Reusable Claude Code skills (`/skills`)
+## Reusable skills (`/skills`)
 
-Product-agnostic, DX-first playbooks used to build this — drop into `~/.claude/skills/`:
+Product-agnostic, DX-first playbooks used to build this:
 
 | Skill | Covers |
 |---|---|
@@ -244,6 +244,14 @@ Product-agnostic, DX-first playbooks used to build this — drop into `~/.claude
 | `salesforce-service` | Service Cloud — cases, Knowledge, Omni-Channel, order-service flows. |
 | `salesforce-field-service` | Field Service — enablement, managed package, work orders/appointments, scheduling, Maintenance Plans, payments, mobile. |
 | `salesforce-d2c-setup` | D2C/B2B Commerce — storefront, catalog, checkout, payments/tax, promotions, OrderSummary. |
+
+**Works with any agent, not just Claude.** Codex, Antigravity, and Cursor have all converged on the same `SKILL.md` format.
+- **Claude Code** — copy `skills/*` into `~/.claude/skills/`.
+- **OpenAI Codex** — copy `agent-skills/*` into `~/.agents/skills/` (auto-loaded by description match).
+- **Google Antigravity** — copy `agent-skills/*` into a workspace `skills/` directory.
+- **Cursor / any AGENTS.md tool** — the repo-root **[`AGENTS.md`](AGENTS.md)** gives always-on context (deploy command, headless invocation, gotchas).
+
+`agent-skills/` is a portable copy of `skills/` with Claude-specific references scrubbed; regenerate it with `scripts/convert-skills.sh`.
 
 ## Further docs
 - `docs/SALESFORCE-BUILD-GUIDE.md` — full build narrative · `docs/BUILD_TUTORIAL.md` — step-by-step tutorial
