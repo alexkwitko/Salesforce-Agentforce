@@ -24,6 +24,18 @@ sf agent publish  authoring-bundle --api-name My_Agent --target-org MyOrg
 
 **Service Agent** (`ExternalCopilot`) — for customer-facing MIAW web chat: has `connection messaging:`, `@MessagingSession` variables, and a runtime BotUser (`EinsteinServiceAgent`). This one DOES need a non-null `BotUserId`.
 
+## Surfacing the IN-APP internal copilot (the Lightning header Agentforce icon) — hard-won, UI-only
+
+"I can't see the Agentforce icon to use it as an internal copilot in the app" is **NOT** about your agents, permissions, or a connection — it's **one feature toggle that's off by default**, and it cost a long debugging session to learn the following (all verified, Summer '26):
+
+- **The fix:** Setup → **Salesforce Go → Features → search "Agentforce (Default)" → open it → Get Started → Turn On → Confirm.** Setup node URL: `/lightning/setup/page/feature/sales-cloud-einstein-copilot/home`. Prereqs (auto-checked in the wizard): "Agentforce Studio" + "Einstein Generative AI" on. This provisions the standard agent **`Copilot_for_Salesforce` ("Agentforce (Default)")**, and the header icon (robot/sparkle, top-right) appears and opens a working chat panel. **This step is genuinely UI-only** — there's no metadata/CLI toggle for it.
+- **Verify via CLI** (no browser needed): `sf data query -q "SELECT DeveloperName FROM BotDefinition WHERE DeveloperName='Copilot_for_Salesforce'"` — if the row exists, the in-app assistant is provisioned (BotDefinition count jumps by 1 when you turn it on).
+- **It is NOT a per-agent "Salesforce" connection.** In Agent Builder → **Connections → Add Connections**, the only channel types ever offered are **Enhanced Chat v2 / Messaging / Slack** — even after the feature is on. So custom Agent-Script *employee* agents (built headless for `AgentInvoker`, or for MIAW) **cannot be surfaced in the header via a connection**; the header copilot is always the default agent. Don't waste time hunting for a "Salesforce" connection — it doesn't exist there.
+- **`Copilot_for_Salesforce` shows `Status=Inactive`** in `BotVersion`, and `sf agent activate --api-name Copilot_for_Salesforce` **errors**: *"Agent ... is the default Agentforce agent in your org and you can't change its activation status."* That Inactive flag is a **reporting artifact** — the feature toggle controls it, not `activate`. Don't chase activation.
+- **Necessary-but-not-sufficient trap:** having N active `InternalCopilot` employee agents + the **`Agentforce (Default)` PSL** + the **`Agentforce Default Admin`** permission set is NOT enough on its own. The icon stays absent until the feature toggle above is flipped. (Those custom agents run headlessly; they were never wired to the in-app surface.)
+- **Editing connections requires a draft:** the **active** version is read-only — the Setup agents-list row menu shows "No actions available" and the Builder Connections folder won't add. Click **New Version** to get an editable draft; delete an unwanted draft via the agent **⌄ menu → Delete Version** (deletes only that draft; the active version is untouched).
+- **Adding a *custom* agent to the in-app assistant's agent picker** is a separate config under the Agentforce (Default) access/agent settings — NOT the connection modal. (Left unresolved; pursue there if a specific custom agent must answer in the header.)
+
 ## .agent file anatomy (Agent Script)
 
 Top level: `system` (instructions + welcome/error messages), `config` (developer_name, agent_label, description, agent_type), `variables`, `language`, a `start_agent <router>`, and one or more `subagent <name>` blocks.
