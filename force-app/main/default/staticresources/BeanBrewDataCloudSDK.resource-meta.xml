@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StaticResource xmlns="http://soap.sforce.com/2006/04/metadata">
+    <cacheControl>Public</cacheControl>
+    <contentType>application/javascript</contentType>
+    <description>Self-hosted Data Cloud/Interactions Web SDK (c360a connector f60b9bc1) so the Bean &amp; Brew LWR storefront loads it from 'self' (LWR CSP blocks external 3rd-party JS). Connector + collect endpoint baked in; events go via connect-src.</description>
+</StaticResource>
