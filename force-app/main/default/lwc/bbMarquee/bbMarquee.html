@@ -1,0 +1,11 @@
+<template>
+    <div class="marquee" aria-hidden="true">
+        <div class="marquee__track">
+            <template for:each={items} for:item="item">
+                <span key={item.key} class="marquee__item">
+                    {item.text}<span class="marquee__star">&#10038;</span>
+                </span>
+            </template>
+        </div>
+    </div>
+</template>

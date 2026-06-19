@@ -1,30 +1,52 @@
 <template>
     <section class="hero">
-        <div class="hero__bg" aria-hidden="true">
-            <div class="hero__steam hero__steam--1"></div>
-            <div class="hero__steam hero__steam--2"></div>
-            <div class="hero__steam hero__steam--3"></div>
+        <!-- atmosphere: gradient mesh + slow copper glow + grain -->
+        <div class="hero__atmos" aria-hidden="true">
+            <div class="hero__glow"></div>
+            <div class="hero__grain"></div>
         </div>
-        <div class="hero__inner">
-            <p class="hero__eyebrow">{eyebrow}</p>
-            <h1 class="hero__headline">
-                <template for:each={headlineLines} for:item="line">
-                    <span key={line.key} class="hero__line">{line.text}</span>
-                </template>
-            </h1>
-            <p class="hero__subhead">{subhead}</p>
-            <div class="hero__actions">
-                <a class="btn btn--primary" href={primaryUrl}>
-                    {primaryLabel}
-                    <span class="btn__arrow" aria-hidden="true">&#8594;</span>
-                </a>
-                <a class="btn btn--ghost" href={secondaryUrl}>{secondaryLabel}</a>
+
+        <div class="hero__grid">
+            <div class="hero__copy">
+                <p class="hero__eyebrow"><span class="hero__eyebrow-dot"></span>{eyebrow}</p>
+                <h1 class="hero__headline">
+                    <template for:each={headlineLines} for:item="line">
+                        <span key={line.key} class="hero__line"><span class="hero__line-inner">{line.text}</span></span>
+                    </template>
+                </h1>
+                <p class="hero__subhead">{subhead}</p>
+                <div class="hero__actions">
+                    <a class="btn btn--primary" href={primaryUrl}>
+                        {primaryLabel}<span class="btn__arrow" aria-hidden="true">&#8594;</span>
+                    </a>
+                    <a class="btn btn--ghost" href={secondaryUrl}>{secondaryLabel}</a>
+                </div>
+                <dl class="hero__stats">
+                    <div class="hero__stat"><dt>15-yr</dt><dd>parts &amp; labor warranty</dd></div>
+                    <div class="hero__stat"><dt>72 hr</dt><dd>white-glove install</dd></div>
+                    <div class="hero__stat"><dt>4.9&#9733;</dt><dd>2,400+ café reviews</dd></div>
+                </dl>
             </div>
-            <dl class="hero__stats">
-                <div class="hero__stat"><dt>15-yr</dt><dd>parts &amp; labor warranty</dd></div>
-                <div class="hero__stat"><dt>72 hr</dt><dd>white-glove install</dd></div>
-                <div class="hero__stat"><dt>4.9&#9733;</dt><dd>2,400+ café reviews</dd></div>
-            </dl>
+
+            <!-- signature visual moment: an espresso cup with rising steam -->
+            <div class="hero__stage" aria-hidden="true">
+                <div class="hero__halo"></div>
+                <div class="cup">
+                    <div class="cup__steam">
+                        <span class="cup__wisp cup__wisp--1"></span>
+                        <span class="cup__wisp cup__wisp--2"></span>
+                        <span class="cup__wisp cup__wisp--3"></span>
+                        <span class="cup__wisp cup__wisp--4"></span>
+                    </div>
+                    <div class="cup__body">
+                        <div class="cup__crema"></div>
+                        <div class="cup__handle"></div>
+                    </div>
+                    <div class="cup__saucer"></div>
+                </div>
+            </div>
         </div>
+
+        <div class="hero__scrollcue" aria-hidden="true"><span></span></div>
     </section>
 </template>

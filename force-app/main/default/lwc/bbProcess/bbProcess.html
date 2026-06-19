@@ -1,0 +1,17 @@
+<template>
+    <section class="proc">
+        <div class="proc__head">
+            <p class="proc__eyebrow">The Bean &amp; Brew way</p>
+            <h2 class="proc__title">From first call<br/><em>to first pour.</em></h2>
+        </div>
+        <ol class="proc__grid">
+            <template for:each={steps} for:item="s">
+                <li key={s.key} class="step">
+                    <span class="step__num">{s.num}</span>
+                    <h3 class="step__title">{s.title}</h3>
+                    <p class="step__body">{s.body}</p>
+                </li>
+            </template>
+        </ol>
+    </section>
+</template>
