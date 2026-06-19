@@ -42,12 +42,25 @@ public with sharing class DraftQuoteAction {
                         out.add(res); continue;
                     }
                 }
-                Decimal qty = (r.quantity == null || r.quantity <= 0) ? 1 : r.quantity;
-                Decimal disc = (r.discountPercent == null || r.discountPercent < 0) ? 0 : r.discountPercent;
-                if (disc > 100) disc = 100;
-
                 Id stdPb = QuoteDraftService.standardPricebookId();
-                PricebookEntry pbe = QuoteDraftService.findEntry(r.product, stdPb);
+                PricebookEntry pbe;
+                Decimal qty;
+                Decimal disc;
+                String recoNote = '';
+                if (String.isNotBlank(r.product)) {
+                    // Rep named a product → quote exactly that.
+                    pbe = QuoteDraftService.findEntry(r.product, stdPb);
+                    qty = (r.quantity == null || r.quantity <= 0) ? 1 : r.quantity;
+                    disc = (r.discountPercent == null || r.discountPercent < 0) ? 0 : Math.min(r.discountPercent, 100);
+                } else {
+                    // No product named → let the recommendation engine DEFINE the product, quantity,
+                    // and discount (same brain the Product Advisor uses). CALLOUT before any DML.
+                    QuoteDraftService.RecoPick pick = QuoteDraftService.recommendForQuote(acct, stdPb);
+                    pbe = pick.pbe;
+                    qty = (r.quantity != null && r.quantity > 0) ? r.quantity : pick.qty;
+                    disc = (r.discountPercent != null && r.discountPercent >= 0) ? Math.min(r.discountPercent, 100) : pick.disc;
+                    recoNote = String.isBlank(pick.rationale) ? '' : (' — ' + pick.rationale);
+                }
                 if (pbe == null) {
                     res.success = false;
                     res.summary = 'There are no active priced products on the standard price book, so I can\'t add a line item. Add a product with a standard price first.';
@@ -63,7 +76,7 @@ public with sharing class DraftQuoteAction {
                 res.quoteId = quoteId;
                 res.summary = 'Done — drafted Quote ' + saved.QuoteNumber + ' for ' + acct.Name + '.'
                     + ' Linked to Opportunity "' + opp.Name + '", line item: '
-                    + qty.intValue() + ' × ' + pbe.Product2.Name + ' @ $' + pbe.UnitPrice.setScale(2).format()
+                    + qty.intValue() + ' × ' + pbe.Product2.Name + recoNote + ' @ $' + pbe.UnitPrice.setScale(2).format()
                     + (disc > 0 ? (' (' + disc.intValue() + '% off)') : '')
                     + ', total $' + (total == null ? '0' : total.setScale(2).format())
                     + '. Standard price book, billing/shipping copied from the account, expires '

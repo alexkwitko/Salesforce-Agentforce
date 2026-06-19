@@ -229,4 +229,72 @@ public with sharing class QuoteDraftService {
     public static void setExpiration(Id quoteId, Date d) {
         update new Quote(Id = quoteId, ExpirationDate = d);
     }
+
+    // ---- Recommendation-driven product selection (reuse the Product Advisor's brain) ----
+
+    public class RecoPick {
+        public PricebookEntry pbe;
+        public Decimal qty = 1;
+        public Decimal disc = 0;
+        public String rationale;
+    }
+
+    /**
+     * Define the quote's product/quantity/discount via RecommendationStrategyService — the
+     * SAME engine the Product Advisor agent uses — when the rep didn't name a product.
+     * buildStrategy does CALLOUTS (Data Cloud signals) but no DML with skipJourneyWrite=true,
+     * so callers MUST invoke this BEFORE any quote DML. Falls back to a quotable default if the
+     * recommended product isn't quotable in this org, or if the engine is unavailable.
+     */
+    public static RecoPick recommendForQuote(Account acct, Id stdPb) {
+        RecoPick pick = new RecoPick();
+        try {
+            if (!Test.isRunningTest()) {
+                RecommendationStrategyService.Request rr = new RecommendationStrategyService.Request();
+                rr.channel = 'chat';
+                rr.email = primaryContactEmail(acct.Id);   // personalize from the account's contact
+                rr.skipJourneyWrite = true;                 // no DML → safe before our inserts
+                RecommendationStrategyService.Result rec = RecommendationStrategyService.buildStrategy(
+                    new List<RecommendationStrategyService.Request>{ rr })[0];
+                // Prefer the recommended primary, then the complementary — but only if quotable here.
+                PricebookEntry pbe = quotableEntryForProduct(rec.primaryProductId, stdPb);
+                String picked = rec.primaryProductName;
+                if (pbe == null) { pbe = quotableEntryForProduct(rec.complementaryProductId, stdPb); picked = rec.complementaryProductName; }
+                if (pbe != null) {
+                    pick.pbe = pbe;
+                    pick.qty = (rec.primaryQuantity != null && rec.primaryQuantity > 0) ? rec.primaryQuantity : 1;
+                    pick.disc = (rec.discountPercent != null && rec.discountPercent > 0) ? rec.discountPercent : 0;
+                    pick.rationale = 'recommended for the ' + (String.isNotBlank(rec.buyerType) ? rec.buyerType : 'profiled')
+                        + ' buyer' + (String.isNotBlank(rec.discountRationale) ? (' — ' + rec.discountRationale) : '');
+                    return pick;
+                }
+                // Recommended product exists but isn't quotable in this org → note it, use a quotable default.
+                pick.disc = (rec.discountPercent != null && rec.discountPercent > 0) ? rec.discountPercent : 0;
+                pick.pbe = findDefaultEntry(stdPb);
+                pick.rationale = (String.isNotBlank(picked) ? ('recommended "' + picked + '" isn\'t quotable here, so ') : '')
+                    + 'used a quotable product; kept the ' + (String.isNotBlank(rec.buyerType) ? rec.buyerType : 'profiled') + '-buyer discount';
+                return pick;
+            }
+        } catch (Exception e) {
+            // reco engine unavailable → fall through to a quotable default
+        }
+        pick.pbe = findDefaultEntry(stdPb);
+        pick.rationale = 'default quotable product';
+        return pick;
+    }
+
+    public static PricebookEntry quotableEntryForProduct(String product2Id, Id stdPb) {
+        if (String.isBlank(product2Id)) return null;
+        List<PricebookEntry> pbes = [
+            SELECT Id, Product2Id, Product2.Name, UnitPrice FROM PricebookEntry
+            WHERE Product2Id = :product2Id AND IsActive = true AND Pricebook2Id = :stdPb
+                  AND Product2Id IN (SELECT Product2Id FROM ProductSellingModelOption) LIMIT 1
+        ];
+        return pbes.isEmpty() ? null : pbes[0];
+    }
+
+    public static String primaryContactEmail(Id acctId) {
+        List<Contact> cs = [SELECT Email FROM Contact WHERE AccountId = :acctId AND Email != null ORDER BY CreatedDate LIMIT 1];
+        return cs.isEmpty() ? null : cs[0].Email;
+    }
 }
