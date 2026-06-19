@@ -1,0 +1,33 @@
+:host {
+    --bb-espresso: #241612;
+    --bb-cream: #f6efe4;
+    --bb-crema: #e7d2b0;
+    --bb-copper: #c87a42;
+    --bb-copper-soft: #d9986a;
+    --bb-serif: 'Fraunces', 'Playfair Display', Georgia, serif;
+    --bb-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: block;
+}
+.bbc { min-height: 100vh; display: flex; flex-direction: column; background: #f3ece0; color: var(--bb-espresso); }
+
+.bbc__bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem clamp(1.2rem, 5vw, 3.5rem);
+    background: linear-gradient(120deg, #2c1a12, var(--bb-espresso));
+    border-bottom: 3px solid var(--bb-copper);
+}
+.bbc__logo { display: inline-flex; align-items: center; gap: 0.55rem; text-decoration: none !important; }
+.bbc__mark { width: 34px; height: 34px; }
+.bbc__word { font-family: var(--bb-serif); font-weight: 600; font-size: 1.45rem; color: var(--bb-cream) !important; letter-spacing: -0.01em; }
+.bbc__secure { display: inline-flex; align-items: center; gap: 0.45rem; font-family: var(--bb-sans); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--bb-copper-soft); }
+.bbc__secure svg { width: 16px; height: 16px; }
+
+.bbc__main { flex: 1; width: 100%; max-width: 76rem; margin: 0 auto; padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2.5rem); box-sizing: border-box; }
+
+.bbc__foot {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; justify-content: space-between;
+    padding: 1.4rem clamp(1.2rem, 5vw, 3.5rem);
+    background: var(--bb-espresso); color: rgba(246,239,228,0.6);
+    font-family: var(--bb-sans); font-size: 0.78rem;
+}
+@media (max-width: 560px) { .bbc__foot { justify-content: center; text-align: center; } .bbc__word { font-size: 1.2rem; } }

@@ -1,0 +1,29 @@
+<template>
+    <div class="bbc">
+        <header class="bbc__bar">
+            <a class="bbc__logo" href={homeUrl} aria-label="Bean & Brew home">
+                <svg class="bbc__mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                    <path d="M8 16h20v9a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8z" fill="#e7d2b0"/>
+                    <path d="M28 18h3.5a4.5 4.5 0 0 1 0 9H28" stroke="#e7d2b0" stroke-width="2.4" fill="none"/>
+                    <path d="M15 6c2.5 2 2.5 4.5 0 6.5M21 5c2.5 2 2.5 4.5 0 6.5" stroke="#c87a42" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+                <span class="bbc__word">Bean&nbsp;&amp;&nbsp;Brew</span>
+            </a>
+            <span class="bbc__secure">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+                </svg>
+                Secure checkout
+            </span>
+        </header>
+
+        <main class="bbc__main">
+            <slot></slot>
+        </main>
+
+        <footer class="bbc__foot">
+            <span>&copy; 2026 Bean &amp; Brew Coffee Co.</span>
+            <span>15-year parts &amp; labor warranty &middot; White-glove install</span>
+        </footer>
+    </div>
+</template>
