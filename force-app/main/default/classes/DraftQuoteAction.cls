@@ -12,6 +12,7 @@ public with sharing class DraftQuoteAction {
         @InvocableVariable(label='Product code or name (optional)') public String product;
         @InvocableVariable(label='Quantity (optional, default 1)') public Decimal quantity;
         @InvocableVariable(label='Discount percent (optional, default 0)') public Decimal discountPercent;
+        @InvocableVariable(label='Create a new quote even if the account already has an open one (default false)') public Boolean forceNew;
     }
 
     @InvocableMethod(label='Draft a Quote' description='Creates a complete, ready-to-review Salesforce Quote in one step: resolves the account, auto-creates/links the Opportunity, uses the standard price book, adds a line item, copies billing/shipping from the account, sets a 30-day expiration and Draft status. All inputs are optional and default sensibly; do NOT ask the user for quote name, opportunity, pricebook, addresses, expiration, or status — this action fills them in.')
@@ -25,6 +26,21 @@ public with sharing class DraftQuoteAction {
                     res.success = false;
                     res.summary = 'There are no accounts in this org yet, so I can\'t draft a quote. Create an account first.';
                     out.add(res); continue;
+                }
+                // Don't silently duplicate: if the account already has an open quote, guide to edit it.
+                if (r.forceNew != true) {
+                    List<Quote> open = QuoteDraftService.findOpenQuotes(acct.Id);
+                    if (!open.isEmpty()) {
+                        Quote q0 = open[0];
+                        Decimal t = q0.GrandTotal != null ? q0.GrandTotal : q0.TotalPrice;
+                        Integer items = q0.QuoteLineItems != null ? q0.QuoteLineItems.size() : 0;
+                        res.success = true; res.quoteId = q0.Id;
+                        res.summary = 'I did NOT create a new quote — ' + acct.Name + ' already has an open one: Quote '
+                            + q0.QuoteNumber + ' (' + q0.Status + ', ' + items + ' item' + (items == 1 ? '' : 's')
+                            + ', $' + (t == null ? '0' : t.setScale(2).format()) + '). Want me to edit it (add a product, '
+                            + 'change quantity, apply a discount, update status) or create a brand-new quote anyway?';
+                        out.add(res); continue;
+                    }
                 }
                 Decimal qty = (r.quantity == null || r.quantity <= 0) ? 1 : r.quantity;
                 Decimal disc = (r.discountPercent == null || r.discountPercent < 0) ? 0 : r.discountPercent;

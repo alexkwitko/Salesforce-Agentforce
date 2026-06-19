@@ -128,24 +128,105 @@ public with sharing class QuoteDraftService {
                 ShippingCountry = acct.ShippingCountry != null ? acct.ShippingCountry : acct.BillingCountry
             );
             insert q;
-            // The product is already filtered to one with a ProductSellingModel, so the line
-            // inserts cleanly; ProductSellingModelId is read-only / auto-derived — don't set it.
-            QuoteLineItem qli = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id,
-                Product2Id = pbe.Product2Id, Quantity = qty, UnitPrice = pbe.UnitPrice, Discount = disc);
-            // Subscription selling models (Evergreen / Term-Defined) require a billing cadence.
-            // Set it dynamically so the class still compiles on orgs without Revenue Cloud fields.
-            Map<String, Schema.SObjectField> qliFields = QuoteLineItem.SObjectType.getDescribe().fields.getMap();
-            if (qliFields.containsKey('BillingFrequency')) { qli.put('BillingFrequency', 'Monthly'); }
-            // Term-Defined selling models also need a start date (+ term count).
-            if (qliFields.containsKey('StartDate')) { qli.put('StartDate', Date.today()); }
-            // Term-Defined models need an end date (or SubscriptionTerm). Give a 12-month term.
-            if (qliFields.containsKey('SubscriptionTerm')) { qli.put('SubscriptionTerm', 12); }
-            else if (qliFields.containsKey('EndDate')) { qli.put('EndDate', Date.today().addMonths(12)); }
-            insert qli;
+            insert buildLine(q.Id, pbe, qty, disc);
             return q.Id;
         } catch (Exception e) {
             Database.rollback(sp);  // no orphan Quote header if the line item fails
             throw e;
         }
+    }
+
+    // Build a QuoteLineItem with the RLM subscription fields set dynamically (so the class
+    // still compiles on orgs without Revenue Cloud fields). Shared by create + edit.
+    public static QuoteLineItem buildLine(Id quoteId, PricebookEntry pbe, Decimal qty, Decimal disc) {
+        QuoteLineItem qli = new QuoteLineItem(QuoteId = quoteId, PricebookEntryId = pbe.Id,
+            Product2Id = pbe.Product2Id, Quantity = qty, UnitPrice = pbe.UnitPrice, Discount = disc);
+        Map<String, Schema.SObjectField> f = QuoteLineItem.SObjectType.getDescribe().fields.getMap();
+        if (f.containsKey('BillingFrequency')) { qli.put('BillingFrequency', 'Monthly'); }
+        if (f.containsKey('StartDate')) { qli.put('StartDate', Date.today()); }
+        if (f.containsKey('SubscriptionTerm')) { qli.put('SubscriptionTerm', 12); }
+        else if (f.containsKey('EndDate')) { qli.put('EndDate', Date.today().addMonths(12)); }
+        return qli;
+    }
+
+    // ---- Editing existing quotes (so the agent guides "edit" instead of duplicating) ----
+
+    // Open/editable quotes for an account, most-recent first, with their line items.
+    public static List<Quote> findOpenQuotes(Id acctId) {
+        return [SELECT Id, QuoteNumber, Name, Status, GrandTotal, TotalPrice, ExpirationDate, Pricebook2Id,
+                       (SELECT Id, Quantity, UnitPrice, Discount, Product2Id, Product2.Name FROM QuoteLineItems)
+                FROM Quote
+                WHERE AccountId = :acctId AND Status NOT IN ('Accepted','Denied','Rejected')
+                ORDER BY LastModifiedDate DESC LIMIT 10];
+    }
+
+    // Resolve a specific quote to edit: by quote number if given, else the latest open one
+    // for the account. Accepts a bare number ("10") or the full "00000010".
+    public static Quote resolveQuote(String quoteNumber, Id acctId) {
+        if (String.isNotBlank(quoteNumber)) {
+            String qn = quoteNumber.trim().replaceAll('[^0-9]', '');
+            String padded = qn.length() < 8 ? qn.leftPad(8, '0') : qn;
+            List<Quote> q = [SELECT Id, QuoteNumber, AccountId, Status, Pricebook2Id
+                FROM Quote WHERE QuoteNumber = :padded OR QuoteNumber = :quoteNumber LIMIT 1];
+            if (!q.isEmpty()) return q[0];
+        }
+        if (acctId != null) {
+            List<Quote> q = [SELECT Id, QuoteNumber, AccountId, Status, Pricebook2Id
+                FROM Quote WHERE AccountId = :acctId AND Status NOT IN ('Accepted','Denied','Rejected')
+                ORDER BY LastModifiedDate DESC LIMIT 1];
+            if (!q.isEmpty()) return q[0];
+        }
+        return null;
+    }
+
+    // Add or bump a product line on an existing quote (if the product is already on the
+    // quote, increase its quantity instead of duplicating the line).
+    public static void addOrBumpLine(Quote quote, PricebookEntry pbe, Decimal qty, Decimal disc) {
+        List<QuoteLineItem> existing = [SELECT Id, Quantity, Discount FROM QuoteLineItem
+            WHERE QuoteId = :quote.Id AND Product2Id = :pbe.Product2Id LIMIT 1];
+        if (!existing.isEmpty()) {
+            existing[0].Quantity = (existing[0].Quantity == null ? 0 : existing[0].Quantity) + qty;
+            if (disc != null && disc > 0) existing[0].Discount = disc;
+            update existing[0];
+        } else {
+            insert buildLine(quote.Id, pbe, qty, disc);
+        }
+    }
+
+    // Set the quantity of a line (matched by product, else the only/most-recent line).
+    public static Boolean setQuantity(Id quoteId, String product, Decimal qty) {
+        List<QuoteLineItem> lines = lineFor(quoteId, product);
+        if (lines.isEmpty()) return false;
+        lines[0].Quantity = qty;
+        update lines[0];
+        return true;
+    }
+
+    // Apply a discount percent to a line (matched by product) or to ALL lines if no product.
+    public static Integer applyDiscount(Id quoteId, String product, Decimal disc) {
+        List<QuoteLineItem> lines = String.isBlank(product)
+            ? [SELECT Id FROM QuoteLineItem WHERE QuoteId = :quoteId]
+            : lineFor(quoteId, product);
+        for (QuoteLineItem l : lines) l.Discount = disc;
+        if (!lines.isEmpty()) update lines;
+        return lines.size();
+    }
+
+    private static List<QuoteLineItem> lineFor(Id quoteId, String product) {
+        if (String.isNotBlank(product)) {
+            String p = '%' + product + '%';
+            List<QuoteLineItem> m = [SELECT Id, Quantity, Discount FROM QuoteLineItem
+                WHERE QuoteId = :quoteId AND Product2.Name LIKE :p ORDER BY CreatedDate DESC LIMIT 1];
+            if (!m.isEmpty()) return m;
+        }
+        return [SELECT Id, Quantity, Discount FROM QuoteLineItem WHERE QuoteId = :quoteId ORDER BY CreatedDate DESC LIMIT 1];
+    }
+
+    public static void setStatus(Id quoteId, String status) {
+        update new Quote(Id = quoteId, Status = status);
+    }
+
+    public static void setExpiration(Id quoteId, Date d) {
+        update new Quote(Id = quoteId, ExpirationDate = d);
     }
 }
