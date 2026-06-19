@@ -1,5 +1,10 @@
 import { LightningElement } from 'lwc';
+import MACHINE from '@salesforce/resourceUrl/bbProdMachine';
+import GRINDER from '@salesforce/resourceUrl/bbProdGrinder';
+import FILTER from '@salesforce/resourceUrl/bbProdFilter';
+import FROTHER from '@salesforce/resourceUrl/bbProdFrother';
 
+const IMG = { m: MACHINE, g: GRINDER, f: FILTER, k: FROTHER };
 const BASE = '/beanbrew/product/';
 const PRODUCTS = [
     { key: 'm', name: 'Pro Espresso Machine', tag: 'Dual boiler · PID', price: '$2,199', id: '01tfj00000CrFwTAAV', slug: 'bean-brew-pro-espresso-machine', tone: 'a' },
@@ -11,6 +16,7 @@ const PRODUCTS = [
 export default class BbShowcase extends LightningElement {
     products = PRODUCTS.map((p) => ({
         ...p,
+        img: IMG[p.key],
         url: BASE + p.slug + '/' + p.id,
         cls: 'pc pc--' + p.tone
     }));
