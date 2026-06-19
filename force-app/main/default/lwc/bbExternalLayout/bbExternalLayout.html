@@ -1,0 +1,26 @@
+<template>
+    <div class="bbx">
+        <div class="bbx__atmos" aria-hidden="true">
+            <div class="bbx__glow"></div>
+            <div class="bbx__grain"></div>
+        </div>
+
+        <div class="bbx__inner">
+            <a class="bbx__logo" href={homeUrl} aria-label="Bean & Brew home">
+                <svg class="bbx__mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                    <path d="M8 16h20v9a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8z" fill="#e7d2b0"/>
+                    <path d="M28 18h3.5a4.5 4.5 0 0 1 0 9H28" stroke="#e7d2b0" stroke-width="2.4" fill="none"/>
+                    <path d="M15 6c2.5 2 2.5 4.5 0 6.5M21 5c2.5 2 2.5 4.5 0 6.5" stroke="#c87a42" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+                <span class="bbx__word">Bean&nbsp;&amp;&nbsp;Brew</span>
+            </a>
+            <p class="bbx__tag">Commercial-grade espresso, delivered &amp; installed</p>
+
+            <div class="bbx__card">
+                <slot></slot>
+            </div>
+
+            <p class="bbx__foot">&copy; 2026 Bean &amp; Brew Coffee Co. &middot; 15-year warranty &middot; White-glove install</p>
+        </div>
+    </div>
+</template>
