@@ -43,42 +43,53 @@ public with sharing class DraftQuoteAction {
                     }
                 }
                 Id stdPb = QuoteDraftService.standardPricebookId();
-                PricebookEntry pbe;
-                Decimal qty;
-                Decimal disc;
+                List<QuoteDraftService.RecoPick> lines = new List<QuoteDraftService.RecoPick>();
                 String recoNote = '';
                 if (String.isNotBlank(r.product)) {
-                    // Rep named a product → quote exactly that.
-                    pbe = QuoteDraftService.findEntry(r.product, stdPb);
-                    qty = (r.quantity == null || r.quantity <= 0) ? 1 : r.quantity;
-                    disc = (r.discountPercent == null || r.discountPercent < 0) ? 0 : Math.min(r.discountPercent, 100);
+                    // Rep named a product → quote exactly that (single line).
+                    QuoteDraftService.RecoPick p = new QuoteDraftService.RecoPick();
+                    p.pbe = QuoteDraftService.findEntry(r.product, stdPb);
+                    p.qty = (r.quantity == null || r.quantity <= 0) ? 1 : r.quantity;
+                    p.disc = (r.discountPercent == null || r.discountPercent < 0) ? 0 : Math.min(r.discountPercent, 100);
+                    lines.add(p);
                 } else {
-                    // No product named → let the recommendation engine DEFINE the product, quantity,
-                    // and discount (same brain the Product Advisor uses). CALLOUT before any DML.
-                    QuoteDraftService.RecoPick pick = QuoteDraftService.recommendForQuote(acct, stdPb);
-                    pbe = pick.pbe;
-                    qty = (r.quantity != null && r.quantity > 0) ? r.quantity : pick.qty;
-                    disc = (r.discountPercent != null && r.discountPercent >= 0) ? Math.min(r.discountPercent, 100) : pick.disc;
-                    recoNote = String.isBlank(pick.rationale) ? '' : (' — ' + pick.rationale);
+                    // No product named → recommendation engine DEFINES the product(s) + qty + discount,
+                    // including a complementary 2nd line when it's quotable. CALLOUT before any DML.
+                    lines = QuoteDraftService.recommendForQuote(acct, stdPb);
+                    if (!lines.isEmpty()) {
+                        recoNote = String.isBlank(lines[0].rationale) ? '' : lines[0].rationale;
+                        if (r.quantity != null && r.quantity > 0) lines[0].qty = r.quantity;
+                        if (r.discountPercent != null && r.discountPercent >= 0) {
+                            Decimal d = Math.min(r.discountPercent, 100);
+                            for (QuoteDraftService.RecoPick p : lines) p.disc = d;
+                        }
+                    }
                 }
-                if (pbe == null) {
+                if (lines.isEmpty() || lines[0].pbe == null) {
                     res.success = false;
                     res.summary = 'There are no active priced products on the standard price book, so I can\'t add a line item. Add a product with a standard price first.';
                     out.add(res); continue;
                 }
 
                 Opportunity opp = QuoteDraftService.findOrCreateOpp(acct.Id);
-                Id quoteId = QuoteDraftService.createComplete(acct, opp, pbe, stdPb, qty, disc);
+                Id quoteId = QuoteDraftService.createCompleteMulti(acct, opp, stdPb, lines);
 
                 Quote saved = [SELECT QuoteNumber, GrandTotal, TotalPrice, ExpirationDate FROM Quote WHERE Id = :quoteId];
                 Decimal total = saved.GrandTotal != null ? saved.GrandTotal : saved.TotalPrice;
+                List<String> lineDescs = new List<String>();
+                for (QuoteDraftService.RecoPick p : lines) {
+                    if (p.pbe == null) continue;
+                    lineDescs.add(p.qty.intValue() + ' × ' + p.pbe.Product2.Name
+                        + ' @ $' + p.pbe.UnitPrice.setScale(2).format()
+                        + (p.disc > 0 ? (' (' + p.disc.intValue() + '% off)') : ''));
+                }
                 res.success = true;
                 res.quoteId = quoteId;
                 res.summary = 'Done — drafted Quote ' + saved.QuoteNumber + ' for ' + acct.Name + '.'
-                    + ' Linked to Opportunity "' + opp.Name + '", line item: '
-                    + qty.intValue() + ' × ' + pbe.Product2.Name + recoNote + ' @ $' + pbe.UnitPrice.setScale(2).format()
-                    + (disc > 0 ? (' (' + disc.intValue() + '% off)') : '')
-                    + ', total $' + (total == null ? '0' : total.setScale(2).format())
+                    + (String.isBlank(recoNote) ? '' : (' ' + recoNote + '.'))
+                    + ' Linked to Opportunity "' + opp.Name + '"; '
+                    + (lineDescs.size() > 1 ? 'line items: ' : 'line item: ') + String.join(lineDescs, '; ')
+                    + '. Total $' + (total == null ? '0' : total.setScale(2).format())
                     + '. Standard price book, billing/shipping copied from the account, expires '
                     + (saved.ExpirationDate == null ? 'in 30 days' : saved.ExpirationDate.format())
                     + ', status Draft. Tell me a different account, product, quantity, or discount to adjust it.';

@@ -103,12 +103,21 @@ public with sharing class QuoteDraftService {
     // Build a FULLY-populated Quote (everything linked + defaulted) and its line item.
     // Returns the inserted Quote id. Copies billing/shipping from the account, sets a
     // 30-day expiration, Draft status, a name, and a description — no user input needed.
+    // Single-line convenience (explicit-product path) — delegates to the multi-line builder.
     public static Id createComplete(Account acct, Opportunity opp, PricebookEntry pbe, Id stdPb,
                                     Decimal qty, Decimal disc) {
+        RecoPick p = new RecoPick();
+        p.pbe = pbe; p.qty = qty; p.disc = disc;
+        return createCompleteMulti(acct, opp, stdPb, new List<RecoPick>{ p });
+    }
+
+    // Build a FULLY-populated Quote with ONE LINE PER PICK (primary + complementary). Copies
+    // billing/shipping from the account, 30-day expiration, Draft status; rolls back on failure.
+    public static Id createCompleteMulti(Account acct, Opportunity opp, Id stdPb, List<RecoPick> picks) {
         System.Savepoint sp = Database.setSavepoint();
         try {
             Quote q = new Quote(
-                Name = acct.Name + ' – ' + pbe.Product2.Name + ' Quote',
+                Name = acct.Name + ' – ' + picks[0].pbe.Product2.Name + ' Quote',
                 OpportunityId = opp.Id,
                 Pricebook2Id = stdPb,
                 Status = 'Draft',
@@ -128,10 +137,14 @@ public with sharing class QuoteDraftService {
                 ShippingCountry = acct.ShippingCountry != null ? acct.ShippingCountry : acct.BillingCountry
             );
             insert q;
-            insert buildLine(q.Id, pbe, qty, disc);
+            List<QuoteLineItem> lines = new List<QuoteLineItem>();
+            for (RecoPick p : picks) {
+                if (p.pbe != null) lines.add(buildLine(q.Id, p.pbe, p.qty, p.disc));
+            }
+            insert lines;
             return q.Id;
         } catch (Exception e) {
-            Database.rollback(sp);  // no orphan Quote header if the line item fails
+            Database.rollback(sp);  // no orphan Quote header if a line fails
             throw e;
         }
     }
@@ -246,8 +259,8 @@ public with sharing class QuoteDraftService {
      * so callers MUST invoke this BEFORE any quote DML. Falls back to a quotable default if the
      * recommended product isn't quotable in this org, or if the engine is unavailable.
      */
-    public static RecoPick recommendForQuote(Account acct, Id stdPb) {
-        RecoPick pick = new RecoPick();
+    public static List<RecoPick> recommendForQuote(Account acct, Id stdPb) {
+        List<RecoPick> picks = new List<RecoPick>();
         try {
             if (!Test.isRunningTest()) {
                 RecommendationStrategyService.Request rr = new RecommendationStrategyService.Request();
@@ -256,31 +269,50 @@ public with sharing class QuoteDraftService {
                 rr.skipJourneyWrite = true;                 // no DML → safe before our inserts
                 RecommendationStrategyService.Result rec = RecommendationStrategyService.buildStrategy(
                     new List<RecommendationStrategyService.Request>{ rr })[0];
-                // Prefer the recommended primary, then the complementary — but only if quotable here.
-                PricebookEntry pbe = quotableEntryForProduct(rec.primaryProductId, stdPb);
-                String picked = rec.primaryProductName;
-                if (pbe == null) { pbe = quotableEntryForProduct(rec.complementaryProductId, stdPb); picked = rec.complementaryProductName; }
-                if (pbe != null) {
-                    pick.pbe = pbe;
-                    pick.qty = (rec.primaryQuantity != null && rec.primaryQuantity > 0) ? rec.primaryQuantity : 1;
-                    pick.disc = (rec.discountPercent != null && rec.discountPercent > 0) ? rec.discountPercent : 0;
-                    pick.rationale = 'recommended for the ' + (String.isNotBlank(rec.buyerType) ? rec.buyerType : 'profiled')
-                        + ' buyer' + (String.isNotBlank(rec.discountRationale) ? (' — ' + rec.discountRationale) : '');
-                    return pick;
+                Decimal disc = (rec.discountPercent != null && rec.discountPercent > 0) ? rec.discountPercent : 0;
+                String buyer = String.isNotBlank(rec.buyerType) ? rec.buyerType : 'profiled';
+
+                // PRIMARY line: recommended primary if quotable, else complementary, else a quotable default.
+                PricebookEntry primary = quotableEntryForProduct(rec.primaryProductId, stdPb);
+                Boolean compUsedAsPrimary = false;
+                if (primary == null) { primary = quotableEntryForProduct(rec.complementaryProductId, stdPb); compUsedAsPrimary = true; }
+                RecoPick p1 = new RecoPick();
+                p1.disc = disc;
+                p1.qty = (rec.primaryQuantity != null && rec.primaryQuantity > 0) ? rec.primaryQuantity : 1;
+                if (primary != null) {
+                    p1.pbe = primary;
+                    p1.rationale = 'recommended for the ' + buyer + ' buyer'
+                        + (String.isNotBlank(rec.discountRationale) ? (' — ' + rec.discountRationale) : '');
+                } else {
+                    p1.pbe = findDefaultEntry(stdPb);
+                    p1.rationale = (String.isNotBlank(rec.primaryProductName)
+                        ? ('recommended "' + rec.primaryProductName + '" isn\'t quotable here, so used a quotable product; ') : '')
+                        + 'kept the ' + buyer + '-buyer discount';
                 }
-                // Recommended product exists but isn't quotable in this org → note it, use a quotable default.
-                pick.disc = (rec.discountPercent != null && rec.discountPercent > 0) ? rec.discountPercent : 0;
-                pick.pbe = findDefaultEntry(stdPb);
-                pick.rationale = (String.isNotBlank(picked) ? ('recommended "' + picked + '" isn\'t quotable here, so ') : '')
-                    + 'used a quotable product; kept the ' + (String.isNotBlank(rec.buyerType) ? rec.buyerType : 'profiled') + '-buyer discount';
-                return pick;
+                picks.add(p1);
+
+                // COMPLEMENTARY line: add it only if quotable, distinct, and not already used as primary.
+                if (!compUsedAsPrimary && p1.pbe != null) {
+                    PricebookEntry comp = quotableEntryForProduct(rec.complementaryProductId, stdPb);
+                    if (comp != null && comp.Product2Id != p1.pbe.Product2Id) {
+                        RecoPick p2 = new RecoPick();
+                        p2.pbe = comp;
+                        p2.qty = (rec.complementaryQuantity != null && rec.complementaryQuantity > 0) ? rec.complementaryQuantity : 1;
+                        p2.disc = disc;
+                        p2.rationale = 'complementary add-on';
+                        picks.add(p2);
+                    }
+                }
+                return picks;
             }
         } catch (Exception e) {
             // reco engine unavailable → fall through to a quotable default
         }
-        pick.pbe = findDefaultEntry(stdPb);
-        pick.rationale = 'default quotable product';
-        return pick;
+        RecoPick fb = new RecoPick();
+        fb.pbe = findDefaultEntry(stdPb);
+        fb.rationale = 'default quotable product';
+        picks.add(fb);
+        return picks;
     }
 
     public static PricebookEntry quotableEntryForProduct(String product2Id, Id stdPb) {
