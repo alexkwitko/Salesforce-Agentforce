@@ -1087,4 +1087,14 @@
         <field>Order.Woo_Order_Total__c</field>
         <readable>true</readable>
     </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Account.Is_Multi_Brand__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Account.Brands_Purchased__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
 </PermissionSet>

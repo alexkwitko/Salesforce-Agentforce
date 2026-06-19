@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Brands_Purchased__c</fullName>
+    <label>Brands Purchased</label>
+    <type>Text</type>
+    <length>255</length>
+    <description>Distinct brands this customer has ordered from (e.g. 'Bean &amp; Brew; Kwitko Coffee'). Set by BrandAffinityService from Order.Brand__c.</description>
+</CustomField>

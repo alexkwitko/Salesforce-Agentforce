@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Multi_Brand__c</fullName>
+    <label>Is Multi-Brand</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>True if this customer has ordered from more than one brand (Kwitko Coffee + Bean &amp; Brew). Set by BrandAffinityService.</description>
+</CustomField>
