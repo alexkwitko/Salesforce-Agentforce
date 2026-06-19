@@ -13,7 +13,7 @@
 
 .hero {
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* atmosphere is clipped by .hero__atmos; keep visible so the cup/steam can never be clipped */
     min-height: clamp(560px, 92vh, 920px);
     display: flex;
     align-items: center;
