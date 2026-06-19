@@ -1,0 +1,25 @@
+<template>
+    <section class="show">
+        <div class="show__head">
+            <p class="show__eyebrow">The lineup</p>
+            <h2 class="show__title">Built to pull<br/><em>shot after shot.</em></h2>
+            <a class="show__all" href="/beanbrew/category/products/0ZGfj000000IRGHGA4">View all equipment <span aria-hidden="true">&#8594;</span></a>
+        </div>
+        <div class="show__grid">
+            <template for:each={products} for:item="p">
+                <a key={p.key} class={p.cls} href={p.url} onmousemove={onTilt} onmouseleave={offTilt}>
+                    <span class="pc__glow" aria-hidden="true"></span>
+                    <div class="pc__top">
+                        <span class="pc__price">{p.price}</span>
+                        <span class="pc__tag">{p.tag}</span>
+                    </div>
+                    <div class="pc__mark" aria-hidden="true"><span></span></div>
+                    <div class="pc__bottom">
+                        <h3 class="pc__name">{p.name}</h3>
+                        <span class="pc__cta">Explore <span aria-hidden="true">&#8594;</span></span>
+                    </div>
+                </a>
+            </template>
+        </div>
+    </section>
+</template>

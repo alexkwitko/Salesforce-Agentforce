@@ -1,0 +1,14 @@
+<template>
+    <section class="stats">
+        <div class="stats__inner">
+            <template for:each={stats} for:item="s">
+                <div key={s.key} class="stat">
+                    <p class="stat__big">
+                        <span class="stat__num" data-target={s.target} data-dec={s.dec}>0</span><span class="stat__suf">{s.suffix}</span>
+                    </p>
+                    <p class="stat__label">{s.label}</p>
+                </div>
+            </template>
+        </div>
+    </section>
+</template>
