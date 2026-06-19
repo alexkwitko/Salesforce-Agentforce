@@ -1,41 +1,62 @@
 /**
- * CartLinkService — builds REAL WooCommerce add-to-cart links for the chat agent.
- * The Agentforce Service Agent runs server-side and cannot touch the shopper's browser cart, so the
- * honest pattern is to hand the shopper a working add-to-cart URL. Use WooCommerce's
- * native add-to-cart URL for single-product quantities and the kc_add storefront
- * handler for multi-product bundles when that WPCode bridge is installed.
- *
- * The agent MUST present these links and MUST NOT claim items were already added.
+ * CartLinkService — builds REAL add-to-cart links for the chat agent, scoped to the SITE the chat is on.
+ * The Service Agent runs server-side and cannot touch the shopper's browser cart, so the honest pattern
+ * is to hand the shopper a working link.
+ *   - Kwitko Coffee (WooCommerce): native ?add-to-cart= URL (one-click) + kc_add multi-add bridge.
+ *   - Bean & Brew (Salesforce D2C / LWR): there is NO one-click add URL — return the storefront
+ *     product-page (PDP) link(s); the shopper clicks "Add to Cart" on the page. NEVER hand a D2C
+ *     shopper a WooCommerce link (wrong storefront, wrong cart).
+ * The brand comes from the session (@variables.brand → MessagingSession.Brand__c). The agent MUST
+ * present these links and MUST NOT claim items were already added.
  */
 public without sharing class CartLinkService {
 
-    // Storefront base URL (WooCommerce on Hostinger).
+    // Kwitko storefront (WooCommerce on Hostinger).
     private static final String STORE = 'https://deepskyblue-deer-920559.hostingersite.com';
-    // Real WooCommerce cart page on this storefront is /cart-2/ (/cart/ is a static marketing page, NOT the live cart).
-    private static final String CART_PATH = '/cart-2/';
+    private static final String CART_PATH = '/cart-2/';   // live Woo cart (/cart/ is a static marketing page)
+    // Bean & Brew storefront (Salesforce D2C / LWR). PDP route mirrors the storefront's own product links.
+    private static final String D2C_STORE = 'https://orgfarm-162e45523f-dev-ed.develop.my.site.com/beanbrew';
+    // PDP route MUST match the storefront's own product links (see lwc/bbFeaturedCollection: '/beanbrew/product/x/').
+    private static final String D2C_PDP   = '/product/x/';   // + Product2 Id  -> /beanbrew/product/x/<id>
+    // Bean & Brew D2C WebStore — used to confirm the shopper is a registered/entitled buyer of THIS store.
+    private static final Id D2C_WEBSTORE_ID = '0ZEfj000001CclhGAC';
+
+    // Test hook: map an email -> registered? to exercise both branches without org WebStore/BuyerGroup data.
+    @TestVisible private static Map<String, Boolean> registrationOverride = new Map<String, Boolean>();
 
     public class Request {
         @InvocableVariable(label='Product Ids CSV (Salesforce Product2 Ids to add)' required=true) public String productIdsCsv;
         @InvocableVariable(label='Coupon Code (optional)') public String couponCode;
+        @InvocableVariable(label='Brand — the SITE the chat is on (Kwitko Coffee | Bean & Brew). Pass @variables.brand.') public String brand;
+        @InvocableVariable(label='Verified shopper email (pass the verified loggedInEmail). Required for Bean & Brew to confirm the shopper is a registered buyer of this store.') public String verifiedEmail;
     }
     public class Result {
         @InvocableVariable public Boolean success;
-        @InvocableVariable public String addToCartUrl;     // one-click link that adds the recommended item(s)
-        @InvocableVariable public String perItemLinks;     // fallback: one native add-to-cart link per product
+        @InvocableVariable(label='Is the shopper a registered buyer of this store') public Boolean isRegisteredBuyer;
+        @InvocableVariable public String addToCartUrl;     // one-click (Woo) or product-page (D2C) link
+        @InvocableVariable public String perItemLinks;     // fallback: one link per product
         @InvocableVariable public String cartUrl;          // link to view the cart
         @InvocableVariable public String message;
     }
 
     @InvocableMethod(label='Build Add-to-Cart Links'
-        description='Returns working WooCommerce add-to-cart links for the recommended products. Present these to the shopper; never claim the items are already in the cart.')
+        description='Returns working add-to-cart links for the recommended products, scoped to the site/brand the chat is on. Present these to the shopper; never claim the items are already in the cart.')
     public static List<Result> build(List<Request> reqs) {
         List<Result> out = new List<Result>();
         for (Request r : reqs) out.add(doBuild(r));
         return out;
     }
 
+    private static String normalizeBrand(String s) {
+        if (String.isBlank(s)) return null;
+        String t = s.trim().toLowerCase();
+        if (t.contains('bean') || t.contains('brew') || t == 'b&b' || t.contains('beanbrew')) return 'Bean & Brew';
+        if (t.contains('kwitko') || t.contains('coffee')) return 'Kwitko Coffee';
+        return null;
+    }
+
     private static Result doBuild(Request r) {
-        Result res = new Result(); res.success = false; res.cartUrl = STORE + CART_PATH;
+        Result res = new Result(); res.success = false;
         List<Id> ids = new List<Id>();
         if (String.isNotBlank(r.productIdsCsv)) {
             for (String s : r.productIdsCsv.split(',')) {
@@ -43,8 +64,71 @@ public without sharing class CartLinkService {
                 if (String.isNotBlank(t)) { try { ids.add((Id) t); } catch (Exception e) {} }
             }
         }
-        if (ids.isEmpty()) { res.message = 'No products provided.'; return res; }
+        if (ids.isEmpty()) { res.message = 'No products provided.'; res.cartUrl = STORE + CART_PATH; return res; }
 
+        // Bean & Brew is a Salesforce D2C store — never use the Woo link path.
+        if (normalizeBrand(r.brand) == 'Bean & Brew') return buildD2C(ids, res, r.verifiedEmail);
+        return buildWoo(ids, r, res);
+    }
+
+    /** True only if the verified email maps to an Account that is an entitled BuyerGroupMember of this D2C store.
+     *  (Woo/Kwitko allows guest add-to-cart, so this gate is D2C-only.) */
+    @TestVisible
+    private static Boolean isRegisteredD2CBuyer(String email) {
+        if (String.isBlank(email)) return false;
+        String e = email.trim();
+        if (registrationOverride.containsKey(e.toLowerCase())) return registrationOverride.get(e.toLowerCase());
+        Set<Id> groups = new Set<Id>();
+        for (WebStoreBuyerGroup g : [SELECT BuyerGroupId FROM WebStoreBuyerGroup WHERE WebStoreId = :D2C_WEBSTORE_ID]) groups.add(g.BuyerGroupId);
+        if (groups.isEmpty()) return false;
+        Set<Id> accts = new Set<Id>();
+        for (User u : [SELECT AccountId FROM User WHERE Email = :e AND AccountId != null AND IsActive = true]) accts.add(u.AccountId);
+        for (Contact c : [SELECT AccountId FROM Contact WHERE Email = :e AND AccountId != null]) accts.add(c.AccountId);
+        if (Schema.sObjectType.Account.fields.getMap().containsKey('personemail')) {
+            for (SObject a : Database.query('SELECT Id FROM Account WHERE PersonEmail = :e')) accts.add((Id) a.get('Id'));
+        }
+        if (accts.isEmpty()) return false;
+        return [SELECT COUNT() FROM BuyerGroupMember WHERE BuyerGroupId IN :groups AND BuyerId IN :accts] > 0;
+    }
+
+    // --- Bean & Brew (Salesforce D2C / LWR): storefront product-page links ---
+    private static Result buildD2C(List<Id> ids, Result res, String verifiedEmail) {
+        // Gate: only a registered buyer of THIS store has a cart to add to.
+        res.isRegisteredBuyer = isRegisteredD2CBuyer(verifiedEmail);
+        if (res.isRegisteredBuyer != true) {
+            res.success = false;
+            res.cartUrl = D2C_STORE;
+            res.message = 'NOT A REGISTERED BUYER: ' + (String.isBlank(verifiedEmail) ? 'this shopper' : verifiedEmail)
+                + ' is not a registered buyer on the Bean & Brew store, so there is no cart to add items to. '
+                + 'Tell the shopper plainly that they are not a registered buyer of this store and you cannot add items to a cart for them; '
+                + 'offer to help them create a Bean & Brew store account (or just keep browsing). Do NOT provide add-to-cart or product links.';
+            return res;
+        }
+        res.cartUrl = D2C_STORE;
+        Map<Id, Product2> byId = new Map<Id, Product2>([SELECT Name FROM Product2 WHERE Id IN :new Set<Id>(ids)]);
+        Set<Id> seen = new Set<Id>();
+        List<String> perItem = new List<String>();
+        String firstUrl = null;
+        for (Id idValue : ids) {
+            if (seen.contains(idValue)) continue;       // PDP is per product; quantity is chosen on the page
+            seen.add(idValue);
+            Product2 p = byId.get(idValue);
+            if (p == null) continue;
+            String pdp = D2C_STORE + D2C_PDP + idValue;
+            if (firstUrl == null) firstUrl = pdp;
+            perItem.add(p.Name + ': ' + pdp);
+        }
+        if (firstUrl == null) { res.message = 'Recommended products were not found.'; return res; }
+        res.addToCartUrl = firstUrl;
+        res.perItemLinks = String.join(perItem, '\n');
+        res.success = true;
+        res.message = 'Bean & Brew runs on our online store. Give the shopper the product-page link(s) and tell them to click "Add to Cart" on the page — do NOT claim it is already in the cart, and NEVER use a WooCommerce/Hostinger link here.';
+        return res;
+    }
+
+    // --- Kwitko Coffee (WooCommerce): native one-click + multi-add bridge ---
+    private static Result buildWoo(List<Id> ids, Request r, Result res) {
+        res.cartUrl = STORE + CART_PATH;
         Map<Id, Product2> productsById = new Map<Id, Product2>(
             [SELECT Name, Woo_Product_Id__c FROM Product2 WHERE Id IN :new Set<Id>(ids) AND Woo_Product_Id__c != null]
         );
@@ -68,7 +152,6 @@ public without sharing class CartLinkService {
             String wooId = new List<String>(qtyByWooId.keySet())[0];
             url = STORE + '/?add-to-cart=' + wooId + '&quantity=' + String.valueOf(qtyByWooId.get(wooId));
         } else {
-            // Multi-add requires the kc_add storefront handler; native per-item links remain the fallback.
             url = STORE + '/?kc_add=' + String.join(wooIds, ',') + '&kc_clear=1';
         }
         if (String.isNotBlank(r.couponCode)) url += '&kc_coupon=' + EncodingUtil.urlEncode(r.couponCode.trim(), 'UTF-8');

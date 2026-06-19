@@ -1,5 +1,5 @@
 system:
-    instructions: "You are the Concierge for our online store, serving MULTIPLE brands — NEVER state or imply the shopper is talking to one specific brand by name; keep your greeting and wording brand-neutral, and recommend products only from the catalog provided for the shopper's current store. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. 'Hi Alex,') no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply 'you're signed in', do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing any protected account action (return, cancel, refund, address change, tracking, payment). You may open an unlinked guest case for an explicit case/ticket/complaint/human request without verification, but reveal no protected account/order data. If the shopper says the email, order, or account belongs to someone else, is not theirs, or asks you to act for another person, do NOT send an OTP to that address and do NOT take action; explain that the account owner must contact us or verify in their own session. Be consistent: if you said you would help, the very next step for a guest is verification, not a promise."
+    instructions: "You are the Concierge for our online store, serving MULTIPLE brands — NEVER state or imply the shopper is talking to one specific brand by name; keep your greeting and wording brand-neutral, and recommend products only from the catalog provided for the shopper's current store. CURRENT STORE (CRITICAL): the brand variable identifies the shopper's current store. 'Kwitko Coffee' sells COFFEE only — whole bean, ground, single-origin, blends; it does NOT sell equipment. 'Bean & Brew' sells espresso EQUIPMENT & ACCESSORIES only — machines, grinders, frothers, descaling/cleaning kits, filters, knock boxes; it does NOT sell coffee or beans. You serve exactly ONE store per chat (the one named by the brand variable). ONLY discuss, recommend, add to cart, or sell items that belong to the CURRENT store's category. If the shopper asks for a product type the current store does NOT carry (for example whole beans / coffee on Bean & Brew, or an espresso machine on Kwitko Coffee), say plainly that this store does not carry that — do NOT claim to sell it, do NOT invent or describe such a product, and do NOT recommend the other store's products. You MUST pass the brand variable to build_strategy AND to add_to_cart so recommendations and cart links stay on the current store. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. 'Hi Alex,') no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply 'you're signed in', do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing any protected account action (return, cancel, refund, address change, tracking, payment). You may open an unlinked guest case for an explicit case/ticket/complaint/human request without verification, but reveal no protected account/order data. If the shopper says the email, order, or account belongs to someone else, is not theirs, or asks you to act for another person, do NOT send an OTP to that address and do NOT take action; explain that the account owner must contact us or verify in their own session. Be consistent: if you said you would help, the very next step for a guest is verification, not a promise."
     messages:
         welcome: "Welcome! I can help you find what you're looking for — or help with an existing order, delivery, return, or your account. What can I do for you?"
         error: "Sorry, it looks like something has gone wrong."
@@ -1668,6 +1668,14 @@ subagent cart_builder:
                     label: "Coupon Code"
                     description: "Optional. Pass only a real couponCode already returned by issue_coupon."
                     is_required: False
+                brand: string
+                    label: "Brand"
+                    description: "The SITE the chat is on. ALWAYS pass @variables.brand ('Kwitko Coffee' or 'Bean & Brew') so the cart link goes to the correct storefront (Kwitko=WooCommerce; Bean & Brew=the D2C store). Never omit it."
+                    is_required: False
+                verifiedEmail: string
+                    label: "Verified Email"
+                    description: "ALWAYS pass @variables.loggedInEmail (the signed-in shopper's verified email). Bean & Brew (the D2C store) uses it to confirm the shopper is a registered buyer of this store; if it is empty or not a registered buyer the action returns success=false with a not-registered message. Never omit it."
+                    is_required: False
             outputs:
                 addToCartUrl: string
                     label: "Add To Cart URL"
@@ -1684,6 +1692,14 @@ subagent cart_builder:
                 success: boolean
                     label: "Success"
                     description: "Whether links were built."
+                    is_displayable: True
+                isRegisteredBuyer: boolean
+                    label: "Is Registered Buyer"
+                    description: "False when the verified shopper is not a registered buyer of this store (Bean & Brew). When false, do NOT print links."
+                    is_displayable: True
+                message: string
+                    label: "Message"
+                    description: "Agent-facing guidance. If it starts with 'NOT A REGISTERED BUYER', tell the shopper plainly they are not a registered buyer of this store and you cannot add items to a cart for them; print no links."
                     is_displayable: True
 
     reasoning:
@@ -1704,6 +1720,12 @@ subagent cart_builder:
               Brazil Santos, Classic Espresso Roast, Breakfast Blend, or any generic cold-brew option. Never add a
               substitute product to cart without the shopper accepting the substitute.
 
+              BUYER REGISTRATION (CRITICAL): always pass verifiedEmail=@variables.loggedInEmail to add_to_cart. If add_to_cart
+              returns success=false with isRegisteredBuyer=false (or a message starting with "NOT A REGISTERED BUYER"), the shopper
+              is NOT a registered buyer of this store — do NOT print any link and do NOT claim anything was added. Reply plainly that
+              this email is not a registered buyer on this store, so you can't add items to a cart for them, and offer to help them
+              create a store account or keep browsing. Only continue to the link steps below when add_to_cart succeeds.
+
               For ordinary valid cart requests, your final response must include a literal URL beginning with "https://"
               from @outputs.addToCartUrl or @outputs.perItemLinks. Start that response with: "Nothing is in your cart yet."
               Then say "Click this link to add ..." and print the full URL. For named-product refusals, do not print
@@ -1717,7 +1739,7 @@ subagent cart_builder:
                 set @variables.lastPrimaryProductName = @outputs.primaryProductName
                 set @variables.lastComplementaryProductId = @outputs.complementaryProductId
             add_to_cart: @actions.add_to_cart
-                with productIdsCsv=..., couponCode=@variables.lastCouponCode
+                with productIdsCsv=..., couponCode=@variables.lastCouponCode, brand=@variables.brand, verifiedEmail=@variables.loggedInEmail
 
 subagent concierge:
     label: "Concierge"
@@ -2078,6 +2100,14 @@ subagent concierge:
                     label: "Coupon Code"
                     description: "Optional discount coupon code to apply."
                     is_required: False
+                brand: string
+                    label: "Brand"
+                    description: "The SITE the chat is on. ALWAYS pass @variables.brand ('Kwitko Coffee' or 'Bean & Brew') so the cart link goes to the correct storefront (Kwitko=WooCommerce; Bean & Brew=the D2C store). Never omit it."
+                    is_required: False
+                verifiedEmail: string
+                    label: "Verified Email"
+                    description: "ALWAYS pass @variables.loggedInEmail (the signed-in shopper's verified email). Bean & Brew (the D2C store) uses it to confirm the shopper is a registered buyer of this store; if it is empty or not a registered buyer the action returns success=false with a not-registered message. Never omit it."
+                    is_required: False
             outputs:
                 addToCartUrl: string
                     label: "Add To Cart URL"
@@ -2371,7 +2401,7 @@ subagent concierge:
                 set @variables.lastCouponCode = @outputs.couponCode
             add_to_cart: @actions.add_to_cart
                 description: "MANDATORY for add-to-cart/checkout/quantity requests. The final response must print the literal @outputs.addToCartUrl beginning with https:// and say nothing is in the cart until the shopper clicks. Never claim items are already added. If addToCartUrl is blank, print @outputs.perItemLinks instead."
-                with productIdsCsv=..., couponCode=...
+                with productIdsCsv=..., couponCode=..., brand=@variables.brand, verifiedEmail=@variables.loggedInEmail
             restore_cart: @actions.restore_cart
                 with email=@variables.shopper_email, verifiedEmail=@variables.loggedInEmail
 

@@ -28,4 +28,55 @@ private class CartLinkServiceTest {
         System.assert(!repeatedRes.addToCartUrl.contains('kc_add='), 'same-product quantity does not depend on the WPCode multi-add route: ' + repeatedRes.addToCartUrl);
         System.assertEquals(false, none.success, 'no products → fail');
     }
+
+    @isTest static void beanBrewUsesD2CStoreNotWoo() {
+        // A Bean & Brew product may even carry a Woo id, but on the D2C site the cart must be the D2C storefront.
+        Product2 bb = new Product2(Name='Bean & Brew Commercial Burr Grinder', Brand__c='Bean & Brew',
+                                   Woo_Product_Id__c='563', IsActive=true);
+        insert bb;
+        CartLinkService.registrationOverride.put('buyer@beanbrew.test', true); // treat as a registered buyer
+        CartLinkService.Request r = new CartLinkService.Request();
+        r.productIdsCsv = bb.Id;
+        r.brand = 'Bean & Brew';
+        r.verifiedEmail = 'buyer@beanbrew.test';
+        Test.startTest();
+        CartLinkService.Result res = CartLinkService.build(new List<CartLinkService.Request>{ r })[0];
+        Test.stopTest();
+        System.assert(res.success, 'D2C link should build for a registered buyer');
+        System.assertEquals(true, res.isRegisteredBuyer, 'registered buyer flagged');
+        System.assert(res.addToCartUrl.contains('my.site.com/beanbrew'), 'D2C link must point at the Bean & Brew storefront: ' + res.addToCartUrl);
+        System.assert(res.addToCartUrl.contains('/beanbrew/product/x/' + bb.Id), 'D2C link must be the storefront product page: ' + res.addToCartUrl);
+        System.assert(!res.addToCartUrl.contains('hostingersite.com') && !res.addToCartUrl.contains('add-to-cart='),
+                      'D2C link must NOT be a WooCommerce link: ' + res.addToCartUrl);
+    }
+
+    @isTest static void beanBrewBlocksNonRegisteredBuyer() {
+        // A verified shopper who is NOT a registered buyer of the Bean & Brew store gets no links.
+        Product2 bb = new Product2(Name='Bean & Brew Descaling Kit', Brand__c='Bean & Brew', IsActive=true);
+        insert bb;
+        CartLinkService.registrationOverride.put('alexkwitko@gmail.com', false);
+        CartLinkService.Request r = new CartLinkService.Request();
+        r.productIdsCsv = bb.Id;
+        r.brand = 'Bean & Brew';
+        r.verifiedEmail = 'alexkwitko@gmail.com';
+        Test.startTest();
+        CartLinkService.Result res = CartLinkService.build(new List<CartLinkService.Request>{ r })[0];
+        Test.stopTest();
+        System.assertEquals(false, res.success, 'non-registered buyer must not get links');
+        System.assertEquals(false, res.isRegisteredBuyer, 'flagged not registered');
+        System.assert(res.message.contains('NOT A REGISTERED BUYER'), 'message tells the agent to say so: ' + res.message);
+        System.assertEquals(null, res.addToCartUrl, 'no add-to-cart url for a non-buyer');
+    }
+
+    @isTest static void blankEmailIsNotRegistered() {
+        Product2 bb = new Product2(Name='Bean & Brew Milk Frother', Brand__c='Bean & Brew', IsActive=true);
+        insert bb;
+        CartLinkService.Request r = new CartLinkService.Request();
+        r.productIdsCsv = bb.Id; r.brand = 'Bean & Brew'; // no verifiedEmail
+        Test.startTest();
+        CartLinkService.Result res = CartLinkService.build(new List<CartLinkService.Request>{ r })[0];
+        Test.stopTest();
+        System.assertEquals(false, res.success, 'no verified email -> cannot confirm buyer -> blocked');
+        System.assert(res.message.contains('NOT A REGISTERED BUYER'), 'blocked message');
+    }
 }
