@@ -2,6 +2,12 @@
  * QuoteDraftService — helpers for the AI Quote-Drafting Copilot.
  * Builds STANDARD Salesforce Quotes (Quote + QuoteLineItem) from natural language —
  * gives an "Agentforce quoting" experience without the gated RLM Place Quote engine.
+ *
+ * Design rule: the agent should CREATE AND LINK everything itself. The only things it
+ * can't invent are which account and which product — and even those fall back to a
+ * sensible default so "create a quote" works in one shot. Everything else (Opportunity,
+ * Pricebook, expiration date, status, billing/shipping address, description, line item)
+ * is auto-created and linked here, never asked of the user.
  */
 public with sharing class QuoteDraftService {
 
@@ -11,19 +17,44 @@ public with sharing class QuoteDraftService {
         @InvocableVariable(label='Quote Id') public String quoteId;
     }
 
-    public static Id resolveAccount(String accountName, String email) {
+    // Resolve an Account record (with address fields) by email, then name, then fall back
+    // to the most recently created account so a bare "create a quote" still works.
+    public static Account resolveAccountRecord(String accountName, String email) {
         if (String.isNotBlank(email)) {
             List<Contact> c = [SELECT AccountId FROM Contact WHERE Email = :email AND AccountId != null LIMIT 1];
-            if (!c.isEmpty()) return c[0].AccountId;
+            if (!c.isEmpty()) {
+                List<Account> a = acctsById(new Set<Id>{ c[0].AccountId });
+                if (!a.isEmpty()) return a[0];
+            }
         }
         if (String.isNotBlank(accountName)) {
-            List<Account> a = [SELECT Id FROM Account WHERE Name = :accountName LIMIT 1];
-            if (!a.isEmpty()) return a[0].Id;
+            List<Account> exact = [SELECT Id, Name, BillingStreet, BillingCity, BillingState, BillingPostalCode,
+                BillingCountry, ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry
+                FROM Account WHERE Name = :accountName LIMIT 1];
+            if (!exact.isEmpty()) return exact[0];
             String p = '%' + accountName + '%';
-            List<Account> f = [SELECT Id FROM Account WHERE Name LIKE :p LIMIT 1];
-            if (!f.isEmpty()) return f[0].Id;
+            List<Account> fuzzy = [SELECT Id, Name, BillingStreet, BillingCity, BillingState, BillingPostalCode,
+                BillingCountry, ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry
+                FROM Account WHERE Name LIKE :p LIMIT 1];
+            if (!fuzzy.isEmpty()) return fuzzy[0];
         }
-        return null;
+        // Last resort: most recently created account (keeps one-shot quoting working).
+        List<Account> recent = [SELECT Id, Name, BillingStreet, BillingCity, BillingState, BillingPostalCode,
+            BillingCountry, ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry
+            FROM Account ORDER BY CreatedDate DESC LIMIT 1];
+        return recent.isEmpty() ? null : recent[0];
+    }
+
+    private static List<Account> acctsById(Set<Id> ids) {
+        return [SELECT Id, Name, BillingStreet, BillingCity, BillingState, BillingPostalCode, BillingCountry,
+            ShippingStreet, ShippingCity, ShippingState, ShippingPostalCode, ShippingCountry
+            FROM Account WHERE Id IN :ids];
+    }
+
+    // Back-compat: id-only resolver used elsewhere.
+    public static Id resolveAccount(String accountName, String email) {
+        Account a = resolveAccountRecord(accountName, email);
+        return a == null ? null : a.Id;
     }
 
     public static Id standardPricebookId() {
@@ -32,7 +63,7 @@ public with sharing class QuoteDraftService {
 
     // Quote requires an Opportunity — reuse an open one or create a lightweight one.
     public static Opportunity findOrCreateOpp(Id acctId) {
-        List<Opportunity> o = [SELECT Id FROM Opportunity WHERE AccountId = :acctId AND IsClosed = false ORDER BY CreatedDate DESC LIMIT 1];
+        List<Opportunity> o = [SELECT Id, Name FROM Opportunity WHERE AccountId = :acctId AND IsClosed = false ORDER BY CreatedDate DESC LIMIT 1];
         if (!o.isEmpty()) return o[0];
         Opportunity opp = new Opportunity(Name = 'New Business', AccountId = acctId,
             StageName = 'Prospecting', CloseDate = Date.today().addDays(30));
@@ -41,15 +72,80 @@ public with sharing class QuoteDraftService {
     }
 
     // Match a product by exact code OR fuzzy name, on the standard price book.
+    // Only consider products that are QUOTABLE in this org — i.e. related to a
+    // ProductSellingModel (Revenue Cloud / RLM requires this to add a quote line).
     public static PricebookEntry findEntry(String product, Id stdPb) {
+        if (String.isBlank(product)) return findDefaultEntry(stdPb);
         String pattern = '%' + product + '%';
         List<PricebookEntry> pbes = [
             SELECT Id, Product2Id, Product2.Name, UnitPrice
             FROM PricebookEntry
             WHERE (Product2.ProductCode = :product OR Product2.Name LIKE :pattern)
                   AND IsActive = true AND Pricebook2Id = :stdPb
+                  AND Product2Id IN (SELECT Product2Id FROM ProductSellingModelOption)
             ORDER BY Product2.ProductCode NULLS LAST LIMIT 1
         ];
+        return pbes.isEmpty() ? findDefaultEntry(stdPb) : pbes[0];
+    }
+
+    // No product given (or not found) → pick a sensible quotable default so quoting still works.
+    public static PricebookEntry findDefaultEntry(Id stdPb) {
+        List<PricebookEntry> pbes = [
+            SELECT Id, Product2Id, Product2.Name, UnitPrice
+            FROM PricebookEntry
+            WHERE IsActive = true AND Pricebook2Id = :stdPb AND UnitPrice > 0
+                  AND Product2Id IN (SELECT Product2Id FROM ProductSellingModelOption)
+            ORDER BY LastModifiedDate DESC LIMIT 1
+        ];
         return pbes.isEmpty() ? null : pbes[0];
+    }
+
+    // Build a FULLY-populated Quote (everything linked + defaulted) and its line item.
+    // Returns the inserted Quote id. Copies billing/shipping from the account, sets a
+    // 30-day expiration, Draft status, a name, and a description — no user input needed.
+    public static Id createComplete(Account acct, Opportunity opp, PricebookEntry pbe, Id stdPb,
+                                    Decimal qty, Decimal disc) {
+        System.Savepoint sp = Database.setSavepoint();
+        try {
+            Quote q = new Quote(
+                Name = acct.Name + ' – ' + pbe.Product2.Name + ' Quote',
+                OpportunityId = opp.Id,
+                Pricebook2Id = stdPb,
+                Status = 'Draft',
+                ExpirationDate = Date.today().addDays(30),
+                Description = 'Drafted by the Quote Copilot for ' + acct.Name + '. Review and send.',
+                BillingName = acct.Name,
+                BillingStreet = acct.BillingStreet,
+                BillingCity = acct.BillingCity,
+                BillingState = acct.BillingState,
+                BillingPostalCode = acct.BillingPostalCode,
+                BillingCountry = acct.BillingCountry,
+                ShippingName = acct.Name,
+                ShippingStreet = acct.ShippingStreet != null ? acct.ShippingStreet : acct.BillingStreet,
+                ShippingCity = acct.ShippingCity != null ? acct.ShippingCity : acct.BillingCity,
+                ShippingState = acct.ShippingState != null ? acct.ShippingState : acct.BillingState,
+                ShippingPostalCode = acct.ShippingPostalCode != null ? acct.ShippingPostalCode : acct.BillingPostalCode,
+                ShippingCountry = acct.ShippingCountry != null ? acct.ShippingCountry : acct.BillingCountry
+            );
+            insert q;
+            // The product is already filtered to one with a ProductSellingModel, so the line
+            // inserts cleanly; ProductSellingModelId is read-only / auto-derived — don't set it.
+            QuoteLineItem qli = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id,
+                Product2Id = pbe.Product2Id, Quantity = qty, UnitPrice = pbe.UnitPrice, Discount = disc);
+            // Subscription selling models (Evergreen / Term-Defined) require a billing cadence.
+            // Set it dynamically so the class still compiles on orgs without Revenue Cloud fields.
+            Map<String, Schema.SObjectField> qliFields = QuoteLineItem.SObjectType.getDescribe().fields.getMap();
+            if (qliFields.containsKey('BillingFrequency')) { qli.put('BillingFrequency', 'Monthly'); }
+            // Term-Defined selling models also need a start date (+ term count).
+            if (qliFields.containsKey('StartDate')) { qli.put('StartDate', Date.today()); }
+            // Term-Defined models need an end date (or SubscriptionTerm). Give a 12-month term.
+            if (qliFields.containsKey('SubscriptionTerm')) { qli.put('SubscriptionTerm', 12); }
+            else if (qliFields.containsKey('EndDate')) { qli.put('EndDate', Date.today().addMonths(12)); }
+            insert qli;
+            return q.Id;
+        } catch (Exception e) {
+            Database.rollback(sp);  // no orphan Quote header if the line item fails
+            throw e;
+        }
     }
 }
