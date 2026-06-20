@@ -234,6 +234,11 @@ public without sharing class AgentContextService {
             if (String.isNotBlank(res.lastAgentAction)) parts.add('last action: ' + res.lastAgentAction);
             if (String.isNotBlank(res.lastStage)) parts.add('last stage: ' + res.lastStage);
             if (String.isNotBlank(res.dataCloudNextBestAction)) parts.add('Data Cloud next action: ' + res.dataCloudNextBestAction);
+            if (customer != null && customer.isMultiBrand == true) {
+                parts.add('MULTI-BRAND customer (shops more than one of our stores'
+                    + (String.isBlank(customer.brandsPurchased) ? '' : ': ' + customer.brandsPurchased)
+                    + ') — OK to acknowledge the cross-brand relationship and cross-recommend coffee<->equipment');
+            }
         } else {
             parts.add('PRIVATE CONTEXT WITHHELD until verified website sign-in');
         }

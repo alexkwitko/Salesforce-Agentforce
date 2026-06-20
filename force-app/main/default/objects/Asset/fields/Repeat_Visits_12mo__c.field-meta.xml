@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Repeat_Visits_12mo__c</fullName>
+    <label>Repeat Visits (12mo)</label>
+    <type>Number</type>
+    <precision>6</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <description>Service calls in the last 12mo that were a repeat within 30 days of a prior call.</description>
+    <inlineHelpText>Service calls in the last 12mo that were a repeat within 30 days of a prior call.</inlineHelpText>
+</CustomField>

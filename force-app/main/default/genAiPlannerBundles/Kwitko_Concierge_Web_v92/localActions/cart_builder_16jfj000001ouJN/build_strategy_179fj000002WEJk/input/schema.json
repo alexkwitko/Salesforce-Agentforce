@@ -1,0 +1,84 @@
+{
+  "required" : [ "channel" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "avoidFlavored" : {
+      "title" : "Avoid Flavored",
+      "description" : "true = never recommend flavored coffee.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "brand" : {
+      "title" : "Brand",
+      "description" : "The SITE/store the shopper is on. ALWAYS pass @variables.brand verbatim ('Kwitko Coffee' or 'Bean & Brew'); scopes the catalog (Kwitko=coffee, Bean & Brew=equipment). Leave blank only if @variables.brand is empty.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "channel" : {
+      "title" : "Channel",
+      "description" : "Use chat for the website concierge.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "dislikeKeywordsCsv" : {
+      "title" : "Dislike Keywords",
+      "description" : "Comma-separated words to never recommend by name, e.g. decaf,flavored. Build this from the shopper's saved/stated dislikes.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "Optional. Leave blank for anonymous storefront recommendations; pass only when the shopper is signed in or voluntarily shared email.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "excludeProductIdsCsv" : {
+      "title" : "Exclude Product Ids",
+      "description" : "Comma-separated product ids the shopper already rejected.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "preferredBeanType" : {
+      "title" : "Preferred Bean Type",
+      "description" : "HARD filter: Single-Origin or Blend. Pass from the shopper's saved/stated beanType.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "preferredBrewStyle" : {
+      "title" : "Preferred Brew Style",
+      "description" : "HARD filter: Espresso, Cold Brew, or All-Purpose.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "preferredFamily" : {
+      "title" : "Preferred Family",
+      "description" : "Bias the pick toward this product family, e.g. Single-Origin or Espresso, based on what the shopper asked for.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "preferredRoast" : {
+      "title" : "Preferred Roast",
+      "description" : "HARD filter: Light, Medium, or Dark. Pass from the shopper's saved/stated roast.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "wantsDecaf" : {
+      "title" : "Wants Decaf",
+      "description" : "true = ONLY decaf, false = ONLY regular. Leave unset when unknown.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

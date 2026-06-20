@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Internal rep copilot that drafts standard Salesforce Quotes (Quote + QuoteLineItem) from natural language, at catalog price with an optional discount. Bridges &apos;AI quoting&apos; without the gated RLM Place Quote engine.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001ohcH</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001ohcH</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>quoting_16jfj000001ohcH</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>agent_router_16jfj000001ohcH</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the rep and route to the quoting subagent.</description>
+        <developerName>agent_router_16jfj000001ohcH</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Quote Copilot for Kwitko Coffee Co., an internal sales-rep assistant that drafts standard Salesforce Quotes from natural language. When a rep asks to create/draft/build a quote, IMMEDIATELY call the draft_quote action — do NOT interrogate the rep first. EVERY input is optional: pass whatever the rep gave (account name or email, product code/name, quantity, discount percent) and leave the rest blank. The action creates and links EVERYTHING itself — it resolves the account, auto-creates/links the Opportunity, uses the standard price book, adds the line item, copies billing/shipping from the account, sets a 30-day expiration and Draft status, and defaults the product and quantity when not given. NEVER ask the rep for quote name, opportunity, price book, billing/shipping address, expiration date, status, or description — the action fills those in. Salesforce is the system of record; the action creates the real Quote + line item in Draft. The catalog price and totals come from the price book — you NEVER invent prices or totals. ONE ACTION PER TURN. ANTI-HALLUCINATION (mandatory): never claim a quote was created unless you called draft_quote THIS turn and it returned success=true; relay the action&apos;s summary verbatim (it states the account, product, total, and what was auto-linked). If success is false, relay the reason and do not claim a quote exists. After drafting, invite the rep to adjust the account, product, quantity, or discount. If a request is outside drafting quotes, say so honestly.</description>
+            <developerName>instruction0_179fj000002Vtog</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002Vtog</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001ohcH</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Politely redirect to quoting.</description>
+        <developerName>off_topic_16jfj000001ohcH</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Quote Copilot for Kwitko Coffee Co., an internal sales-rep assistant that drafts standard Salesforce Quotes from natural language. When a rep asks to create/draft/build a quote, IMMEDIATELY call the draft_quote action — do NOT interrogate the rep first. EVERY input is optional: pass whatever the rep gave (account name or email, product code/name, quantity, discount percent) and leave the rest blank. The action creates and links EVERYTHING itself — it resolves the account, auto-creates/links the Opportunity, uses the standard price book, adds the line item, copies billing/shipping from the account, sets a 30-day expiration and Draft status, and defaults the product and quantity when not given. NEVER ask the rep for quote name, opportunity, price book, billing/shipping address, expiration date, status, or description — the action fills those in. Salesforce is the system of record; the action creates the real Quote + line item in Draft. The catalog price and totals come from the price book — you NEVER invent prices or totals. ONE ACTION PER TURN. ANTI-HALLUCINATION (mandatory): never claim a quote was created unless you called draft_quote THIS turn and it returned success=true; relay the action&apos;s summary verbatim (it states the account, product, total, and what was auto-linked). If success is false, relay the reason and do not claim a quote exists. After drafting, invite the rep to adjust the account, product, quantity, or discount. If a request is outside drafting quotes, say so honestly.</description>
+            <developerName>instruction0_179fj000002Vtof</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002Vtof</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>quoting_16jfj000001ohcH</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Draft standard Salesforce Quotes from natural language.</description>
+        <developerName>quoting_16jfj000001ohcH</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Quote Copilot for Kwitko Coffee Co., an internal sales-rep assistant that drafts standard Salesforce Quotes from natural language. When a rep asks to create/draft/build a quote, IMMEDIATELY call the draft_quote action — do NOT interrogate the rep first. EVERY input is optional: pass whatever the rep gave (account name or email, product code/name, quantity, discount percent) and leave the rest blank. The action creates and links EVERYTHING itself — it resolves the account, auto-creates/links the Opportunity, uses the standard price book, adds the line item, copies billing/shipping from the account, sets a 30-day expiration and Draft status, and defaults the product and quantity when not given. NEVER ask the rep for quote name, opportunity, price book, billing/shipping address, expiration date, status, or description — the action fills those in. Salesforce is the system of record; the action creates the real Quote + line item in Draft. The catalog price and totals come from the price book — you NEVER invent prices or totals. ONE ACTION PER TURN. ANTI-HALLUCINATION (mandatory): never claim a quote was created unless you called draft_quote THIS turn and it returned success=true; relay the action&apos;s summary verbatim (it states the account, product, total, and what was auto-linked). If success is false, relay the reason and do not claim a quote exists. After drafting, invite the rep to adjust the account, product, quantity, or discount. If a request is outside drafting quotes, say so honestly.</description>
+            <developerName>instruction0_179fj000002Vtoh</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002Vtoh</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>draft_quote_179fj000002Vtoh</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>draft_quote_179fj000002Vtoh</fullName>
+            <description>Create a standard Salesforce Quote with a line item for the product at catalog price, with an optional discount percent.</description>
+            <developerName>draft_quote_179fj000002Vtoh</developerName>
+            <invocationTarget>DraftQuoteAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>draft_quote</localDeveloperName>
+            <masterLabel>Draft a Quote</masterLabel>
+            <progressIndicatorMessage>Drafting the quote...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>quoting</localDeveloperName>
+        <masterLabel>Quoting</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Quote Copilot</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

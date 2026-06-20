@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Asset Service Metrics</label>
+    <description>Read access to asset service-reliability metrics + edit on WorkOrder service dates.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <fieldPermissions><field>Asset.Total_Service_Calls__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Asset.Service_Calls_12mo__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Asset.Call_Rate_Annual__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Asset.Fix_Right_First_Time__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Asset.Repeat_Visits_12mo__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Asset.Mean_Time_To_Repair_Days__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Asset.Last_Service_Date__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Asset.Open_Work_Orders__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>Asset.Service_Metrics_Updated__c</field><readable>true</readable><editable>false</editable></fieldPermissions>
+    <fieldPermissions><field>WorkOrder.Service_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>WorkOrder.Reported_Date__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>WorkOrder.Is_Repeat_Visit__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>ServiceAppointment.Visit_Reason__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+</PermissionSet>

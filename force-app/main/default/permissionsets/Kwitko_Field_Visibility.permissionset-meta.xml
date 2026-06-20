@@ -639,6 +639,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
+        <field>MessagingSession.Customer_Brief__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>MessagingSession.Kwitko_Logged_In_Email__c</field>
         <readable>true</readable>
     </fieldPermissions>

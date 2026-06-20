@@ -1,0 +1,54 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "addToCartUrl" : {
+      "title" : "Add To Cart URL",
+      "description" : "One-click link that adds all requested items to the shopper's cart.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "cartUrl" : {
+      "title" : "Cart URL",
+      "description" : "Link to view the cart after clicking addToCartUrl.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "isRegisteredBuyer" : {
+      "title" : "Is Registered Buyer",
+      "description" : "False when the verified shopper is not a registered buyer of this store (Bean & Brew). When false, do NOT print links.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "message" : {
+      "title" : "Message",
+      "description" : "Agent-facing guidance. If it starts with 'NOT A REGISTERED BUYER', tell the shopper plainly they are not a registered buyer of this store and you cannot add items to a cart for them; print no links.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "perItemLinks" : {
+      "title" : "Per-Item Links",
+      "description" : "Fallback: one add-to-cart link per product.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "success" : {
+      "title" : "Success",
+      "description" : "Whether links were built.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

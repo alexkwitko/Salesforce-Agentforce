@@ -48,6 +48,33 @@ public with sharing class SubscriptionConciergeService {
         return null;
     }
 
+    /**
+     * Identity gate for customer-web subscription actions. Returns null when the caller is verified
+     * (Tier-1 logged-in email match, or Tier-2 OTP proof), otherwise the sign-in message to narrate.
+     * Internal/trusted agents satisfy this by passing the customer's email as BOTH email and verifiedEmail.
+     */
+    public static String gate(String email, String verifiedEmail) {
+        return IdentityService.isVerified(email, verifiedEmail) ? null : IdentityService.signInMessage();
+    }
+
+    /**
+     * Ownership-scoped resolver: only returns the subscription (Asset) if it belongs to the account of
+     * the (verified) email — closes the IDOR hole where a caller could pass any subscriptionId. When no
+     * subscriptionId is given, returns the caller's latest active subscription.
+     */
+    public static Asset resolveOwnedSubscription(String subscriptionId, String email) {
+        Id acct = resolveAccount(null, email);
+        if (acct == null) return null;
+        if (String.isNotBlank(subscriptionId)) {
+            List<Asset> a = [SELECT Id, Name, Quantity, Price, Status, UsageEndDate, AccountId
+                             FROM Asset WHERE Id = :subscriptionId AND AccountId = :acct LIMIT 1];
+            return a.isEmpty() ? null : a[0];
+        }
+        List<Asset> a = [SELECT Id, Name, Quantity, Price, Status, UsageEndDate FROM Asset
+                         WHERE AccountId = :acct AND Status != 'Obsolete' ORDER BY InstallDate DESC LIMIT 1];
+        return a.isEmpty() ? null : a[0];
+    }
+
     public static String money(Decimal d) { return d == null ? '$0' : '$' + d.setScale(2).format(); }
     public static String dt(Date d) { return d == null ? 'n/a' : d.format(); }
 }

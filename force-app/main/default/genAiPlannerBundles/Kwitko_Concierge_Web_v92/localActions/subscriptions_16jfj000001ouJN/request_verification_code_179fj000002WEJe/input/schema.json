@@ -1,0 +1,21 @@
+{
+  "required" : [ "email" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "chatSummary" : {
+      "title" : "Chat Summary",
+      "description" : "Chat Summary",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "Email",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Reported_Date__c</fullName>
+    <label>Reported Date</label>
+    <type>Date</type>
+    <required>false</required>
+    <description>Date the issue was reported (used to compute mean time to repair).</description>
+    <inlineHelpText>Date the issue was reported.</inlineHelpText>
+</CustomField>

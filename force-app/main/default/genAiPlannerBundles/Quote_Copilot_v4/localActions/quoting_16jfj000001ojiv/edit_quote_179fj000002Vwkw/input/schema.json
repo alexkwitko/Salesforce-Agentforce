@@ -1,0 +1,70 @@
+{
+  "required" : [ "operation" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "accountName" : {
+      "title" : "Account Name",
+      "description" : "Account Name",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "discountPercent" : {
+      "title" : "Discount percent",
+      "description" : "Discount percent",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Account Email",
+      "description" : "Account Email",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "expirationDate" : {
+      "title" : "Expiration date (YYYY-MM-DD)",
+      "description" : "Expiration date (YYYY-MM-DD)",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "operation" : {
+      "title" : "Operation",
+      "description" : "Operation",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "product" : {
+      "title" : "Product",
+      "description" : "Product",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "quantity" : {
+      "title" : "Quantity",
+      "description" : "Quantity",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "quoteNumber" : {
+      "title" : "Quote Number",
+      "description" : "Quote Number",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "status" : {
+      "title" : "Status",
+      "description" : "Status",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

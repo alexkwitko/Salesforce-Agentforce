@@ -1,0 +1,39 @@
+{
+  "required" : [ "query" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "query" : {
+      "title" : "Query",
+      "description" : "Required. A string created by generative AI to be used in the knowledge article search.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "citationsUrl" : {
+      "title" : "Citations Url",
+      "description" : "The URL to use for citations for custom Agents.",
+      "const" : "",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "ragFeatureConfigId" : {
+      "title" : "RAG Feature Configuration Id",
+      "description" : "The RAG Feature ID to use for grounding this copilot action invocation.",
+      "const" : "ARFPC_1JDfj000008yNQ9GAM_7197f8cb_380a_4dcf_9ce9_0c0a7b5c1d1a",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "citationsEnabled" : {
+      "title" : "Citations Enabled",
+      "description" : "Whether or not citations are enabled.",
+      "const" : false,
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType",
+  "lightning:textIndexed" : true
+}

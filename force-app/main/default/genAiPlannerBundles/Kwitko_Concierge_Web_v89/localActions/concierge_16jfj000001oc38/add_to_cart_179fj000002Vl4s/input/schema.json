@@ -1,0 +1,28 @@
+{
+  "required" : [ "productIdsCsv" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "brand" : {
+      "title" : "Brand",
+      "description" : "The SITE the chat is on. ALWAYS pass @variables.brand ('Kwitko Coffee' or 'Bean & Brew') so the cart link goes to the correct storefront (Kwitko=WooCommerce; Bean & Brew=the D2C store). Never omit it.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "couponCode" : {
+      "title" : "Coupon Code",
+      "description" : "Optional discount coupon code to apply.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "productIdsCsv" : {
+      "title" : "Product Ids CSV",
+      "description" : "Comma-separated Salesforce product ids to add — use primaryProductId and complementaryProductId from the recommendation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

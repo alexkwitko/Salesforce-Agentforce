@@ -7,8 +7,13 @@
         <name>Kwitko_Concierge_Web</name>
     </botMlDomain>
     <botSource>None</botSource>
-    <botUser>post_purchase_growth@00dxx00000xxxxx1227134584.ext</botUser>
+    <botUser>post_purchase_growth@00dfj00000qevrq1227134584.ext</botUser>
     <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Brand__c</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Brand__c</fieldName>
@@ -32,22 +37,17 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Brand__c</fieldName>
+            <messageType>Custom</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Brand__c</fieldName>
             <messageType>Line</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Brand__c</fieldName>
-            <messageType>EmbeddedMessaging</messageType>
-        </contextVariableMappings>
-        <contextVariableMappings>
-            <SObjectType>MessagingSession</SObjectType>
-            <fieldName>MessagingSession.Brand__c</fieldName>
             <messageType>Facebook</messageType>
-        </contextVariableMappings>
-        <contextVariableMappings>
-            <SObjectType>MessagingSession</SObjectType>
-            <fieldName>MessagingSession.Brand__c</fieldName>
-            <messageType>Custom</messageType>
         </contextVariableMappings>
         <dataType>Text</dataType>
         <description>The SITE/store this chat is on (&apos;Kwitko Coffee&apos; or &apos;Bean &amp; Brew&apos;). Scopes recommendations to the right catalog (Kwitko=coffee, Bean &amp; Brew=equipment). Always pass to build_strategy. Internal only — never name the brand to the shopper.</description>
@@ -106,7 +106,7 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
-            <messageType>Facebook</messageType>
+            <messageType>Line</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
@@ -136,7 +136,7 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
-            <messageType>Line</messageType>
+            <messageType>Facebook</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
@@ -153,11 +153,6 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
-            <messageType>AppleBusinessChat</messageType>
-        </contextVariableMappings>
-        <contextVariableMappings>
-            <SObjectType>MessagingSession</SObjectType>
-            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
             <messageType>Text</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
@@ -173,12 +168,7 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
-            <messageType>Line</messageType>
-        </contextVariableMappings>
-        <contextVariableMappings>
-            <SObjectType>MessagingSession</SObjectType>
-            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
-            <messageType>Email</messageType>
+            <messageType>AppleBusinessChat</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
@@ -188,13 +178,70 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>Line</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
             <messageType>Custom</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>Email</messageType>
         </contextVariableMappings>
         <dataType>Text</dataType>
         <description>The shopper&apos;s first name from their verified website sign-in, passed in via hidden pre-chat into the Messaging Session when available. Use it for a warm greeting only; do not treat it as authorization.</description>
         <developerName>loggedInFirstName</developerName>
         <includeInPrompt>false</includeInPrompt>
         <label>Logged In First Name</label>
+    </contextVariables>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Customer_Brief__c</fieldName>
+            <messageType>WhatsApp</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Customer_Brief__c</fieldName>
+            <messageType>Email</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Customer_Brief__c</fieldName>
+            <messageType>Line</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Customer_Brief__c</fieldName>
+            <messageType>Facebook</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Customer_Brief__c</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Customer_Brief__c</fieldName>
+            <messageType>AppleBusinessChat</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Customer_Brief__c</fieldName>
+            <messageType>Text</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Customer_Brief__c</fieldName>
+            <messageType>Custom</messageType>
+        </contextVariableMappings>
+        <dataType>Text</dataType>
+        <description>FREE rich brief (profile 360 + last order + items + open cases + service visits + subscriptions) pre-stamped on the session at start (no action/no Flex). Non-empty only when signed in at start; blank for guests/OTP-mid-chat.</description>
+        <developerName>sessionContext</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Session Context</label>
     </contextVariables>
     <description>Concierge orchestrator: help anonymous shoppers first, capture lead details only when offered or needed, recognize returning customers from verified context, and build buyer-aware recommendations via the shared strategy engine.</description>
     <label>Kwitko Concierge Web</label>

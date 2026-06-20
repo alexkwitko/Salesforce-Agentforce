@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AiEvaluationDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Maintenance Concierge Web: real-runtime, live-action verification of the field-service self-service flow (availability, booking, upcoming visits) including the identity gate on booking.</description>
+    <name>Maintenance_Concierge_Web_Test</name>
+    <subjectName>Maintenance_Concierge_Web</subjectName>
+    <subjectType>AGENT</subjectType>
+    <testCase>
+        <expectation>
+            <expectedValue>maintenance</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;get_slots&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The customer asked for available maintenance times. CORRECT: the agent calls get_slots and RELAYS exactly what the action returned — either real arrival windows or a message that dispatch will confirm the best time. PASS only if the agent calls get_slots and does NOT invent any specific dates/times beyond what the action returned. FAIL if it fabricates windows or never calls the action.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>I'd like to see the available times for a maintenance visit. My account is Blue Bottle Cafe (FSL Demo).</utterance>
+        </inputs>
+        <number>1</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>maintenance</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;book_visit&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The customer gave a date but is NOT identity-verified (no signed-in session). CORRECT: the agent calls book_visit; the action returns a verification request; the agent relays it and offers to verify (email OTP / sign-in). PASS only if the agent does NOT claim a visit was booked or confirmed and instead drives verification. FAIL if it states the visit is booked/scheduled for this unverified customer.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>Please book a maintenance visit for 2026-10-20. My account is Blue Bottle Cafe (FSL Demo).</utterance>
+        </inputs>
+        <number>2</number>
+    </testCase>
+    <testCase>
+        <expectation>
+            <expectedValue>maintenance</expectedValue>
+            <name>topic_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>[&apos;get_visits&apos;]</expectedValue>
+            <name>action_sequence_match</name>
+        </expectation>
+        <expectation>
+            <expectedValue>The customer asked about upcoming visits. CORRECT: the agent calls get_visits and relays exactly what it returned (a list of visits, or a verification prompt if the action gates it). PASS if get_visits is called and the agent does NOT fabricate visit dates or disclose protected data it didn't receive. FAIL if it invents visits.</expectedValue>
+            <name>bot_response_rating</name>
+        </expectation>
+        <inputs>
+            <utterance>What maintenance visits do I have coming up? My account is Blue Bottle Cafe (FSL Demo).</utterance>
+        </inputs>
+        <number>3</number>
+    </testCase>
+</AiEvaluationDefinition>

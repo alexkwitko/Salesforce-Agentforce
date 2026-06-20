@@ -1,0 +1,91 @@
+<template>
+    <lightning-card icon-name="standard:asset_relationship">
+        <h2 slot="title">Asset Service Metrics</h2>
+        <lightning-button-icon
+            slot="actions"
+            icon-name="utility:refresh"
+            alternative-text="Refresh"
+            title="Recalculate"
+            onclick={handleRefresh}
+            disabled={loading}>
+        </lightning-button-icon>
+
+        <div class="slds-is-relative slds-p-horizontal_small slds-p-bottom_small">
+            <template if:true={loading}>
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </template>
+
+            <!-- No asset on this record -->
+            <template if:true={noAsset}>
+                <div class="slds-text-color_weak slds-p-vertical_medium slds-text-align_center">
+                    <lightning-icon icon-name="utility:info" size="small" class="slds-m-right_x-small"></lightning-icon>
+                    No asset is linked to this record. Set the Asset on the Work Order to track service.
+                </div>
+            </template>
+
+            <template if:true={hasError}>
+                <div class="slds-text-color_error slds-p-vertical_small">{error}</div>
+            </template>
+
+            <!-- Asset header + KPIs -->
+            <template if:true={hasAsset}>
+                <div class="asset-head slds-m-bottom_small">
+                    <div class="asset-name">{metrics.assetName}</div>
+                    <div class="asset-sub">
+                        <span>{metrics.accountName}</span>
+                        <template if:true={metrics.serialNumber}>
+                            <span class="dot">•</span><span>S/N {metrics.serialNumber}</span>
+                        </template>
+                        <template if:true={metrics.status}>
+                            <span class={statusBadgeClass}>{metrics.status}</span>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <!-- Primary: Call Rate -->
+                    <div class="kpi-tile kpi-primary">
+                        <div class="kpi-value">{callRateDisplay}</div>
+                        <div class="kpi-label">Call Rate / yr</div>
+                    </div>
+                    <!-- Primary: Fix Right First Time -->
+                    <div class="kpi-tile kpi-primary">
+                        <div class={ftftClass}>{ftftDisplay}</div>
+                        <div class="kpi-label">Fix Right First Time</div>
+                    </div>
+
+                    <div class="kpi-tile">
+                        <div class="kpi-value">{repeatDisplay}</div>
+                        <div class="kpi-label">Repeat Visits (12mo)</div>
+                    </div>
+                    <div class="kpi-tile">
+                        <div class="kpi-value">{mttrDisplay}</div>
+                        <div class="kpi-label">Avg Repair (days)</div>
+                    </div>
+                    <div class="kpi-tile">
+                        <div class="kpi-value">{totalDisplay}</div>
+                        <div class="kpi-label">Total Calls</div>
+                    </div>
+                    <div class="kpi-tile">
+                        <div class={openClass}>{openDisplay}</div>
+                        <div class="kpi-label">Open Work Orders</div>
+                    </div>
+                </div>
+
+                <div class="kpi-footer slds-m-top_x-small">
+                    <template if:true={metrics.lastServiceDate}>
+                        Last service
+                        <lightning-formatted-date-time value={metrics.lastServiceDate}>
+                        </lightning-formatted-date-time>
+                    </template>
+                    <template if:true={metrics.updatedAt}>
+                        <span class="dot">•</span> Updated
+                        <lightning-formatted-date-time value={metrics.updatedAt}
+                            year="numeric" month="short" day="2-digit" hour="2-digit" minute="2-digit">
+                        </lightning-formatted-date-time>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

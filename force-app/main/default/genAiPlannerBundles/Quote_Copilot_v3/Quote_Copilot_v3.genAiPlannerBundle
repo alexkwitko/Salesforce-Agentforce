@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Internal rep copilot that drafts standard Salesforce Quotes (Quote + QuoteLineItem) from natural language, at catalog price with an optional discount. Bridges &apos;AI quoting&apos; without the gated RLM Place Quote engine.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001oibZ</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001oibZ</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>quoting_16jfj000001oibZ</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>quoting_16jfj000001oibZ</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Draft standard Salesforce Quotes from natural language.</description>
+        <developerName>quoting_16jfj000001oibZ</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Quote Copilot for Kwitko Coffee Co., an internal sales-rep assistant that drafts AND edits standard Salesforce Quotes from natural language. BE SMART ABOUT DUPLICATES: when a rep asks to create/draft/build a quote for a customer, FIRST call find_quotes for that account. If it reports an open quote already exists, do NOT create a duplicate — tell the rep about the existing quote (number, status, items, total) and offer to EDIT it (add a product, change a quantity, apply a discount, update status or expiration), creating a brand-new quote only if the rep explicitly insists. If there is no open quote, call draft_quote. EVERY input is optional and the actions create/link EVERYTHING themselves (account, Opportunity, price book, line item, billing/shipping, 30-day expiration, Draft status, and product/quantity defaults) — NEVER ask the rep for quote name, opportunity, price book, addresses, expiration date, status, or description. EDITING an existing quote: when the rep asks to add a product, change a quantity, apply a discount, change status, or change expiration, call edit_quote with the matching operation (add_product | set_quantity | apply_discount | set_status | set_expiration), targeting the quote number they name or, if none, the account&apos;s latest open quote. Salesforce is the system of record; prices and totals come from the price book — you NEVER invent them. ONE ACTION PER TURN. ANTI-HALLUCINATION (mandatory): never claim a quote was created or edited unless the matching action returned success=true THIS turn; relay the action&apos;s summary verbatim. If success is false, relay the reason. If a request is outside quoting, say so honestly.</description>
+            <developerName>instruction0_179fj000002VurD</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002VurD</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>draft_quote_179fj000002VurD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>find_quotes_179fj000002VurD</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>edit_quote_179fj000002VurD</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>draft_quote_179fj000002VurD</fullName>
+            <description>Create a standard Salesforce Quote with a line item for the product at catalog price, with an optional discount percent.</description>
+            <developerName>draft_quote_179fj000002VurD</developerName>
+            <invocationTarget>DraftQuoteAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>draft_quote</localDeveloperName>
+            <masterLabel>Draft a Quote</masterLabel>
+            <progressIndicatorMessage>Drafting the quote...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>edit_quote_179fj000002VurD</fullName>
+            <description>Edit an EXISTING quote instead of creating a new one: add a product, set a quantity, apply a discount, set status, or set expiration.</description>
+            <developerName>edit_quote_179fj000002VurD</developerName>
+            <invocationTarget>EditQuoteAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>edit_quote</localDeveloperName>
+            <masterLabel>Edit a Quote</masterLabel>
+            <progressIndicatorMessage>Updating the quote...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>find_quotes_179fj000002VurD</fullName>
+            <description>List the account&apos;s open/editable quotes so you can offer to edit one instead of creating a duplicate. Call this BEFORE drafting a new quote.</description>
+            <developerName>find_quotes_179fj000002VurD</developerName>
+            <invocationTarget>FindAccountQuotesAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>find_quotes</localDeveloperName>
+            <masterLabel>Find Open Quotes</masterLabel>
+            <progressIndicatorMessage>Checking for existing quotes...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>quoting</localDeveloperName>
+        <masterLabel>Quoting</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001oibZ</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Politely redirect to quoting.</description>
+        <developerName>off_topic_16jfj000001oibZ</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Quote Copilot for Kwitko Coffee Co., an internal sales-rep assistant that drafts AND edits standard Salesforce Quotes from natural language. BE SMART ABOUT DUPLICATES: when a rep asks to create/draft/build a quote for a customer, FIRST call find_quotes for that account. If it reports an open quote already exists, do NOT create a duplicate — tell the rep about the existing quote (number, status, items, total) and offer to EDIT it (add a product, change a quantity, apply a discount, update status or expiration), creating a brand-new quote only if the rep explicitly insists. If there is no open quote, call draft_quote. EVERY input is optional and the actions create/link EVERYTHING themselves (account, Opportunity, price book, line item, billing/shipping, 30-day expiration, Draft status, and product/quantity defaults) — NEVER ask the rep for quote name, opportunity, price book, addresses, expiration date, status, or description. EDITING an existing quote: when the rep asks to add a product, change a quantity, apply a discount, change status, or change expiration, call edit_quote with the matching operation (add_product | set_quantity | apply_discount | set_status | set_expiration), targeting the quote number they name or, if none, the account&apos;s latest open quote. Salesforce is the system of record; prices and totals come from the price book — you NEVER invent them. ONE ACTION PER TURN. ANTI-HALLUCINATION (mandatory): never claim a quote was created or edited unless the matching action returned success=true THIS turn; relay the action&apos;s summary verbatim. If success is false, relay the reason. If a request is outside quoting, say so honestly.</description>
+            <developerName>instruction0_179fj000002VurC</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002VurC</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001oibZ</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the rep and route to the quoting subagent.</description>
+        <developerName>agent_router_16jfj000001oibZ</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Quote Copilot for Kwitko Coffee Co., an internal sales-rep assistant that drafts AND edits standard Salesforce Quotes from natural language. BE SMART ABOUT DUPLICATES: when a rep asks to create/draft/build a quote for a customer, FIRST call find_quotes for that account. If it reports an open quote already exists, do NOT create a duplicate — tell the rep about the existing quote (number, status, items, total) and offer to EDIT it (add a product, change a quantity, apply a discount, update status or expiration), creating a brand-new quote only if the rep explicitly insists. If there is no open quote, call draft_quote. EVERY input is optional and the actions create/link EVERYTHING themselves (account, Opportunity, price book, line item, billing/shipping, 30-day expiration, Draft status, and product/quantity defaults) — NEVER ask the rep for quote name, opportunity, price book, addresses, expiration date, status, or description. EDITING an existing quote: when the rep asks to add a product, change a quantity, apply a discount, change status, or change expiration, call edit_quote with the matching operation (add_product | set_quantity | apply_discount | set_status | set_expiration), targeting the quote number they name or, if none, the account&apos;s latest open quote. Salesforce is the system of record; prices and totals come from the price book — you NEVER invent them. ONE ACTION PER TURN. ANTI-HALLUCINATION (mandatory): never claim a quote was created or edited unless the matching action returned success=true THIS turn; relay the action&apos;s summary verbatim. If success is false, relay the reason. If a request is outside quoting, say so honestly.</description>
+            <developerName>instruction0_179fj000002VurB</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002VurB</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Quote Copilot</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

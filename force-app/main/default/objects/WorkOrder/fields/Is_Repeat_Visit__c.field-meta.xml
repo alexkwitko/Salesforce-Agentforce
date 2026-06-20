@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Is_Repeat_Visit__c</fullName>
+    <label>Is Repeat Visit</label>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <description>Set when this call occurred within 30 days of a prior completed call on the same asset (fix-right-first-time miss).</description>
+    <inlineHelpText>This call was a repeat within 30 days of a prior call on the same asset.</inlineHelpText>
+</CustomField>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CspTrustedSite xmlns="http://soap.sforce.com/2006/04/metadata">
+    <canAccessCamera>false</canAccessCamera>
+    <canAccessMicrophone>false</canAccessMicrophone>
+    <context>All</context>
+    <description>Bean &amp; Brew D2C (LWR) storefront — allowlisted so the Concierge agent can present product/cart links without URL redaction.</description>
+    <endpointUrl>https://orgfarm-162e45523f-dev-ed.develop.my.site.com</endpointUrl>
+    <isActive>true</isActive>
+    <isApplicableToConnectSrc>true</isApplicableToConnectSrc>
+    <isApplicableToFontSrc>false</isApplicableToFontSrc>
+    <isApplicableToFrameSrc>false</isApplicableToFrameSrc>
+    <isApplicableToImgSrc>false</isApplicableToImgSrc>
+    <isApplicableToMediaSrc>false</isApplicableToMediaSrc>
+    <isApplicableToStyleSrc>false</isApplicableToStyleSrc>
+</CspTrustedSite>

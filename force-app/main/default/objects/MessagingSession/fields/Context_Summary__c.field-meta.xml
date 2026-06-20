@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Context_Summary__c</fullName>
+    <label>Context Summary</label>
+    <type>Text</type>
+    <length>255</length>
+    <description>Compact pre-stamped 360 context for a signed-in shopper, read by the Concierge as a linked variable so authenticated context costs zero Agentforce actions.</description>
+</CustomField>

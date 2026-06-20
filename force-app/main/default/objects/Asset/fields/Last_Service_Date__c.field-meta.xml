@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Last_Service_Date__c</fullName>
+    <label>Last Service Date</label>
+    <type>Date</type>
+    <required>false</required>
+    <description>Date of the most recent completed service call.</description>
+    <inlineHelpText>Date of the most recent completed service call.</inlineHelpText>
+</CustomField>

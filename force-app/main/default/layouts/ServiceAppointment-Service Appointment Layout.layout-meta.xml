@@ -247,6 +247,14 @@
         <fields>CreatedDate</fields>
         <relatedList>ServiceReportRelatedList</relatedList>
     </relatedLists>
+    <relatedLists>
+        <fields>Name</fields>
+        <fields>SurveySubInvitationName</fields>
+        <fields>SurveySubInvitationLink</fields>
+        <fields>SurveySubInvitationParticipant</fields>
+        <fields>SurveySubInvitationResStatus</fields>
+        <relatedList>SurveySubjectRecords</relatedList>
+    </relatedLists>
     <showEmailCheckbox>false</showEmailCheckbox>
     <showRunAssignmentRulesCheckbox>false</showRunAssignmentRulesCheckbox>
     <showSubmitAndAttachButton>false</showSubmitAndAttachButton>

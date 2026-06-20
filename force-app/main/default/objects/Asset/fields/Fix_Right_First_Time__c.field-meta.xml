@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Fix_Right_First_Time__c</fullName>
+    <label>Fix Right First Time %</label>
+    <type>Number</type>
+    <precision>5</precision>
+    <scale>1</scale>
+    <required>false</required>
+    <description>Percent of service calls with no repeat visit for the same asset within 30 days.</description>
+    <inlineHelpText>Percent of service calls with no repeat visit for the same asset within 30 days.</inlineHelpText>
+</CustomField>

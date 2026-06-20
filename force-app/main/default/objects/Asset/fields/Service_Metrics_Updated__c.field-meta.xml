@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Service_Metrics_Updated__c</fullName>
+    <label>Service Metrics Updated</label>
+    <type>DateTime</type>
+    <required>false</required>
+    <description>When the service metrics were last recalculated.</description>
+    <inlineHelpText>When the service metrics were last recalculated.</inlineHelpText>
+</CustomField>

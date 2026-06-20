@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Mean_Time_To_Repair_Days__c</fullName>
+    <label>Mean Time To Repair (days)</label>
+    <type>Number</type>
+    <precision>8</precision>
+    <scale>1</scale>
+    <required>false</required>
+    <description>Average days from issue reported to service completed.</description>
+    <inlineHelpText>Average days from issue reported to service completed.</inlineHelpText>
+</CustomField>

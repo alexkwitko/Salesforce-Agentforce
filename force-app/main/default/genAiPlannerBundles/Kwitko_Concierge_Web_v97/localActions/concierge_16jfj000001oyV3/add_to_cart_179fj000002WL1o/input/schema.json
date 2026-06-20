@@ -1,0 +1,35 @@
+{
+  "required" : [ "productIdsCsv" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "brand" : {
+      "title" : "Brand",
+      "description" : "The SITE the chat is on. ALWAYS pass @variables.brand ('Kwitko Coffee' or 'Bean & Brew') so the cart link goes to the correct storefront (Kwitko=WooCommerce; Bean & Brew=the D2C store). Never omit it.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "couponCode" : {
+      "title" : "Coupon Code",
+      "description" : "Optional discount coupon code to apply.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "productIdsCsv" : {
+      "title" : "Product Ids CSV",
+      "description" : "Comma-separated Salesforce product ids to add — use primaryProductId and complementaryProductId from the recommendation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "ALWAYS pass @variables.loggedInEmail (the signed-in shopper's verified email). Bean & Brew (the D2C store) uses it to confirm the shopper is a registered buyer of this store; if it is empty or not a registered buyer the action returns success=false with a not-registered message. Never omit it.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

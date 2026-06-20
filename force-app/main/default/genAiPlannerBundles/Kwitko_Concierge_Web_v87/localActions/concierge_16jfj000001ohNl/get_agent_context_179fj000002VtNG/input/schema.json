@@ -1,0 +1,35 @@
+{
+  "required" : [ "agentName" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "agentName" : {
+      "title" : "Agent Name",
+      "description" : "Pass Kwitko_Concierge_Web.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "Optional. Leave blank for anonymous shopping and recommendations; pass only when the shopper is signed in or voluntarily shared email.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "intent" : {
+      "title" : "Intent",
+      "description" : "Current shopping, recommendation, cart, service, or handoff intent.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "Pass loggedInEmail when available. Leave empty if the shopper is not verified.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

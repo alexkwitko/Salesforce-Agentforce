@@ -12,6 +12,8 @@ public without sharing class CustomerLookupService {
     public class Result {
         @InvocableVariable public Boolean isReturning;
         @InvocableVariable public String customerStatus;   // Prospect / Customer
+        @InvocableVariable public Boolean isMultiBrand;     // verified: has purchased from more than one brand (coffee + equipment)
+        @InvocableVariable public String brandsPurchased;   // verified: the brands this customer has bought from
         @InvocableVariable public Integer orderCount;
         @InvocableVariable public Decimal lifetimeValue;
         @InvocableVariable public String favoriteCategory;
@@ -63,6 +65,7 @@ public without sharing class CustomerLookupService {
 
         List<Account> accs = [
             SELECT Id, Name, Customer_Status__c, Coffee_Preferences__c, Email_Consent__c,
+                   Is_Multi_Brand__c, Brands_Purchased__c,
                    Data_Cloud_Segment__c, Data_Cloud_Churn_Risk__c, Data_Cloud_Next_Best_Action__c,
                    Data_Cloud_Order_Count__c, Data_Cloud_Lifetime_Value__c, Data_Cloud_Favorite_Category__c,
                    Data_Cloud_Last_Augmented_At__c, Data_Cloud_Profile_Summary__c
@@ -81,6 +84,8 @@ public without sharing class CustomerLookupService {
         res.emailConsent = a.Email_Consent__c == true;   // existing consent — agent must not re-ask if true
         res.customerStatus = String.isBlank(a.Customer_Status__c) ? 'Prospect' : a.Customer_Status__c;
         if (verified) {
+            res.isMultiBrand = a.Is_Multi_Brand__c == true;
+            res.brandsPurchased = a.Brands_Purchased__c;
             res.orderCount = [SELECT count() FROM Order WHERE AccountId = :a.Id];
             for (AggregateResult ar : [SELECT SUM(TotalAmount) s, MAX(EffectiveDate) d FROM Order WHERE AccountId = :a.Id]) {
                 res.lifetimeValue = (Decimal) (ar.get('s') == null ? 0 : ar.get('s'));

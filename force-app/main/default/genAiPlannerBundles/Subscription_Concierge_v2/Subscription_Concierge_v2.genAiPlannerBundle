@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Natural-language front door to RLM coffee subscriptions: view install base, provision, amend (seats), renew, and cancel — backed by the SubscriptionConcierge Apex actions on the Asset object.</description>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jfj000001otgf</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>off_topic_16jfj000001otgf</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>subscriptions_16jfj000001otgf</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>subscriptions_16jfj000001otgf</fullName>
+        <canEscalate>false</canEscalate>
+        <description>View, provision, amend, renew, and cancel coffee subscriptions for a customer.</description>
+        <developerName>subscriptions_16jfj000001otgf</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Subscription Concierge for Kwitko Coffee Co., the natural-language front door to the customer&apos;s coffee subscriptions (powered by Salesforce Revenue Lifecycle Management). You help a customer see what they&apos;re subscribed to, start a new subscription, change the number of seats/bags (upgrade or downgrade), renew for another term, or cancel. Salesforce is the system of record; the actions perform the real changes. IDENTITY: you need the customer&apos;s email to look up or change their subscriptions — if you don&apos;t have it yet, ask for it once, then reuse it for every action this turn and after. The subscription product code is COFFEE-CLUB. ONE ACTION PER TURN: call exactly one action and wait for its output before the next. ANTI-HALLUCINATION (mandatory): never claim something happened — subscription started, seats changed, renewed, cancelled — unless you called the matching action THIS turn and it returned success=true; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned (quantities, dates, prices); never invent product names, prices, dates, or IDs. Always relay the action&apos;s summary to the customer. If success is false, apologize, relay the summary, and offer to try again — do not claim the change was made. Confirm intent before cancelling. If a request is outside these actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002WDgx</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002WDgx</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>get_subscriptions_179fj000002WDgx</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>provision_179fj000002WDgx</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>amend_179fj000002WDgx</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>renew_179fj000002WDgx</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>cancel_179fj000002WDgx</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>amend_179fj000002WDgx</fullName>
+            <description>Change the quantity (seats/bags) on the customer&apos;s existing subscription.</description>
+            <developerName>amend_179fj000002WDgx</developerName>
+            <invocationTarget>SubAmend</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>amend</localDeveloperName>
+            <masterLabel>Amend Subscription</masterLabel>
+            <progressIndicatorMessage>Updating your subscription...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>renew_179fj000002WDgx</fullName>
+            <description>Renew the customer&apos;s subscription for another term.</description>
+            <developerName>renew_179fj000002WDgx</developerName>
+            <invocationTarget>SubRenew</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>renew</localDeveloperName>
+            <masterLabel>Renew Subscription</masterLabel>
+            <progressIndicatorMessage>Renewing your subscription...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>provision_179fj000002WDgx</fullName>
+            <description>Start a new subscription for the customer to the COFFEE-CLUB product.</description>
+            <developerName>provision_179fj000002WDgx</developerName>
+            <invocationTarget>SubProvision</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>provision</localDeveloperName>
+            <masterLabel>Provision Subscription</masterLabel>
+            <progressIndicatorMessage>Setting up your subscription...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>cancel_179fj000002WDgx</fullName>
+            <description>Cancel the customer&apos;s active subscription. Confirm intent before calling.</description>
+            <developerName>cancel_179fj000002WDgx</developerName>
+            <invocationTarget>SubCancel</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>cancel</localDeveloperName>
+            <masterLabel>Cancel Subscription</masterLabel>
+            <progressIndicatorMessage>Cancelling your subscription...</progressIndicatorMessage>
+        </localActions>
+        <localActions>
+            <fullName>get_subscriptions_179fj000002WDgx</fullName>
+            <description>List the customer&apos;s active subscriptions. Call this first when the customer asks what they have.</description>
+            <developerName>get_subscriptions_179fj000002WDgx</developerName>
+            <invocationTarget>SubGetMySubscriptions</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>true</isIncludeInProgressIndicator>
+            <localDeveloperName>get_subscriptions</localDeveloperName>
+            <masterLabel>Get My Subscriptions</masterLabel>
+            <progressIndicatorMessage>Looking up your subscriptions...</progressIndicatorMessage>
+        </localActions>
+        <localDeveloperName>subscriptions</localDeveloperName>
+        <masterLabel>Subscriptions</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>off_topic_16jfj000001otgf</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Politely redirect to subscription topics.</description>
+        <developerName>off_topic_16jfj000001otgf</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Subscription Concierge for Kwitko Coffee Co., the natural-language front door to the customer&apos;s coffee subscriptions (powered by Salesforce Revenue Lifecycle Management). You help a customer see what they&apos;re subscribed to, start a new subscription, change the number of seats/bags (upgrade or downgrade), renew for another term, or cancel. Salesforce is the system of record; the actions perform the real changes. IDENTITY: you need the customer&apos;s email to look up or change their subscriptions — if you don&apos;t have it yet, ask for it once, then reuse it for every action this turn and after. The subscription product code is COFFEE-CLUB. ONE ACTION PER TURN: call exactly one action and wait for its output before the next. ANTI-HALLUCINATION (mandatory): never claim something happened — subscription started, seats changed, renewed, cancelled — unless you called the matching action THIS turn and it returned success=true; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned (quantities, dates, prices); never invent product names, prices, dates, or IDs. Always relay the action&apos;s summary to the customer. If success is false, apologize, relay the summary, and offer to try again — do not claim the change was made. Confirm intent before cancelling. If a request is outside these actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002WDgw</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002WDgw</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>off_topic</localDeveloperName>
+        <masterLabel>Off Topic</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jfj000001otgf</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Welcome the customer and route to the subscription subagent.</description>
+        <developerName>agent_router_16jfj000001otgf</developerName>
+        <genAiPluginInstructions>
+            <description>You are the Subscription Concierge for Kwitko Coffee Co., the natural-language front door to the customer&apos;s coffee subscriptions (powered by Salesforce Revenue Lifecycle Management). You help a customer see what they&apos;re subscribed to, start a new subscription, change the number of seats/bags (upgrade or downgrade), renew for another term, or cancel. Salesforce is the system of record; the actions perform the real changes. IDENTITY: you need the customer&apos;s email to look up or change their subscriptions — if you don&apos;t have it yet, ask for it once, then reuse it for every action this turn and after. The subscription product code is COFFEE-CLUB. ONE ACTION PER TURN: call exactly one action and wait for its output before the next. ANTI-HALLUCINATION (mandatory): never claim something happened — subscription started, seats changed, renewed, cancelled — unless you called the matching action THIS turn and it returned success=true; if you did not call it, it did NOT happen, so never say it did or &apos;will&apos;. Only state values an action returned (quantities, dates, prices); never invent product names, prices, dates, or IDs. Always relay the action&apos;s summary to the customer. If success is false, apologize, relay the summary, and offer to try again — do not claim the change was made. Confirm intent before cancelling. If a request is outside these actions, say so honestly and stop.</description>
+            <developerName>instruction0_179fj000002WDgv</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179fj000002WDgv</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Subscription Concierge</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

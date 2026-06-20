@@ -1,11 +1,16 @@
 /**
- * Stamps MessagingSession.Brand__c from the originating channel (the SITE the chat is on),
- * so the Concierge's linked `brand` var scopes recommendations to the right catalog
- * (Kwitko Coffee -> coffee; Bean & Brew -> equipment) WITHOUT depending on an embedded-deployment
- * publish of a prechat parameter. Runs before insert so the value is present at session START,
- * which is when the agent's linked variable resolves.
+ * Stamps MessagingSession.Brand__c AND MessagingSession.Customer_Brief__c at session START
+ * (before insert), so the Concierge's linked `brand` and `sessionContext` variables resolve for FREE
+ * (no Agentforce action / no Flex Credits):
+ *   - Brand__c          <- the originating channel (the SITE the chat is on) -> scopes recommendations.
+ *   - Customer_Brief__c <- a RICH read-only brief for the signed-in shopper (profile 360 + last order
+ *                          + items + open cases + service visits + subscriptions) built by
+ *                          CustomerBriefBuilder from CRM, so the agent rarely needs a live action.
  *
- * To brand-scope a new storefront's chat: add its MessagingChannel DeveloperName -> brand below.
+ * The brief is stamped only when the session carries the signed-in email at insert
+ * (Kwitko_Logged_In_Email__c, from prechat). Guests / OTP-verify-mid-chat get a blank brief
+ * (the agent falls back to the live actions only in that case).
+ *
  * Defensive by design: any failure is swallowed so it can never block chat session creation.
  */
 public without sharing class MessagingSessionBrandStamp {
@@ -24,26 +29,53 @@ public without sharing class MessagingSessionBrandStamp {
         return CHANNEL_BRAND.get(channelDevName);
     }
 
-    /** Before-insert: set Brand__c from the session's channel when not already provided. */
+    /** Before-insert: set Brand__c (from channel) and Customer_Brief__c (from the signed-in Account). */
     public static void stamp(List<MessagingSession> sessions) {
         if (sessions == null || sessions.isEmpty()) return;
         try {
             Set<Id> chIds = new Set<Id>();
+            Set<String> emails = new Set<String>();
             for (MessagingSession s : sessions) {
                 if (String.isBlank(s.Brand__c) && s.MessagingChannelId != null) chIds.add(s.MessagingChannelId);
+                if (String.isBlank(s.Customer_Brief__c) && String.isNotBlank(s.Kwitko_Logged_In_Email__c)) {
+                    emails.add(s.Kwitko_Logged_In_Email__c.toLowerCase());
+                }
             }
-            if (chIds.isEmpty()) return;
+
+            // Brand: channel -> brand
             Map<Id,String> devByChannel = new Map<Id,String>();
-            for (MessagingChannel c : [SELECT Id, DeveloperName FROM MessagingChannel WHERE Id IN :chIds]) {
-                devByChannel.put(c.Id, c.DeveloperName);
+            if (!chIds.isEmpty()) {
+                for (MessagingChannel c : [SELECT Id, DeveloperName FROM MessagingChannel WHERE Id IN :chIds]) {
+                    devByChannel.put(c.Id, c.DeveloperName);
+                }
             }
+
+            // Brief: email -> account -> rich brief
+            Map<String,Id> acctByEmail = new Map<String,Id>();
+            if (!emails.isEmpty()) {
+                for (Account a : [SELECT Id, PersonEmail FROM Account WHERE PersonEmail IN :emails AND IsPersonAccount = true]) {
+                    if (String.isNotBlank(a.PersonEmail)) acctByEmail.put(a.PersonEmail.toLowerCase(), a.Id);
+                }
+            }
+            Map<Id,String> briefByAcct = acctByEmail.isEmpty()
+                ? new Map<Id,String>()
+                : CustomerBriefBuilder.briefsByAccount(new Set<Id>(acctByEmail.values()));
+
             for (MessagingSession s : sessions) {
-                if (!String.isBlank(s.Brand__c) || s.MessagingChannelId == null) continue;
-                String b = brandFor(devByChannel.get(s.MessagingChannelId));
-                if (b != null) s.Brand__c = b;
+                if (String.isBlank(s.Brand__c) && s.MessagingChannelId != null) {
+                    String b = brandFor(devByChannel.get(s.MessagingChannelId));
+                    if (b != null) s.Brand__c = b;
+                }
+                if (String.isBlank(s.Customer_Brief__c) && String.isNotBlank(s.Kwitko_Logged_In_Email__c)) {
+                    Id aid = acctByEmail.get(s.Kwitko_Logged_In_Email__c.toLowerCase());
+                    String brief = (aid != null) ? briefByAcct.get(aid) : null;
+                    if (String.isNotBlank(brief)) {
+                        s.Customer_Brief__c = brief.length() > 32000 ? brief.substring(0, 32000) : brief;
+                    }
+                }
             }
         } catch (Exception e) {
-            // Never block session creation on a brand-stamp problem.
+            // Never block session creation on a stamp problem.
             System.debug(LoggingLevel.WARN, 'MessagingSessionBrandStamp skipped: ' + e.getMessage());
         }
     }

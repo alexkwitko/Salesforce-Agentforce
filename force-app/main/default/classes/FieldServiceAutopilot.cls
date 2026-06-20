@@ -77,7 +77,150 @@ public with sharing class FieldServiceAutopilot {
     }
     static Double rad(Double d) { return d * Math.PI / 180.0; }
 
-    /** Chained Queueable — schedules one SA per execution to respect callout/CPU limits. */
+    private static final Set<String> SA_OPEN =
+        new Set<String>{ 'None', 'Scheduled', 'Dispatched', 'In Progress' };
+
+    /**
+     * AFTER UPDATE: roll Service Appointment progress up to the parent Work Order.
+     *  - SA -> In Progress / Dispatched : WO -> In Progress (so the Case -> Working)
+     *  - SA -> Completed : if NO sibling SA is still open, WO -> Completed
+     *    (a pending return visit keeps the WO open). WO change then drives the Case.
+     */
+    public static void syncWorkOrders(List<ServiceAppointment> news, Map<Id, ServiceAppointment> oldMap) {
+        Set<Id> woCompleteCandidates = new Set<Id>();
+        Set<Id> woInProgress = new Set<Id>();
+        for (ServiceAppointment sa : news) {
+            if (sa.ParentRecordId == null || sa.ParentRecordId.getSObjectType() != WorkOrder.SObjectType) continue;
+            String oldStatus = oldMap.get(sa.Id).Status;
+            if (oldStatus == sa.Status) continue;
+            if (sa.Status == 'Completed') woCompleteCandidates.add(sa.ParentRecordId);
+            else if (sa.Status == 'In Progress' || sa.Status == 'Dispatched') woInProgress.add(sa.ParentRecordId);
+        }
+        if (woCompleteCandidates.isEmpty() && woInProgress.isEmpty()) return;
+
+        // For completion candidates, check whether any sibling SA is still open.
+        Set<Id> stillOpen = new Set<Id>();
+        if (!woCompleteCandidates.isEmpty()) {
+            for (ServiceAppointment sib : [
+                SELECT ParentRecordId, Status FROM ServiceAppointment
+                WHERE ParentRecordId IN :woCompleteCandidates AND Status IN :SA_OPEN
+            ]) {
+                stillOpen.add(sib.ParentRecordId);
+            }
+        }
+
+        Map<Id, WorkOrder> updates = new Map<Id, WorkOrder>();
+        for (Id woId : woInProgress) updates.put(woId, new WorkOrder(Id = woId, Status = 'In Progress'));
+        for (Id woId : woCompleteCandidates) {
+            if (!stillOpen.contains(woId)) updates.put(woId, new WorkOrder(Id = woId, Status = 'Completed'));
+        }
+        if (updates.isEmpty()) return;
+
+        // Don't overwrite WOs already at/after the target.
+        List<WorkOrder> toUpdate = new List<WorkOrder>();
+        for (WorkOrder cur : [SELECT Id, Status FROM WorkOrder WHERE Id IN :updates.keySet()]) {
+            WorkOrder desired = updates.get(cur.Id);
+            if (cur.Status == desired.Status) continue;
+            if (cur.Status == 'Completed' || cur.Status == 'Closed') continue;
+            toUpdate.add(desired);
+        }
+        if (!toUpdate.isEmpty()) update toUpdate; // fires WorkOrderCaseSync -> Case
+    }
+
+    /**
+     * Candidate-engine scheduling (NO ES&O optimizer). Uses FSL.AppointmentBookingService.GetSlots
+     * — which works on the base managed package — to find a real available window honoring operating
+     * hours + work rules + existing appointments, then books the best one and assigns a territory
+     * resource. Replaces FSL.ScheduleService.schedule() (the optimizer), which throws "Schedule
+     * optimization incomplete" until ES&O is provisioned. Returns true if it booked the SA.
+     */
+    public static Boolean candidateSchedule(Id saId) {
+        List<ServiceAppointment> sas = [
+            SELECT Id, Status, ServiceTerritoryId, ServiceTerritory.OperatingHoursId, Duration, DurationType
+            FROM ServiceAppointment WHERE Id = :saId LIMIT 1
+        ];
+        if (sas.isEmpty()) return false;
+        ServiceAppointment sa = sas[0];
+        if (sa.Status != 'None' || sa.ServiceTerritoryId == null || sa.ServiceTerritory.OperatingHoursId == null) return false;
+
+        List<FSL__Scheduling_Policy__c> pol = [SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = :policyName LIMIT 1];
+        if (pol.isEmpty() || Test.isRunningTest()) return false;
+
+        List<FSL.AppointmentBookingSlot> slots;
+        try {
+            slots = FSL.AppointmentBookingService.GetSlots(
+                saId, pol[0].Id, sa.ServiceTerritory.OperatingHoursId,
+                TimeZone.getTimeZone(UserInfo.getTimeZone().getID()), false);
+        } catch (Exception e) {
+            System.debug(LoggingLevel.WARN, 'candidateSchedule GetSlots failed for ' + saId + ': ' + e.getMessage());
+            return false;
+        }
+        if (slots == null || slots.isEmpty()) return false;
+
+        FSL.AppointmentBookingSlot best = slots[0];
+        for (FSL.AppointmentBookingSlot s : slots) {
+            if (s.Grade != null && (best.Grade == null || s.Grade > best.Grade)) best = s;
+        }
+        Integer durMin = 60;
+        if (sa.Duration != null) durMin = (sa.DurationType == 'Hours') ? Integer.valueOf(sa.Duration * 60) : Integer.valueOf(sa.Duration);
+        return bookSlot(saId, best.Interval.Start, durMin);
+    }
+
+    /**
+     * Commit a specific time onto an SA: set the scheduled window + arrival window, assign an active
+     * resource from the SA's territory, and move it to Scheduled. Used by candidateSchedule (auto) and
+     * by the "confirm a chosen slot" action. No FSL callout — fully unit-testable.
+     */
+    public static Boolean bookSlot(Id saId, Datetime start, Integer durMin) {
+        if (saId == null || start == null) return false;
+        Integer dur = (durMin == null || durMin <= 0) ? 60 : durMin;
+        List<ServiceAppointment> sas = [SELECT Id, ServiceTerritoryId FROM ServiceAppointment WHERE Id = :saId LIMIT 1];
+        if (sas.isEmpty()) return false;
+
+        update new ServiceAppointment(Id = saId, SchedStartTime = start, SchedEndTime = start.addMinutes(dur),
+            ArrivalWindowStartTime = start, ArrivalWindowEndTime = start.addHours(2));
+
+        if (sas[0].ServiceTerritoryId == null) return false;
+        List<ServiceTerritoryMember> m = [
+            SELECT ServiceResourceId FROM ServiceTerritoryMember
+            WHERE ServiceTerritoryId = :sas[0].ServiceTerritoryId AND ServiceResource.IsActive = true
+            ORDER BY CreatedDate ASC LIMIT 1
+        ];
+        if (m.isEmpty()) return false;
+        insert new AssignedResource(ServiceAppointmentId = saId, ServiceResourceId = m[0].ServiceResourceId);
+        update new ServiceAppointment(Id = saId, Status = 'Scheduled');
+        return true;
+    }
+
+    /**
+     * REAL available arrival windows for a (settled) appointment, via the candidate engine —
+     * each FSL availability interval sliced into AM/PM windows. Empty if not schedulable / on error.
+     */
+    public static List<FieldServiceSlots.Slot> realSlots(Id saId) {
+        List<FieldServiceSlots.Slot> out = new List<FieldServiceSlots.Slot>();
+        if (saId == null) return out;
+        List<ServiceAppointment> sas = [
+            SELECT ServiceTerritoryId, ServiceTerritory.OperatingHoursId
+            FROM ServiceAppointment WHERE Id = :saId LIMIT 1
+        ];
+        if (sas.isEmpty() || sas[0].ServiceTerritoryId == null || sas[0].ServiceTerritory.OperatingHoursId == null) return out;
+        List<FSL__Scheduling_Policy__c> pol = [SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = :policyName LIMIT 1];
+        if (pol.isEmpty() || Test.isRunningTest()) return out;
+        try {
+            List<FSL.AppointmentBookingSlot> raw = FSL.AppointmentBookingService.GetSlots(
+                saId, pol[0].Id, sas[0].ServiceTerritory.OperatingHoursId,
+                TimeZone.getTimeZone(UserInfo.getTimeZone().getID()), false);
+            for (FSL.AppointmentBookingSlot s : raw) {
+                out.addAll(FieldServiceSlots.sliceInterval(s.Interval.Start, s.Interval.Finish));
+                if (out.size() >= 8) break;
+            }
+        } catch (Exception e) {
+            System.debug(LoggingLevel.WARN, 'realSlots failed for ' + saId + ': ' + e.getMessage());
+        }
+        return out;
+    }
+
+    /** Chained Queueable — books one SA per execution via the candidate engine (callout + DML). */
     public class AutoScheduleQueueable implements Queueable, Database.AllowsCallouts {
         List<Id> ids;
         public AutoScheduleQueueable(List<Id> ids) { this.ids = ids; }
@@ -86,8 +229,7 @@ public with sharing class FieldServiceAutopilot {
             Id saId = ids.remove(0);
             if (!skipSchedule && !Test.isRunningTest()) {
                 try {
-                    Id policyId = [SELECT Id FROM FSL__Scheduling_Policy__c WHERE Name = :policyName LIMIT 1].Id;
-                    FSL.ScheduleService.schedule(policyId, saId);
+                    candidateSchedule(saId);
                 } catch (Exception e) {
                     System.debug(LoggingLevel.ERROR, 'FieldServiceAutopilot schedule failed for ' + saId + ': ' + e.getMessage());
                 }

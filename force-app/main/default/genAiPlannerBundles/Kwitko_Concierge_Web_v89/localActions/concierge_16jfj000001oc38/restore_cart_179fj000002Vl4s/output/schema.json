@@ -1,0 +1,46 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "couponCode" : {
+      "title" : "Coupon Code",
+      "description" : "Unredeemed coupon that auto-applies on restore, if any.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "found" : {
+      "title" : "Found",
+      "description" : "Whether a saved cart was found.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "itemsSummary" : {
+      "title" : "Items Summary",
+      "description" : "What was in the saved cart.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "message" : {
+      "title" : "Message",
+      "description" : "Agent-facing summary.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "restoreUrl" : {
+      "title" : "Restore URL",
+      "description" : "One-click link that re-adds every saved item and applies any waiting coupon.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

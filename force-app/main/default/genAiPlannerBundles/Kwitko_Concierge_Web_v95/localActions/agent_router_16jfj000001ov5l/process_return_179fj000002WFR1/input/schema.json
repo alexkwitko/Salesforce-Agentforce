@@ -1,0 +1,56 @@
+{
+  "required" : [ "email" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "chatSummary" : {
+      "title" : "Chat Summary",
+      "description" : "Faithful transcript/summary of the return follow-up so the closed Case carries the interaction.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "confirmed" : {
+      "title" : "Confirmed by Shopper",
+      "description" : "True only for a new return after explicit confirmation. For an existing Return Pending follow-up, pass false.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "Verified shopper email.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "itemsToReturn" : {
+      "title" : "Items to Return",
+      "description" : "Items the shopper wants to return, or all.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "orderIdentifier" : {
+      "title" : "Order Identifier",
+      "description" : "Order number or Woo id. Leave blank for the most recent order.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "reason" : {
+      "title" : "Return Reason",
+      "description" : "Damaged, Wrong Item, Not As Described, Changed Mind, Quality, or Other.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "Pass loggedInEmail when signed in, or the opaque OTP proof after email-code verification.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

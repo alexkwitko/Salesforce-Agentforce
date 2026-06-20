@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BotVersion xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>v95</fullName>
+    <articleAnswersGPTEnabled>false</articleAnswersGPTEnabled>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>Welcome! I can help you find what you&apos;re looking for — or help with an existing order, delivery, return, or your account. What can I do for you?</message>
+                <messageIdentifier>02c3094f-511d-4ef9-b3b1-b5dba77f21d3</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>7518a368-011a-4c98-bc38-5e425fe67444</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>b0fff94b-3338-4d97-aa0c-1db7633d393f</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Welcome</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Welcome</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>Sorry, it looks like something has gone wrong.</message>
+                <messageIdentifier>9367e551-f263-456a-83ed-ad74b07ed527</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>d33cefd0-1f0c-488f-be02-c3f241903e39</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>44532b4a-a247-4c41-81fe-e02c25de5f2b</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Rich_Content_Error_Handling</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Error Handler</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <botDialogs>
+        <botSteps>
+            <conversationSystemMessage>
+                <type>Transfer</type>
+            </conversationSystemMessage>
+            <stepIdentifier>dcc1afad-8afc-49f9-a9b6-fafcddd35bca</stepIdentifier>
+            <type>SystemMessage</type>
+        </botSteps>
+        <developerName>Transfer_To_Agent</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Transfer To Agent</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <citationsEnabled>false</citationsEnabled>
+    <conversationDefinitionPlanners>
+        <genAiPlannerName>Kwitko_Concierge_Web_v95</genAiPlannerName>
+    </conversationDefinitionPlanners>
+    <conversationSystemDialogs>
+        <dialog>Rich_Content_Error_Handling</dialog>
+        <type>ErrorHandling</type>
+    </conversationSystemDialogs>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Product name returned by the most recent build_strategy primary recommendation.</description>
+        <developerName>lastPrimaryProductName</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Last Primary Product Name</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Salesforce Product2 Id returned by the most recent build_strategy complementary recommendation. Use only when the shopper asks for the bundle or gear.</description>
+        <developerName>lastComplementaryProductId</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Last Complementary Product Id</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>Runtime condition evaluation for if statements</description>
+        <developerName>AgentScriptInternal_condition</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Runtime Condition</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The agent instructions</description>
+        <developerName>AgentScriptInternal_agent_instructions</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Agent Instructions</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The shopper&apos;s email captured in this session.</description>
+        <developerName>shopper_email</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Shopper Email</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The exact message returned by the OTP send action.</description>
+        <developerName>otpSendMessage</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Otp Send Message</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Opaque proof returned by verify_code after a correct OTP. Pass this as verifiedEmail for gated actions; never display it.</description>
+        <developerName>otpVerifiedEmail</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Otp Verified Email</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Real coupon code returned by issue_coupon. Empty means no coupon exists and no discount is applied.</description>
+        <developerName>lastCouponCode</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Last Coupon Code</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The shared context packet (get_agent_context @outputs.summary) captured on the first call this session. Reuse THIS variable in every subagent instead of re-calling the action — zero extra actions, no object re-query.</description>
+        <developerName>agentContextSummary</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Agent Context Summary</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The exact message returned by the OTP verify action.</description>
+        <developerName>otpVerifyMessage</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Otp Verify Message</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Salesforce Product2 Id returned by the most recent build_strategy primary recommendation. Use this on later add-to-cart turns.</description>
+        <developerName>lastPrimaryProductId</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Last Primary Product Id</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>True once the shopper entered a valid OTP code in this session.</description>
+        <developerName>otpVerified</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Otp Verified</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The next topic to be visited</description>
+        <developerName>AgentScriptInternal_next_topic</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Next Topic</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>True once a one-time verification code was actually sent by the OTP action.</description>
+        <developerName>otpSent</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Otp Sent</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The email address that received the current OTP code.</description>
+        <developerName>otpEmail</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Otp Email</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>True once get_agent_context has been called this session. The shared context packet is stable per session, so it is fetched ONCE and reused — never re-fetched per turn (saves a billable action each turn).</description>
+        <developerName>agentContextLoaded</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Agent Context Loaded</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <copilotPrimaryLanguage>en_US</copilotPrimaryLanguage>
+    <defaultStdObjForContactIdFltrEnabled>false</defaultStdObjForContactIdFltrEnabled>
+    <entryDialog>Welcome</entryDialog>
+    <intentDisambiguationEnabled>false</intentDisambiguationEnabled>
+    <intentV3Enabled>false</intentV3Enabled>
+    <isScriptCompatibleAgent>true</isScriptCompatibleAgent>
+    <knowledgeActionEnabled>false</knowledgeActionEnabled>
+    <knowledgeFallbackEnabled>false</knowledgeFallbackEnabled>
+    <smallTalkEnabled>false</smallTalkEnabled>
+    <staticPromptsEnabled>false</staticPromptsEnabled>
+    <stopRecPrompts>false</stopRecPrompts>
+    <stopWelcomePrompts>false</stopWelcomePrompts>
+    <surfacesEnabled>false</surfacesEnabled>
+    <toneType>Casual</toneType>
+</BotVersion>

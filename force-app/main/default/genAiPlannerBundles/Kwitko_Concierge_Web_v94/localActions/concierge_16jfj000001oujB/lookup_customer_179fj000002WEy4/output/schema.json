@@ -1,0 +1,78 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "customerStatus" : {
+      "title" : "Customer Status",
+      "description" : "Prospect or Customer.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudChurnRisk" : {
+      "title" : "Data Cloud Churn Risk",
+      "description" : "Verified-only risk signal from Account augmentation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudFavoriteCategory" : {
+      "title" : "Data Cloud Favorite Category",
+      "description" : "Verified-only category affinity from Account augmentation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudNextBestAction" : {
+      "title" : "Data Cloud Next Best Action",
+      "description" : "Verified-only next-best-action guidance from Account augmentation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "dataCloudSegment" : {
+      "title" : "Data Cloud Segment",
+      "description" : "Verified-only customer segment from Account augmentation.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "emailConsent" : {
+      "title" : "Email Consent",
+      "description" : "The customer's STORED marketing consent (captured on the website). Never ask for consent in chat — let this value drive behavior: true = may offer discounts/email follow-ups; false/unknown = help but do not market or push opt-in.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "isReturning" : {
+      "title" : "Is Returning",
+      "description" : "True if the shopper has purchased before.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "preferences" : {
+      "title" : "Saved Preferences",
+      "description" : "The shopper's saved coffee preferences as JSON (likes, dislikes, roast, format, brew). Honor these and NEVER recommend a disliked item.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "summary" : {
+      "title" : "Summary",
+      "description" : "A short summary of the shopper's history, saved preferences, and verified-only Data Cloud augmented context.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

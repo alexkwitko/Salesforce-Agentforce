@@ -54,6 +54,8 @@ public without sharing class DataCloudAugmentationService {
         DateTime webLastActivity;
         String segment = 'New';
         String churnRisk = 'Low';
+        Decimal churnScore;              // REAL Einstein churn-model probability from Churn_Predictions__dlm (0-1); null if no prediction
+        String brandSpend;               // per-brand revenue from UP_Brand_Order_Value__cio (Data Cloud CI) e.g. "Bean & Brew $2498 (2), Kwitko Coffee $854 (23)"
         String nextBestAction;
         String source = 'CRM fallback';
     }
@@ -228,6 +230,35 @@ public without sharing class DataCloudAugmentationService {
         } catch (Exception e) {
             m.returnCount = 0;
         }
+
+        // REAL Einstein churn-model score: latest Churn_Training snapshot for this account -> its
+        // prediction in Churn_Predictions__dlm (keyed by the snapshot record id). Overrides the heuristic.
+        try {
+            List<Churn_Training__c> ct = [SELECT Id FROM Churn_Training__c WHERE Account__c = :accountId ORDER BY Ref_Date__c DESC NULLS LAST LIMIT 1];
+            if (!ct.isEmpty()) {
+                List<Object> row = firstRow('SELECT PredictedChurned_c1Value__c FROM Churn_Predictions__dlm '
+                    + 'WHERE PrimaryObjectPk__c = \'' + String.escapeSingleQuotes(String.valueOf(ct[0].Id)) + '\' LIMIT 1');
+                if (row != null && cell(row, 0) != null) m.churnScore = dec(cell(row, 0));
+            }
+        } catch (Exception e) { /* prediction best-effort; heuristic remains */ }
+
+        // Per-brand spend from the brand-order-value Calculated Insight (Data Cloud, account-keyed).
+        // Surfaces actual revenue per store so the agent can tailor cross-brand conversations.
+        try {
+            List<List<Object>> brandRows = allRows('SELECT Brand__c, BrandRevenue__c, BrandItemCount__c '
+                + 'FROM UP_Brand_Order_Value__cio WHERE AccountId__c = \'' + String.escapeSingleQuotes(String.valueOf(accountId)) + '\' '
+                + 'AND BrandRevenue__c > 0 ORDER BY BrandRevenue__c DESC');
+            if (!brandRows.isEmpty()) {
+                List<String> parts = new List<String>();
+                for (List<Object> br : brandRows) {
+                    String brand = cell(br, 0) == null ? '' : String.valueOf(cell(br, 0)).replace('&amp;', '&');
+                    Decimal rev = dec(cell(br, 1));
+                    Integer items = intVal(cell(br, 2));
+                    parts.add(brand + ' $' + rev.setScale(0) + ' (' + items + ' item' + (items == 1 ? '' : 's') + ')');
+                }
+                m.brandSpend = String.join(parts, ', ');
+            }
+        } catch (Exception e) { /* brand CI best-effort */ }
         if (a.Return_Count__c != null && a.Return_Count__c.intValue() > m.returnCount) {
             m.returnCount = a.Return_Count__c.intValue();
         }
@@ -355,6 +386,10 @@ public without sharing class DataCloudAugmentationService {
         } else {
             m.churnRisk = 'Low';
         }
+        // REAL model score wins over the heuristic when available (Einstein churn model, AUC ~.98)
+        if (m.churnScore != null) {
+            m.churnRisk = m.churnScore >= 0.6 ? 'High' : (m.churnScore >= 0.3 ? 'Medium' : 'Low');
+        }
 
         if (m.churnRisk == 'High') {
             m.nextBestAction = 'Resolve the service or return issue before making a new sales offer.';
@@ -372,7 +407,7 @@ public without sharing class DataCloudAugmentationService {
     private static String buildProfileSummary(Metrics m, DataCloudProfile profile) {
         List<String> parts = new List<String>();
         parts.add('Segment ' + m.segment);
-        parts.add('risk ' + m.churnRisk);
+        parts.add('risk ' + m.churnRisk + (m.churnScore == null ? '' : ' (model ' + (m.churnScore * 100).setScale(0) + '% churn prob)'));
         parts.add(String.valueOf(m.orderCount) + ' order(s)');
         Decimal ltv = m.lifetimeValue == null ? 0 : m.lifetimeValue.setScale(2);
         parts.add('LTV ' + String.valueOf(ltv));
@@ -386,6 +421,7 @@ public without sharing class DataCloudAugmentationService {
             if (m.webLastActivity != null) web += ', last seen ' + m.webLastActivity.format();
             parts.add(web);
         }
+        if (String.isNotBlank(m.brandSpend)) parts.add('per-brand spend: ' + m.brandSpend);
         if (profile != null && profile.found) parts.add('unified profile matched');
         parts.add('next action: ' + m.nextBestAction);
         return String.join(parts, '; ');
@@ -448,6 +484,22 @@ public without sharing class DataCloudAugmentationService {
             if (cell(row, 3) != null) profile.coffeePreferences = String.valueOf(cell(row, 3));
         } catch (Exception e) {}
         return profile;
+    }
+
+    // Returns ALL rows for a Data Cloud SQL query (firstRow returns only the first).
+    private static List<List<Object>> allRows(String sql) {
+        try {
+            ConnectApi.CdpQueryInput inp = new ConnectApi.CdpQueryInput();
+            inp.sql = sql;
+            ConnectApi.CdpQueryOutputV2 out = ConnectApi.CdpQuery.queryAnsiSqlV2(inp);
+            if (out == null || out.data == null || out.data.isEmpty()) return new List<List<Object>>();
+            List<Object> rows = (List<Object>) JSON.deserializeUntyped(JSON.serialize(out.data));
+            List<List<Object>> result = new List<List<Object>>();
+            for (Object r : rows) result.add((List<Object>) r);
+            return result;
+        } catch (Exception e) {
+            return new List<List<Object>>();
+        }
     }
 
     private static List<Object> firstRow(String sql) {

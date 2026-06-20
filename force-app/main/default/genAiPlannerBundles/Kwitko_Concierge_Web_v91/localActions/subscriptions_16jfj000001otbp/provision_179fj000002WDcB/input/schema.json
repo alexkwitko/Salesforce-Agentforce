@@ -1,0 +1,35 @@
+{
+  "required" : [ "productCode" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "email" : {
+      "title" : "Email",
+      "description" : "Pass the verified email (loggedInEmail or OTP-verified).",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "productCode" : {
+      "title" : "Product Code",
+      "description" : "Use COFFEE-CLUB.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "quantity" : {
+      "title" : "Quantity (bags/seats)",
+      "description" : "Quantity (bags/seats)",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "Pass loggedInEmail when signed in, or the OTP-verified proof. The action returns NOTHING without this.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}
