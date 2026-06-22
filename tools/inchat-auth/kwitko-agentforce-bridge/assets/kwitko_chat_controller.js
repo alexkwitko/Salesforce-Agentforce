@@ -134,7 +134,8 @@
     // we know who they are. Independent of the SF prechat mapping AND of chat readiness, so the
     // engagement cross-device stitch no longer depends on the separate optional identity snippet.
     // Fires once per email per page load. Prefer the Data Cloud SDK helper; keep the old helper as a fallback.
-    if (CFG.loggedIn && CFG.email) fireDataCloudIdentify(CFG.email, CFG.firstName || "", "");
+    if (CFG.loggedIn && CFG.email)
+      fireDataCloudIdentify(CFG.email, CFG.firstName || "", "");
     if (
       !window.embeddedservice_bootstrap ||
       !embeddedservice_bootstrap.prechatAPI
@@ -175,15 +176,9 @@
       .then(function (cfg) {
         var allowed = {};
         var aliases = {
-          Logged_In_Email: [
-            "Kwitko_Logged_In_Email__c"
-          ],
-          Logged_In_First_Name: [
-            "Kwitko_Logged_In_First_Name__c"
-          ],
-          Kwitko_Cart_Token: [
-            "Kwitko_Cart_Token__c"
-          ]
+          Logged_In_Email: ["Kwitko_Logged_In_Email__c"],
+          Logged_In_First_Name: ["Kwitko_Logged_In_First_Name__c"],
+          Kwitko_Cart_Token: ["Kwitko_Cart_Token__c"]
         };
         var canonicalByAlias = {};
         Object.keys(aliases).forEach(function (canonical) {
@@ -340,7 +335,11 @@
     fetchJSON(CFG.cartUrl + "?token=" + encodeURIComponent(token()))
       .then(function (q) {
         if (!q || !q.items || !q.items.length) return;
-        var replaceCart = q.clear === true || q.clear === "true" || q.clear === 1 || q.clear === "1";
+        var replaceCart =
+          q.clear === true ||
+          q.clear === "true" ||
+          q.clear === 1 ||
+          q.clear === "1";
         addItemsLive(q.items, q.coupon).then(function (ok) {
           // Clear the queue either way so it isn't re-applied.
           fetch(CFG.cartUrl + "?token=" + encodeURIComponent(token()), {
