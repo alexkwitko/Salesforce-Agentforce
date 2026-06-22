@@ -30,14 +30,20 @@ export default class BbStats extends LightningElement {
             const dec = parseInt(el.dataset.dec || '0', 10);
             const dur = 1500;
             let start = null;
-            const fmt = (v) => (dec ? v.toFixed(dec) : Math.round(v).toLocaleString());
+            const fmt = (v) => {
+                return dec ? v.toFixed(dec) : Math.round(v).toLocaleString();
+            };
             const step = (ts) => {
                 if (start === null) start = ts;
                 const p = Math.min((ts - start) / dur, 1);
                 const eased = 1 - Math.pow(1 - p, 3);
                 el.textContent = fmt(target * eased);
-                if (p < 1) { requestAnimationFrame(step); } else { el.textContent = fmt(target); }
+                if (p < 1) {
+                    // eslint-disable-next-line @lwc/lwc/no-async-operation
+                    requestAnimationFrame(step);
+                } else { el.textContent = fmt(target); }
             };
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
             requestAnimationFrame(step);
         });
     }
