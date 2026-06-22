@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Product_Specs__c</fullName>
+    <description>Deterministic, authored product detail/spec sheet the Concierge relays verbatim so it never invents specs. Beans: origin, roast, bean type, brew style, flavor profile, tasting notes. Equipment: specs + best use case. Composed from the product's real attributes; returned by build_strategy (primarySpecs/complementarySpecs).</description>
+    <externalId>false</externalId>
+    <label>Product Specs</label>
+    <length>2000</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>5</visibleLines>
+</CustomField>

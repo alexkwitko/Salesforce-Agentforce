@@ -1,0 +1,22 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "found" : {
+      "title" : "Found",
+      "description" : "Whether at least one product had specs on file.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "specs" : {
+      "title" : "Specs",
+      "description" : "One line per product (Name: specs). Relay these verbatim; if a line says '(no detailed specs on file)' say you don't have full details on that item rather than inventing any.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

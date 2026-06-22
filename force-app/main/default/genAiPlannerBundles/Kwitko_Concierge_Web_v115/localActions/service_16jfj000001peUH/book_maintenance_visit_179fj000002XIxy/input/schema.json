@@ -1,0 +1,28 @@
+{
+  "required" : [ ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "email" : {
+      "title" : "Email",
+      "description" : "Pass the verified email (loggedInEmail or OTP-verified).",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "preferredDate" : {
+      "title" : "Preferred date (YYYY-MM-DD)",
+      "description" : "Preferred date (YYYY-MM-DD)",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "Pass loggedInEmail when signed in, or the OTP-verified proof. The action returns NOTHING without this.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

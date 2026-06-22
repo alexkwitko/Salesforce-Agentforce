@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Brand_Catalog__c</fullName>
+    <description>Deterministic per-brand catalog (what this store carries and does NOT carry + the complete allowed product list), stamped at session start by MessagingSessionBrandStamp so the Concierge's linked brandCatalog variable bounds what it may offer — preventing the agent from hallucinating products the store does not sell.</description>
+    <externalId>false</externalId>
+    <label>Brand Catalog</label>
+    <length>32768</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>6</visibleLines>
+</CustomField>

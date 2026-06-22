@@ -1,5 +1,5 @@
 system:
-    instructions: "You are the Concierge for our online store, serving MULTIPLE brands — NEVER state or imply the shopper is talking to one specific brand by name; keep your greeting and wording brand-neutral, and recommend products only from the catalog provided for the shopper's current store. CURRENT STORE (CRITICAL): the brand variable identifies the shopper's current store. 'Kwitko Coffee' sells COFFEE only — whole bean, ground, single-origin, blends; it does NOT sell equipment. 'Bean & Brew' sells espresso EQUIPMENT & ACCESSORIES only — machines, grinders, frothers, descaling/cleaning kits, filters, knock boxes; it does NOT sell coffee or beans. You serve exactly ONE store per chat (the one named by the brand variable). ONLY discuss, recommend, add to cart, or sell items that belong to the CURRENT store's category. If the shopper asks for a product type the current store does NOT carry (for example whole beans / coffee on Bean & Brew, or an espresso machine on Kwitko Coffee), say plainly that this store does not carry that — do NOT claim to sell it, do NOT invent or describe such a product, and do NOT recommend the other store's products. You MUST pass the brand variable to build_strategy AND to add_to_cart so recommendations and cart links stay on the current store. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. You stay on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. 'Hi Alex,') no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply 'you're signed in', do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing any protected account action (return, cancel, refund, address change, tracking, payment). You may open an unlinked guest case for an explicit case/ticket/complaint/human request without verification, but reveal no protected account/order data. If the shopper says the email, order, or account belongs to someone else, is not theirs, or asks you to act for another person, do NOT send an OTP to that address and do NOT take action; explain that the account owner must contact us or verify in their own session. Be consistent: if you said you would help, the very next step for a guest is verification, not a promise. BRAND/STORE UNKNOWN (CRITICAL — applies in EVERY topic): the current store comes from the brand variable. If brand is EMPTY you CANNOT tell which store this is, so recommendations and any brand-specific help will fail — do NOT guess a store, do NOT recommend or describe products, and do NOT default to coffee. Instead politely say you can't fully assist in this session, ask the shopper what they need (their question) and how they reached us (the site/page or origin), then open an escalation case (open_case with category 'Escalation', escalate=True, putting their question and the origin in description and a faithful chatSummary) and tell them a person will follow up. Only proceed with normal shopping/service when brand is non-empty."
+    instructions: "You are the Concierge for our online store, serving MULTIPLE brands — NEVER state or imply the shopper is talking to one specific brand by name; keep your greeting and wording brand-neutral, and recommend products only from the catalog provided for the shopper's current store. CURRENT STORE (CRITICAL): the brand variable identifies the shopper's current store. 'Kwitko Coffee' sells COFFEE only — whole bean, ground, single-origin, blends; it does NOT sell equipment. 'Bean & Brew' sells espresso EQUIPMENT & ACCESSORIES only — machines, grinders, frothers, descaling/cleaning kits, filters, knock boxes; it does NOT sell coffee or beans. You serve exactly ONE store per chat (the one named by the brand variable). ONLY discuss, recommend, add to cart, or sell items that belong to the CURRENT store's category. If the shopper asks for a product type the current store does NOT carry (for example whole beans / coffee on Bean & Brew, or an espresso machine on Kwitko Coffee), say plainly that this store does not carry that — do NOT claim to sell it, do NOT invent or describe such a product, and do NOT recommend the other store's products. CATALOG IS THE LAW (CRITICAL — anti-hallucination): the {!@variables.brandCatalog} variable is the COMPLETE, AUTHORITATIVE, pre-loaded catalog for THIS store — it states what the store CARRIES and DOES NOT CARRY plus the full list of allowed products. It is your SINGLE SOURCE OF TRUTH for product availability. You may ONLY mention, confirm, recommend, add to cart, or offer to show/find a product or product category that actually appears in {!@variables.brandCatalog}. If something is NOT in brandCatalog, the store does NOT have it — say so plainly and do NOT claim it, describe it, invent it, or offer to look for it. Do NOT rely on your own assumptions about what a coffee store or an equipment store 'probably' sells — rely ONLY on brandCatalog. If brandCatalog is empty, follow the BRAND/STORE UNKNOWN rule. You MUST pass the brand variable to build_strategy AND to add_to_cart so recommendations and cart links stay on the current store. You handle BOTH shopping AND service in the same chat — product discovery and personalized recommendations, and also order/account service (order status, tracking, delivery delays, returns, refunds, cancellations, payment issues, complaints, opening a case, or handing off to a human). The shopper can switch to a service need at ANY moment — always keep that door open and pivot to service the instant they raise one, then return to shopping if they want. You greet the shopper once (the conversation already opens with a welcome — never send a second welcome), help anonymous shoppers browse and get product recommendations without requiring email, capture name/email only when the shopper offers it or asks for something that needs it, recognize returning customers from verified context, and build recommendations by calling the deterministic strategy engine. The engine decides products, quantities, and discount — you NEVER invent products, prices, or discounts. PRODUCT DETAILS/SPECS (relay, never invent): when you describe a product, use ONLY the specs returned by build_strategy (primarySpecs / complementarySpecs) — the authoritative details (for coffee: origin, roast, bean type, brew style, flavor/tasting profile; for equipment: specs + best use case). NEVER invent flavor notes, tasting profiles, altitude, process, or product features. If a product's specs come back blank, say you don't have full details on that item rather than making them up. You stay on-topic. Marketing consent is a STORED attribute captured on the website — never ask for consent in chat; read it from the customer record and only market to shoppers whose stored consent is true. Salesforce is the system of record. PERSONALIZATION (applies in EVERY topic — shopping, orders, returns, account): whenever the loggedInFirstName variable is non-empty, the shopper is signed in — begin your FIRST reply to them by addressing them by their first name (e.g. 'Hi Alex,') no matter which topic you route to (this is your first reply, not a second welcome), then continue. Whenever loggedInEmail is non-empty, treat them as already verified — never ask them to verify or to provide an email for their OWN account. CRITICAL — a typed or looked-up email is NOT proof of identity: ONLY a non-empty loggedInEmail variable means the shopper is signed in. If loggedInEmail is EMPTY the shopper is a GUEST no matter what email they type — NEVER say or imply 'you're signed in', do NOT reveal any order/account details, and you MUST verify them first (offer a one-time email code OR the sign-in link, their choice) before showing order info or doing any protected account action (return, cancel, refund, address change, tracking, payment). You may open an unlinked guest case for an explicit case/ticket/complaint/human request without verification, but reveal no protected account/order data. If the shopper says the email, order, or account belongs to someone else, is not theirs, or asks you to act for another person, do NOT send an OTP to that address and do NOT take action; explain that the account owner must contact us or verify in their own session. Be consistent: if you said you would help, the very next step for a guest is verification, not a promise. BRAND/STORE UNKNOWN (CRITICAL — applies in EVERY topic): the current store comes from the brand variable. If brand is EMPTY you CANNOT tell which store this is, so recommendations and any brand-specific help will fail — do NOT guess a store, do NOT recommend or describe products, and do NOT default to coffee. Instead politely say you can't fully assist in this session, ask the shopper what they need (their question) and how they reached us (the site/page or origin), then open an escalation case (open_case with category 'Escalation', escalate=True, putting their question and the origin in description and a faithful chatSummary) and tell them a person will follow up. Only proceed with normal shopping/service when brand is non-empty."
     messages:
         welcome: "Welcome! I can help you find what you're looking for — or help with an existing order, delivery, return, or your account. What can I do for you?"
         error: "Sorry, it looks like something has gone wrong."
@@ -33,6 +33,9 @@ variables:
     sessionContext: linked string
         description: "FREE rich brief (profile 360 + last order + items + open cases + service visits + subscriptions) pre-stamped on the session at start (no action/no Flex). Non-empty only when signed in at start; blank for guests/OTP-mid-chat."
         source: @MessagingSession.Customer_Brief__c
+    brandCatalog: linked string
+        description: "FREE deterministic STORE CATALOG pre-stamped at session start: what this store CARRIES, DOES NOT CARRY, and the complete allowed-product list. Authoritative source of truth for product availability — never offer anything not in it."
+        source: @MessagingSession.Brand_Catalog__c
     lastCouponCode: mutable string = ""
         description: "Real coupon code returned by issue_coupon. Empty means no coupon exists and no discount is applied."
     agentContextLoaded: mutable boolean = False
@@ -53,8 +56,8 @@ start_agent agent_router:
     description: "Welcome the shopper, then route the message to the right topic — shopping, service, subscriptions, verification, cart, or FAQ."
     reasoning:
         instructions: ->
-            | Route add-to-cart, buy, checkout, and quantity-to-cart requests to the cart_builder subagent.
-              Route shopping, recommendation, product-discovery, or sign-up requests to the shopping subagent.
+            | Route to the cart_builder subagent ONLY when the shopper names a SPECIFIC, already-chosen product to add or gives a quantity-to-cart for a known item (e.g. "add 2 bags of House Blend", "add the Pro Espresso Machine to my cart", "checkout").
+              Route GENERAL buy / want / looking-for / "do you have" / shopping / recommendation / product-discovery / sign-up requests — INCLUDING things like "I want to buy a coffee machine", "show me espresso machines", "recommend a coffee" where NO specific product has been chosen yet — to the shopping subagent, so it recommends from the store catalog FIRST (it calls the deterministic strategy engine). cart_builder is ONLY for adding an item the shopper has already chosen; never send a vague/discovery buy intent straight to cart_builder.
               Route SERVICE requests to the service subagent: order status / "where is my order", tracking,
               shipping or delivery delays, returns, refunds, cancellations, "open a case", complaints, payment
               issues, EQUIPMENT MAINTENANCE (is my machine/equipment covered, warranty/care plan, when is my next
@@ -1695,8 +1698,12 @@ subagent cart_builder:
             inputs:
                 productIdsCsv: string
                     label: "Product Ids CSV"
-                    description: "Comma-separated Salesforce product ids. Repeat the same primaryProductId for quantity, e.g. two bags is ID,ID."
-                    is_required: True
+                    description: "Comma-separated Salesforce product ids — use ONLY a real Id returned by build_strategy. Repeat the same id for quantity, e.g. two bags is ID,ID. If you don't have a real Id, leave blank and use productNamesCsv."
+                    is_required: False
+                productNamesCsv: string
+                    label: "Product Names CSV"
+                    description: "EXACT product name(s) the shopper chose, copied verbatim from the catalog. Use whenever you don't have a real Product2 Id; resolved server-side to the correct product for the current brand so the cart never gets the wrong item."
+                    is_required: False
                 couponCode: string
                     label: "Coupon Code"
                     description: "Optional. Pass only a real couponCode already returned by issue_coupon."
@@ -1707,7 +1714,7 @@ subagent cart_builder:
                     is_required: False
                 verifiedEmail: string
                     label: "Verified Email"
-                    description: "ALWAYS pass @variables.loggedInEmail (the signed-in shopper's verified email). Bean & Brew (the D2C store) uses it to confirm the shopper is a registered buyer of this store; if it is empty or not a registered buyer the action returns success=false with a not-registered message. Never omit it."
+                    description: "Pass @variables.loggedInEmail when you have it (may be blank for guests). Add-to-cart works for guests on BOTH stores, so a blank email is fine — never treat blank as a blocker."
                     is_required: False
             outputs:
                 addToCartUrl: string
@@ -1728,22 +1735,21 @@ subagent cart_builder:
                     is_displayable: True
                 isRegisteredBuyer: boolean
                     label: "Is Registered Buyer"
-                    description: "False when the verified shopper is not a registered buyer of this store (Bean & Brew). When false, do NOT print links."
+                    description: "Always true now — guest add-to-cart is allowed on both stores. Ignore for gating; never refuse a cart based on this."
                     is_displayable: True
                 message: string
                     label: "Message"
-                    description: "Agent-facing guidance. If it starts with 'NOT A REGISTERED BUYER', tell the shopper plainly they are not a registered buyer of this store and you cannot add items to a cart for them; print no links."
+                    description: "Agent-facing guidance on how to present the link(s). For Bean & Brew it gives the product-page link(s) to click 'Add to Cart' on the page; for Kwitko it's a one-click add link. Always print the link(s)."
                     is_displayable: True
 
     reasoning:
         instructions: ->
-            | You handle ONLY add-to-cart, buy, checkout, and quantity-to-cart requests. You cannot add items
-              yourself. You must return a real link from add_to_cart. First call build_strategy using the shopper's
-              latest stated preferences from the conversation (for example dark roast -> preferredRoast="Dark",
-              whole bean -> format preference if available; leave email blank unless known). Then call add_to_cart.
-              If the shopper asked for a quantity, repeat the primaryProductId that many times in productIdsCsv.
-              If the shopper asked only for coffee, do not include complementary gear. Pass couponCode only if
-              @variables.lastCouponCode is non-empty.
+            | BARE SELECTION GUARD (CHECK THIS FIRST, before anything else): if the shopper's CURRENT message is ONLY a positional or name reference to a product — "first one"/"the first"/"second"/"third"/"the last one"/"the bottom one"/"the top one"/"the middle one"/"that one", an ordinal, or just a product name — WITHOUT an explicit add/buy/checkout/"add to cart"/quantity verb in that same message, then this is a DETAILS request, NOT a cart request (even if they said "buy" in an EARLIER message). Do NOT call add_to_cart, do NOT mention buyer registration, accounts, or "registered buyer". Instead: resolve which product they mean (count its position in the list you just showed — top = first, bottom = last — or match the name), present that product's specs straight from {!@variables.brandCatalog} (each line is "Name — specs"), and then ask whether they'd like to add it to their cart. ONLY run the add-to-cart steps below when the shopper's CURRENT message contains an explicit add/buy/checkout/quantity verb.
+              You handle ONLY add-to-cart, buy, checkout, and quantity-to-cart requests. You cannot add items
+              yourself. You must return a real link from add_to_cart. ALWAYS pass brand=@variables.brand.
+              ADD BY EXACT NAME (deterministic — this is how you AVOID adding the wrong item): when the shopper chooses a specific product BY NAME (one they named, or one from a list/recommendation you already showed them), call add_to_cart and pass that product's EXACT name, copied verbatim, in productNamesCsv — and leave productIdsCsv BLANK. The server resolves the name to the correct product for the current brand, so the cart can NEVER contain a different item than the one named. For a quantity, repeat the name that many times in productNamesCsv. NEVER reuse a Product Id from a previous recommendation to add a differently-named item.
+              Only when the shopper has NOT named a product (a generic "recommend something and add it") do you first call build_strategy with the shopper's stated preferences (e.g. dark roast -> preferredRoast="Dark") and then pass the returned primaryProductId in productIdsCsv (repeat for quantity).
+              If the shopper asked only for coffee, do not include complementary gear. Pass couponCode only if @variables.lastCouponCode is non-empty.
 
               NAMED PRODUCT SAFETY: if the shopper names a specific product, flavor, seasonal item, or SKU and asks
               to add that exact thing, compare their requested name to the product returned by build_strategy. If the
@@ -1753,11 +1759,7 @@ subagent cart_builder:
               Brazil Santos, Classic Espresso Roast, Breakfast Blend, or any generic cold-brew option. Never add a
               substitute product to cart without the shopper accepting the substitute.
 
-              BUYER REGISTRATION (CRITICAL): always pass verifiedEmail=@variables.loggedInEmail to add_to_cart. If add_to_cart
-              returns success=false with isRegisteredBuyer=false (or a message starting with "NOT A REGISTERED BUYER"), the shopper
-              is NOT a registered buyer of this store — do NOT print any link and do NOT claim anything was added. Reply plainly that
-              this email is not a registered buyer on this store, so you can't add items to a cart for them, and offer to help them
-              create a store account or keep browsing. Only continue to the link steps below when add_to_cart succeeds.
+              GUEST ADD-TO-CART IS ALLOWED ON BOTH STORES: adding to cart does NOT require the shopper to be signed in or a registered buyer — on Kwitko AND on Bean & Brew. Pass verifiedEmail=@variables.loggedInEmail when you have it, but NEVER refuse an add-to-cart, never say "you are not a registered buyer", and never push account creation as a prerequisite to add an item. add_to_cart returns a working link for guests on both stores; just print it. (Registration/sign-in is only ever needed for protected ACCOUNT actions — order status, returns, refunds — never for adding to a cart.)
 
               For ordinary valid cart requests, your final response must include a literal URL beginning with "https://"
               from @outputs.addToCartUrl or @outputs.perItemLinks. Start that response with: "Nothing is in your cart yet."
@@ -1769,10 +1771,10 @@ subagent cart_builder:
             build_strategy: @actions.build_strategy
                 with email=@variables.shopper_email, channel="chat", brand=@variables.brand, dislikeKeywordsCsv=..., preferredBeanType=..., preferredBrewStyle=..., preferredRoast=..., wantsDecaf=..., avoidFlavored=..., preferredFamily=..., excludeProductIdsCsv=...
             add_to_cart: @actions.add_to_cart
-                with productIdsCsv=..., couponCode=@variables.lastCouponCode, brand=@variables.brand, verifiedEmail=@variables.loggedInEmail
+                with productIdsCsv=..., productNamesCsv=...,  couponCode=@variables.lastCouponCode, brand=@variables.brand, verifiedEmail=@variables.loggedInEmail
 
 subagent shopping:
-    label: "Concierge"
+    label: "Shopping"
     description: "Helps shoppers browse and get recommendations without forcing sign-in, captures name/email only when offered or needed, recognizes returning customers, and builds recommendations."
 
     actions:
@@ -2124,8 +2126,12 @@ subagent shopping:
             inputs:
                 productIdsCsv: string
                     label: "Product Ids CSV"
-                    description: "Comma-separated Salesforce product ids to add — use primaryProductId and complementaryProductId from the recommendation."
-                    is_required: True
+                    description: "Comma-separated Salesforce product ids to add — use primaryProductId/complementaryProductId from build_strategy. If you only have a product NAME, leave this blank and use productNamesCsv."
+                    is_required: False
+                productNamesCsv: string
+                    label: "Product Names CSV"
+                    description: "EXACT product name(s) the shopper chose, copied verbatim from the catalog. Use whenever you don't have a real Product2 Id; resolved server-side to the correct product for the current brand so the cart never gets the wrong item."
+                    is_required: False
                 couponCode: string
                     label: "Coupon Code"
                     description: "Optional discount coupon code to apply."
@@ -2136,7 +2142,7 @@ subagent shopping:
                     is_required: False
                 verifiedEmail: string
                     label: "Verified Email"
-                    description: "ALWAYS pass @variables.loggedInEmail (the signed-in shopper's verified email). Bean & Brew (the D2C store) uses it to confirm the shopper is a registered buyer of this store; if it is empty or not a registered buyer the action returns success=false with a not-registered message. Never omit it."
+                    description: "Pass @variables.loggedInEmail when you have it (may be blank for guests). Add-to-cart works for guests on BOTH stores, so a blank email is fine — never treat blank as a blocker."
                     is_required: False
             outputs:
                 addToCartUrl: string
@@ -2219,23 +2225,100 @@ subagent shopping:
                     label: "Success"
                     description: "Whether the coupon was created."
                     is_displayable: True
+        get_product_specs:
+            description: "Fetch the authored, deterministic specs/details for one or more SPECIFIC products BY NAME (brand-scoped). Call this whenever the shopper asks for details about a particular item — 'tell me about X', 'the first one', 'what are its specs', 'more on the Pro Espresso Machine'. Returns the real specs; you relay ONLY what it returns and NEVER invent details."
+            label: "Get Product Specs"
+            target: "apex://ProductSpecsService"
+            include_in_progress_indicator: True
+            progress_indicator_message: "Looking up the details..."
+            inputs:
+                productNamesCsv: string
+                    label: "Product Names CSV"
+                    description: "EXACT product name(s), copied verbatim from the catalog or from a list you just showed, comma-separated. For 'the first one', use the exact name of that first item."
+                    is_required: True
+                brand: string
+                    label: "Brand"
+                    description: "ALWAYS pass @variables.brand ('Kwitko Coffee' or 'Bean & Brew') so the lookup is scoped to the current store."
+                    is_required: True
+            outputs:
+                specs: string
+                    label: "Specs"
+                    description: "One line per product (Name: specs). Relay these verbatim; if a line says '(no detailed specs on file)' say you don't have full details on that item rather than inventing any."
+                    is_displayable: True
+                found: boolean
+                    label: "Found"
+                    description: "Whether at least one product had specs on file."
+                    is_displayable: True
+        product_knowledge:
+            description: |
+                RAG product knowledge: semantically searches the store's published product-spec knowledge to answer ANY question about what products the store carries and their details/specs/use-cases — "what espresso machines do you have", "tell me about the manual lever", "which grinder is best for espresso", "what are its specs", "the first one". Pass the shopper's question (plus the current store brand) as the query. Relay knowledgeSummary; never invent details not returned.
+            label: "Product Knowledge Search"
+            require_user_confirmation: False
+            include_in_progress_indicator: True
+            progress_indicator_message: "Looking up product details..."
+            source: "EmployeeCopilot__AnswerQuestionsWithKnowledge"
+            target: "standardInvocableAction://streamKnowledgeSearch"
+            inputs:
+                "query": string
+                    description: |
+                      Required. The shopper's product question, generated for knowledge search. ALWAYS prefix it with the current store brand (e.g. "Bean & Brew espresso machine specs") so results stay on the right store.
+                    label: "Query"
+                    is_required: True
+                    is_user_input: True
+                "citationsUrl": string=""
+                    description: |
+                      The URL to use for citations for custom Agents.
+                    label: "Citations Url"
+                    is_required: False
+                    is_user_input: True
+                "ragFeatureConfigId": string="ARFPC_1JDfj000008yNQ9GAM"
+                    description: |
+                      The RAG Feature ID to use for grounding this copilot action invocation.
+                    label: "RAG Feature Configuration Id"
+                    is_required: False
+                    is_user_input: True
+                "citationsEnabled": boolean=False
+                    description: |
+                      Whether or not citations are enabled.
+                    label: "Citations Enabled"
+                    is_required: False
+                    is_user_input: True
+            outputs:
+                "knowledgeSummary": object
+                    description: |
+                      A string formatted as rich text that includes a summary of the information retrieved from the knowledge articles and citations to those articles.
+                    label: "Knowledge Summary"
+                    is_displayable: True
+                    filter_from_agent: False
+                    complex_data_type_name: "lightning__richTextType"
+                "citationSources": object
+                    description: |
+                      Source links for the chunks in the hydrated prompt that's used by the planner service.
+                    label: "Citation Sources"
+                    is_displayable: False
+                    filter_from_agent: False
+                    complex_data_type_name: "@apexClassType/AiCopilot__GenAiCitationInput"
 
     reasoning:
         instructions: ->
             | LOW-PRESSURE STYLE — DO NOT RE-WELCOME, LET THE SHOPPER LEAD: the conversation ALREADY opens with the
               configured welcome message (a neutral "Welcome! How can I help you today?"), so
               do NOT send a second welcome or greeting. When the shopper sends their first message, answer it DIRECTLY —
-              e.g. if they ask "what do you have?", tell them about our range (single-origin, blends, espresso, decaf,
-              flavored, gear) and help them choose; do not restart with another welcome line. Keep a warm tone.
+              e.g. if they ask "what do you have?", describe ONLY the categories that actually appear in {!@variables.brandCatalog} (the authoritative list of what THIS store carries — never name a category or product that is not in it) and help them choose; do not restart with another welcome line. Keep a warm tone.
               Do NOT interrogate. Ask only ONE question at a time and only when you genuinely need that answer for the next step.
+              SHARP RECOMMENDATION — capture preferences, THEN call build_strategy: for a vague request like "recommend a coffee", ask ONE quick qualifying question to narrow it (roast: light/medium/dark, OR brew method: espresso/drip/cold brew, OR bean type: single-origin/blend) and read any saved tastes from {!@variables.sessionContext}. Then call build_strategy and MAP what you learned: roast->preferredRoast, bean type->preferredBeanType, brew->preferredBrewStyle, decaf preference->wantsDecaf, "no flavored"->avoidFlavored, a requested family->preferredFamily, and any product the shopper already rejected this chat->excludeProductIdsCsv. ALWAYS pass brand=@variables.brand (required). One question, then recommend — never recommend a generic pick when the shopper just gave you a preference to use.
+              POSITIONAL REFERENCES TO A LIST YOU JUST SHOWED (CRITICAL): whenever you have just presented the shopper a list of products (bullets, numbers, or lines) and they reply with a POSITION instead of a name — "the first one"/"first", "the second"/"second one", "the third", "the last one"/"the bottom"/"the bottom one", "the top"/"the top one", "the middle one", "the one above/below that", "that one", or any ordinal — they are pointing to the item at that position IN THE EXACT LIST AND ORDER YOU JUST SHOWED (top of the list = first, bottom = last). Resolve it to that specific product by counting its position in the list you displayed, then act on THAT product. NEVER reply that you don't know which item they mean, and never ask them to re-name it — you showed the list, so you know the order. By default a bare positional reference means "tell me about that one" (show its details/specs), NOT "add it to cart".
+              PRODUCT DETAILS (never invent — two tools by question type):
+              (A) SPECIFIC NAMED PRODUCT / "the first one" — details, specs, "what is it", "more on X": the {!@variables.brandCatalog} variable ALREADY contains every product's specs — each line is formatted "Name — specs". ANSWER DIRECTLY FROM brandCatalog: find that product (for "the first one"/"the first item", the first product in the list you just showed) and relay its specs straight from the catalog text. You ALREADY have the specs in context — do NOT call any action first, and you must NEVER say you lack details/specs for a product that appears in brandCatalog. This is a DETAILS request, NOT a purchase — NEVER route it to cart_builder or the buyer-registration/account path. Only if a listed product somehow has no specs text in brandCatalog may you call get_product_specs (exact name + brand) as a backup. Never invent specs. You MAY add colour via product_knowledge but the catalog specs are authoritative.
+              (B) DISCOVERY / COMPARISON / OPEN-ENDED — "what espresso machines do you have", "which grinder is best for espresso", "compare these", "what's good for a beginner", "recommend a setup": call product_knowledge (RAG semantic search). Build the query PREFIXED with the store brand (e.g. "Bean & Brew espresso machines for beginners", "Kwitko Coffee fruity single-origin"). Answer using @outputs.knowledgeSummary. If it is empty, fall back to listing from {!@variables.brandCatalog} and offer get_product_specs on a chosen item.
+              NEVER state specs, flavor notes, tasting profiles, altitude, process, materials, or features that did not come from get_product_specs, product_knowledge, or build_strategy.
               Do not demand the email up front — only ask for it when the shopper wants something that needs it (saved
               preferences/profile persistence, private cart restore, or to be remembered). If the shopper just wants
               to browse, compare products, or get a coffee recommendation, help them first with no email. Match the shopper's
 	              pace, keep replies concise, and never flood them with multiple questions in one turn.
 
-		              CART ACTION PRECEDENCE: if the shopper's current message asks to add, buy, checkout, or add a
-		              quantity (for example "add 2 bags to my cart"), immediately transition to cart_builder. Do not answer
-		              the cart request from this shopping topic. The cart_builder topic must build the real URL and reply.
+		              BARE SELECTION = SHOW DETAILS FIRST (do NOT jump to cart): when the shopper just picks or points to a listed product — "first one", "the first", "the second one", "that one", or simply names/repeats a product you listed — WITHOUT an explicit add/buy/checkout/quantity word in THAT message, this is NOT a cart action even if they earlier said they wanted to buy. Treat it as "tell me about it": call get_product_specs for that exact product (PRODUCT DETAILS rule A), present its specs, and THEN offer to add it to the cart. Never transition to cart_builder, and never trigger the buyer-registration/account path, on a bare selection.
+		              CART ACTION PRECEDENCE: ONLY when the shopper's CURRENT message contains an explicit add/buy/checkout/quantity verb (for example "add it to my cart", "add 2 bags", "buy this", "checkout", "I'll take the first one") do you immediately transition to cart_builder. Do not answer the cart request from this shopping topic. The cart_builder topic must build the real URL and reply.
 		              A cart request must never end with only "selected", "prepared", "ready", "would you like a
 		              checkout link", "I've added", or similar wording.
 
@@ -2435,13 +2518,19 @@ subagent shopping:
                 with email=..., firstName=..., consent=..., interest=..., chatSummary=...
             build_strategy: @actions.build_strategy
                 with email=..., channel=..., brand=@variables.brand, dislikeKeywordsCsv=..., preferredBeanType=..., preferredBrewStyle=..., preferredRoast=..., wantsDecaf=..., avoidFlavored=..., preferredFamily=..., excludeProductIdsCsv=...
+            product_knowledge: @actions.product_knowledge
+                description: "PRIMARY for any product details/specs/availability/comparison question. Build query = store brand + the shopper's question. Relay @outputs.knowledgeSummary; never invent."
+                with query=..., citationsUrl=..., ragFeatureConfigId=..., citationsEnabled=...
+            get_product_specs: @actions.get_product_specs
+                description: "FALLBACK after product_knowledge for a specifically NAMED product when RAG returns nothing. Relay @outputs.specs verbatim; never invent details."
+                with productNamesCsv=..., brand=@variables.brand
             issue_coupon: @actions.issue_coupon
                 description: "MANDATORY for coupon/discount requests after build_strategy returns discountPercent > 0. Never invent a code; only relay @outputs.couponCode when success=true and couponCode is non-blank."
                 with email=..., discountPercent=..., firstName=...
                 set @variables.lastCouponCode = @outputs.couponCode
             add_to_cart: @actions.add_to_cart
                 description: "MANDATORY for add-to-cart/checkout/quantity requests. The final response must print the literal @outputs.addToCartUrl beginning with https:// and say nothing is in the cart until the shopper clicks. Never claim items are already added. If addToCartUrl is blank, print @outputs.perItemLinks instead."
-                with productIdsCsv=..., couponCode=..., brand=@variables.brand, verifiedEmail=@variables.loggedInEmail
+                with productIdsCsv=..., productNamesCsv=...,  couponCode=..., brand=@variables.brand, verifiedEmail=@variables.loggedInEmail
             restore_cart: @actions.restore_cart
                 with email=@variables.shopper_email, verifiedEmail=@variables.loggedInEmail
 
@@ -2452,15 +2541,16 @@ subagent GeneralFAQ:
     reasoning:
         instructions: ->
             | If the customer's question is too vague or general, ask for more details and clarification to give a better answer.
-              If you are unable to help the customer even after asking clarifying questions, ask if they want to escalate this issue to a live agent.
-              If you are unable to answer customer's questions, ask if they want to escalate this issue to a live agent.
-              Never provide generic information, advice or troubleshooting steps, unless retrieved from searching knowledge articles.
+              Never provide generic information, advice, or troubleshooting steps unless they were RETRIEVED from a knowledge article. If the knowledge search returns nothing relevant, you MUST NOT invent or guess an answer.
+              UNANSWERABLE -> ESCALATE TO A HUMAN (act, do not just offer): if you cannot answer from knowledge after one clarifying attempt, do NOT fabricate steps and do NOT merely ask whether to escalate — tell the shopper you'll connect them with a specialist, then call {!@actions.open_case} (category 'Escalation', escalate=true, a short subject, the shopper's exact question plus what you searched in the description, and a faithful chatSummary; pass email and verifiedEmail only if the shopper is verified, otherwise leave them blank for an unlinked guest case) and confirm a human will follow up. Never end an unanswered question without an open escalation case.
               Include sources in your response when available from the knowledge articles, otherwise proceed without them.
               
 
         actions:
             AnswerQuestionsWithKnowledge: @actions.AnswerQuestionsWithKnowledge
                 with query=...
+            open_case: @actions.open_case
+                with email=..., verifiedEmail=..., category=..., subject=..., description=..., priority=..., escalate=..., chatSummary=...
 
 
 
@@ -2518,6 +2608,62 @@ subagent GeneralFAQ:
                     is_displayable: False
                     filter_from_agent: False
                     complex_data_type_name: "@apexClassType/AiCopilot__GenAiCitationInput"
+        open_case:
+            description: "Open a categorized support case for the shopper, optionally linked to an order, and optionally escalate to a human agent. Use immediately when the shopper explicitly asks to open a case, create a ticket, file a complaint, or log a support issue; do not offer store credit, replacement, return, or refund before the requested case exists."
+            label: "Open Support Case"
+            target: "apex://CaseService"
+            include_in_progress_indicator: True
+            progress_indicator_message: "Logging your request..."
+            inputs:
+                email: string
+                    label: "Email"
+                    description: "The shopper's email."
+                    is_required: True
+                verifiedEmail: string
+                    label: "Verified Email"
+                    description: "Pass loggedInEmail when signed in, or the email verified by OTP. If blank, the case is created as an unlinked guest case."
+                    is_required: False
+                category: string
+                    label: "Category"
+                    description: "Order, Shipping, Returns, Refund, Product, Billing, Account, or Escalation."
+                    is_required: False
+                subject: string
+                    label: "Subject"
+                    description: "A short title for the issue."
+                    is_required: True
+                description: string
+                    label: "Description"
+                    description: "Details of the shopper's issue."
+                    is_required: False
+                orderIdentifier: string
+                    label: "Order Identifier"
+                    description: "Related order number or Woo id, if any."
+                    is_required: False
+                priority: string
+                    label: "Priority"
+                    description: "Low, Medium, or High."
+                    is_required: False
+                escalate: boolean
+                    label: "Escalate"
+                    description: "True to escalate to a human agent."
+                    is_required: False
+                chatSummary: string
+                    label: "Chat Summary"
+                    description: "ALWAYS pass this. A faithful, detailed summary/transcript of the ENTIRE conversation so far — what the shopper said, what you looked up, and what you did — so the case carries the chat transcript for the human who picks it up."
+                    is_required: False
+            outputs:
+                success: boolean
+                    label: "Success"
+                    description: "Whether the case was created."
+                    is_displayable: True
+                caseNumber: string
+                    label: "Case Number"
+                    description: "The case number to give the shopper."
+                    is_displayable: True
+                message: string
+                    label: "Message"
+                    description: "Confirmation message."
+                    is_displayable: True
 
 subagent subscriptions:
     label: "Subscriptions"

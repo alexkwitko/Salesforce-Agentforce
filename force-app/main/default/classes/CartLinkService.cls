@@ -25,7 +25,8 @@ public without sharing class CartLinkService {
     @TestVisible private static Map<String, Boolean> registrationOverride = new Map<String, Boolean>();
 
     public class Request {
-        @InvocableVariable(label='Product Ids CSV (Salesforce Product2 Ids to add)' required=true) public String productIdsCsv;
+        @InvocableVariable(label='Product Ids CSV (Salesforce Product2 Ids — use ONLY a real Id returned by build_strategy)') public String productIdsCsv;
+        @InvocableVariable(label='Product Names CSV — the EXACT product name(s) the shopper chose, copied verbatim from the catalog. Use this whenever you do not have a real Product2 Id; it is resolved server-side to the correct product for the current brand so the link can never add the wrong item.') public String productNamesCsv;
         @InvocableVariable(label='Coupon Code (optional)') public String couponCode;
         @InvocableVariable(label='Brand — the SITE the chat is on (Kwitko Coffee | Bean & Brew). Pass @variables.brand.') public String brand;
         @InvocableVariable(label='Verified shopper email (pass the verified loggedInEmail). Required for Bean & Brew to confirm the shopper is a registered buyer of this store.') public String verifiedEmail;
@@ -64,7 +65,16 @@ public without sharing class CartLinkService {
                 if (String.isNotBlank(t)) { try { ids.add((Id) t); } catch (Exception e) {} }
             }
         }
-        if (ids.isEmpty()) { res.message = 'No products provided.'; res.cartUrl = STORE + CART_PATH; return res; }
+        // Resolve by EXACT name (brand-scoped) when no Id was passed — prevents name/Id mismatch (wrong item in cart).
+        if (ids.isEmpty() && String.isNotBlank(r.productNamesCsv)) {
+            String b = (normalizeBrand(r.brand) == 'Bean & Brew') ? 'Bean & Brew' : 'Kwitko Coffee';
+            Set<String> names = new Set<String>();
+            for (String s : r.productNamesCsv.split(',')) { String t = s.trim(); if (String.isNotBlank(t)) names.add(t); }
+            if (!names.isEmpty()) {
+                for (Product2 p : [SELECT Id FROM Product2 WHERE Name IN :names AND Brand__c = :b AND IsActive = true]) ids.add(p.Id);
+            }
+        }
+        if (ids.isEmpty()) { res.message = 'No products provided. If the shopper named a product, pass its exact name in productNamesCsv.'; res.cartUrl = STORE + CART_PATH; return res; }
 
         // Bean & Brew is a Salesforce D2C store — never use the Woo link path.
         if (normalizeBrand(r.brand) == 'Bean & Brew') return buildD2C(ids, res, r.verifiedEmail);
@@ -93,17 +103,9 @@ public without sharing class CartLinkService {
 
     // --- Bean & Brew (Salesforce D2C / LWR): storefront product-page links ---
     private static Result buildD2C(List<Id> ids, Result res, String verifiedEmail) {
-        // Gate: only a registered buyer of THIS store has a cart to add to.
-        res.isRegisteredBuyer = isRegisteredD2CBuyer(verifiedEmail);
-        if (res.isRegisteredBuyer != true) {
-            res.success = false;
-            res.cartUrl = D2C_STORE;
-            res.message = 'NOT A REGISTERED BUYER: ' + (String.isBlank(verifiedEmail) ? 'this shopper' : verifiedEmail)
-                + ' is not a registered buyer on the Bean & Brew store, so there is no cart to add items to. '
-                + 'Tell the shopper plainly that they are not a registered buyer of this store and you cannot add items to a cart for them; '
-                + 'offer to help them create a Bean & Brew store account (or just keep browsing). Do NOT provide add-to-cart or product links.';
-            return res;
-        }
+        // NO registration gate: guests CAN add to cart on Bean & Brew, same as Kwitko/Woo.
+        // The storefront handles the guest cart; we just hand over the product-page link(s) to click.
+        res.isRegisteredBuyer = true;
         res.cartUrl = D2C_STORE;
         Map<Id, Product2> byId = new Map<Id, Product2>([SELECT Name FROM Product2 WHERE Id IN :new Set<Id>(ids)]);
         Set<Id> seen = new Set<Id>();

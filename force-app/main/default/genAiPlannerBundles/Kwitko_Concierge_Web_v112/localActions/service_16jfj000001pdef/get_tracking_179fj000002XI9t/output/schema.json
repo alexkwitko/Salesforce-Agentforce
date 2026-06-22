@@ -1,0 +1,22 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "caseNumber" : {
+      "title" : "Case Number",
+      "description" : "The closed service Case created by this tracking lookup. Use this as proof the interaction was logged.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "message" : {
+      "title" : "Message",
+      "description" : "Tracking summary — relay to shopper.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : true,
+      "copilotAction:isUsedByPlanner" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

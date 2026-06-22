@@ -12,6 +12,10 @@
  */
 public without sharing class RecommendationStrategyService {
     @TestVisible private static List<List<Object>> testDataCloudWebRows;
+    // DETERMINISTIC BRAND SCOPE: every product query is filtered to this brand so the engine can
+    // NEVER return a wrong-brand product (e.g. a grinder on the coffee store). Set in run() from the
+    // session brand; defaults to coffee. Kwitko = coffee only; Bean & Brew = equipment only.
+    @TestVisible private static String scopeBrand = 'Kwitko Coffee';
 
     private static final Set<String> BEAN_FAMILIES = new Set<String>{
         'Single-Origin','Blends','Espresso','Decaf','Flavored','Subscriptions','Gift Sets'};
@@ -35,7 +39,7 @@ public without sharing class RecommendationStrategyService {
         @InvocableVariable(label='Dislike Keywords CSV (e.g. decaf,flavored) — never recommend products whose name matches') public String dislikeKeywordsCsv;
         @InvocableVariable(label='Exclude Product Ids CSV (rejected this chat — never re-offer)') public String excludeProductIdsCsv;
         @InvocableVariable(label='Preferred Family (e.g. Single-Origin, Espresso) — bias the primary pick') public String preferredFamily;
-        @InvocableVariable(label='Brand — the SITE the chat is on (Kwitko Coffee | Bean & Brew). Scopes the catalog: Bean & Brew = equipment/accessories; null/Kwitko = coffee. Pass from the session, not the LLM.') public String brand;
+        @InvocableVariable(label='Brand — the SITE the chat is on (Kwitko Coffee | Bean & Brew). Scopes the catalog: Bean & Brew = equipment/accessories; Kwitko = coffee. Pass @variables.brand from the session, never guess.' required=true) public String brand;
         // --- independent coffee preference axes (hard filters when set; orthogonal to each other) ---
         @InvocableVariable(label='Preferred Bean Type (Single-Origin | Blend)') public String preferredBeanType;
         @InvocableVariable(label='Preferred Brew Style (Espresso | Cold Brew | All-Purpose)') public String preferredBrewStyle;
@@ -55,6 +59,8 @@ public without sharing class RecommendationStrategyService {
         @InvocableVariable public String favoriteCategory;
         @InvocableVariable public String primaryProductId;
         @InvocableVariable public String primaryProductName;
+        @InvocableVariable public String primarySpecs;          // deterministic product spec sheet (from Product_Specs__c) — relay, never invent
+        @InvocableVariable public String complementarySpecs;
         @InvocableVariable public Decimal primaryQuantity;
         @InvocableVariable public Decimal primaryUnitPrice;
         @InvocableVariable public Decimal primaryLinePrice;
@@ -95,6 +101,7 @@ public without sharing class RecommendationStrategyService {
         res.serviceRecoveryRequired = false;
         String channel = String.isBlank(r.channel) ? 'chat' : r.channel.toLowerCase();
         String brand = normalizeBrand(r.brand);   // site/brand scope — 'Bean & Brew' = equipment catalog; null/Kwitko = coffee
+        scopeBrand = (brand == 'Bean & Brew') ? 'Bean & Brew' : 'Kwitko Coffee';   // hard brand filter for ALL product queries
 
         // --- profile (CRM) ---
         List<Account> accs = String.isBlank(r.email) ? new List<Account>()
@@ -242,7 +249,7 @@ public without sharing class RecommendationStrategyService {
             Map<Id, Decimal> score = new Map<Id, Decimal>();
             for (Product2 p : [SELECT Id, Name, Family, Woo_Product_Id__c, Image_URL__c, Description, Stock_On_Hand__c
                                FROM Product2
-                               WHERE Woo_Product_Id__c IN :wooIds AND IsActive = true AND Stock_On_Hand__c > 0]) {
+                               WHERE Woo_Product_Id__c IN :wooIds AND IsActive = true AND Stock_On_Hand__c > 0 AND Brand__c = :scopeBrand]) {
                 byId.put(p.Id, p);
                 score.put(p.Id, webScoreByWooId.get(p.Woo_Product_Id__c));
                 if (String.isBlank(res.webSignal) && dcWebSignal != null && p.Woo_Product_Id__c == dcWebSignal.newestWooId) {
@@ -341,6 +348,10 @@ public without sharing class RecommendationStrategyService {
 
         Set<Id> pricedProductIds = new Set<Id>{ primary.Id };
         if (comp != null) pricedProductIds.add(comp.Id);
+        // Deterministic product specs (relay verbatim — never invent specs/flavor notes)
+        Map<Id, Product2> specById = new Map<Id, Product2>([SELECT Id, Product_Specs__c FROM Product2 WHERE Id IN :pricedProductIds]);
+        if (specById.containsKey(primary.Id)) res.primarySpecs = specById.get(primary.Id).Product_Specs__c;
+        if (comp != null && specById.containsKey(comp.Id)) res.complementarySpecs = specById.get(comp.Id).Product_Specs__c;
         Map<Id, Decimal> unitPriceByProductId = standardUnitPrices(pricedProductIds);
         res.primaryUnitPrice = unitPriceByProductId.get(primary.Id);
         res.primaryLinePrice = linePrice(res.primaryUnitPrice, res.primaryQuantity);
@@ -432,6 +443,8 @@ public without sharing class RecommendationStrategyService {
                 ? ' with no sales coupon (' + channel + ') until the return/service issue is resolved.'
                 : ' at ' + pct.intValue() + '% (' + channel + ').')
             + (String.isBlank(res.dataCloudNextBestAction) ? '' : ' Data Cloud next action: ' + res.dataCloudNextBestAction + '.')
+            + (String.isBlank(res.primarySpecs) ? '' : ' SPECS — ' + res.primaryProductName + ': ' + res.primarySpecs)
+            + (String.isBlank(res.complementarySpecs) ? '' : ' | ' + res.complementaryProductName + ': ' + res.complementarySpecs)
             + (relaxed.isEmpty() ? '' : ' [relaxed: ' + String.join(relaxed, ', ') + ']');
         res.packetJson = JSON.serialize(new Map<String, Object>{
             'buyerType' => buyerType, 'orderCount' => orderCount, 'lifetimeValue' => ltv,
@@ -668,7 +681,7 @@ public without sharing class RecommendationStrategyService {
         String q = 'SELECT Id, Name, Family, Roast_Level__c, Bean_Type__c, Brew_Style__c, Is_Decaf__c, '
             + 'Is_Flavored__c, Woo_Product_Id__c, Image_URL__c, Description, Stock_On_Hand__c FROM Product2 '
             + 'WHERE IsActive = true AND Stock_On_Hand__c > 0 AND Woo_Product_Id__c != null '
-            + 'AND Family IN :beanFams AND Id NOT IN :exclude ';
+            + 'AND Family IN :beanFams AND Id NOT IN :exclude AND Brand__c = :scopeBrand ';
         if (beanType != null)     q += 'AND Bean_Type__c = :beanType ';
         if (brew != null)         q += 'AND Brew_Style__c = :brew ';
         if (roast != null)        q += 'AND Roast_Level__c = :roast ';
@@ -753,7 +766,7 @@ public without sharing class RecommendationStrategyService {
         List<AggregateResult> ars = [
             SELECT Product2Id pid, COUNT(Id) c FROM OrderItem
             WHERE OrderId IN :coOrders AND Product2Id NOT IN :exclude AND Product2.Family IN :families
-              AND Product2.IsActive = true AND Product2.Stock_On_Hand__c > 0 AND Product2.Woo_Product_Id__c != null
+              AND Product2.IsActive = true AND Product2.Stock_On_Hand__c > 0 AND Product2.Woo_Product_Id__c != null AND Product2.Brand__c = :scopeBrand
             GROUP BY Product2Id ORDER BY COUNT(Id) DESC LIMIT 1];
         if (ars.isEmpty()) return null;
         return loadProduct((Id) ars[0].get('pid'));
@@ -762,7 +775,7 @@ public without sharing class RecommendationStrategyService {
         String fam = families == null ? '' : ' AND Product2.Family IN :families ';
         List<AggregateResult> ars = Database.query(
             'SELECT Product2Id pid, SUM(Quantity) q FROM OrderItem WHERE Product2.IsActive = true ' +
-            'AND Product2.Stock_On_Hand__c > 0 AND Product2.Woo_Product_Id__c != null AND Product2Id NOT IN :exclude ' +
+            'AND Product2.Stock_On_Hand__c > 0 AND Product2.Woo_Product_Id__c != null AND Product2.Brand__c = :scopeBrand AND Product2Id NOT IN :exclude ' +
             fam + 'GROUP BY Product2Id ORDER BY SUM(Quantity) DESC LIMIT 1');
         if (ars.isEmpty()) return null;
         return loadProduct((Id) ars[0].get('pid'));
@@ -771,7 +784,7 @@ public without sharing class RecommendationStrategyService {
         String fam = families == null ? '' : ' AND Family IN :families ';
         List<Product2> ps = Database.query(
             'SELECT Id, Name, Family, Woo_Product_Id__c, Image_URL__c, Description FROM Product2 ' +
-            'WHERE IsActive = true AND Stock_On_Hand__c > 0 AND Woo_Product_Id__c != null AND Id NOT IN :exclude ' +
+            'WHERE IsActive = true AND Stock_On_Hand__c > 0 AND Woo_Product_Id__c != null AND Brand__c = :scopeBrand AND Id NOT IN :exclude ' +
             fam + 'ORDER BY Stock_On_Hand__c DESC LIMIT 1');
         return ps.isEmpty() ? null : ps[0];
     }

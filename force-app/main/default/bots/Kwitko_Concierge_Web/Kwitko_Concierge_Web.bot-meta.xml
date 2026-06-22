@@ -12,7 +12,7 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Brand__c</fieldName>
-            <messageType>EmbeddedMessaging</messageType>
+            <messageType>Line</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
@@ -37,12 +37,12 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Brand__c</fieldName>
-            <messageType>Custom</messageType>
+            <messageType>EmbeddedMessaging</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Brand__c</fieldName>
-            <messageType>Line</messageType>
+            <messageType>Custom</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
@@ -58,13 +58,60 @@
     <contextVariables>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
-            <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
+            <fieldName>MessagingSession.Brand_Catalog__c</fieldName>
             <messageType>WhatsApp</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Brand_Catalog__c</fieldName>
+            <messageType>AppleBusinessChat</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Brand_Catalog__c</fieldName>
+            <messageType>Line</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Brand_Catalog__c</fieldName>
+            <messageType>Facebook</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Brand_Catalog__c</fieldName>
+            <messageType>Email</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Brand_Catalog__c</fieldName>
+            <messageType>Custom</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Brand_Catalog__c</fieldName>
+            <messageType>Text</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Brand_Catalog__c</fieldName>
+            <messageType>EmbeddedMessaging</messageType>
+        </contextVariableMappings>
+        <dataType>Text</dataType>
+        <description>FREE deterministic STORE CATALOG pre-stamped at session start: what this store CARRIES, DOES NOT CARRY, and the complete allowed-product list. Authoritative source of truth for product availability — never offer anything not in it.</description>
+        <developerName>brandCatalog</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Brand Catalog</label>
+    </contextVariables>
+    <contextVariables>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
             <messageType>Custom</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
+            <messageType>Line</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
@@ -84,12 +131,12 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
-            <messageType>Line</messageType>
+            <messageType>AppleBusinessChat</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Cart_Token__c</fieldName>
-            <messageType>AppleBusinessChat</messageType>
+            <messageType>WhatsApp</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
@@ -106,11 +153,6 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
-            <messageType>Line</messageType>
-        </contextVariableMappings>
-        <contextVariableMappings>
-            <SObjectType>MessagingSession</SObjectType>
-            <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
             <messageType>Custom</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
@@ -137,6 +179,11 @@
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
             <messageType>Facebook</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_Email__c</fieldName>
+            <messageType>Line</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
@@ -153,6 +200,11 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
+            <messageType>Line</messageType>
+        </contextVariableMappings>
+        <contextVariableMappings>
+            <SObjectType>MessagingSession</SObjectType>
+            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
             <messageType>Text</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
@@ -168,7 +220,7 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
-            <messageType>AppleBusinessChat</messageType>
+            <messageType>Email</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
@@ -178,17 +230,12 @@
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
-            <messageType>Line</messageType>
-        </contextVariableMappings>
-        <contextVariableMappings>
-            <SObjectType>MessagingSession</SObjectType>
-            <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
             <messageType>Custom</messageType>
         </contextVariableMappings>
         <contextVariableMappings>
             <SObjectType>MessagingSession</SObjectType>
             <fieldName>MessagingSession.Kwitko_Logged_In_First_Name__c</fieldName>
-            <messageType>Email</messageType>
+            <messageType>AppleBusinessChat</messageType>
         </contextVariableMappings>
         <dataType>Text</dataType>
         <description>The shopper&apos;s first name from their verified website sign-in, passed in via hidden pre-chat into the Messaging Session when available. Use it for a warm greeting only; do not treat it as authorization.</description>

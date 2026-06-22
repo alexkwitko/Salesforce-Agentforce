@@ -1,0 +1,21 @@
+{
+  "required" : [ "productNamesCsv", "brand" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "brand" : {
+      "title" : "Brand",
+      "description" : "ALWAYS pass @variables.brand ('Kwitko Coffee' or 'Bean & Brew') so the lookup is scoped to the current store.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "productNamesCsv" : {
+      "title" : "Product Names CSV",
+      "description" : "EXACT product name(s), copied verbatim from the catalog or from a list you just showed, comma-separated. For 'the first one', use the exact name of that first item.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

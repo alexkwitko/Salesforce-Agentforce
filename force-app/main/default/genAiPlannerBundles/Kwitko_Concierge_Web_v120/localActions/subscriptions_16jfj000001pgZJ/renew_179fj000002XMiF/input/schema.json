@@ -1,0 +1,35 @@
+{
+  "required" : [ ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "email" : {
+      "title" : "Email",
+      "description" : "Pass the verified email (loggedInEmail or OTP-verified).",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "subscriptionId" : {
+      "title" : "Subscription Id",
+      "description" : "Subscription Id",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "termMonths" : {
+      "title" : "Renewal term in months",
+      "description" : "Defaults to 12 if not given.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "Pass loggedInEmail when signed in, or the OTP-verified proof. The action returns NOTHING without this.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

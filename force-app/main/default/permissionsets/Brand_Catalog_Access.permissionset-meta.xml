@@ -3,5 +3,6 @@
     <label>Brand Catalog Access</label>
     <hasActivationRequired>false</hasActivationRequired>
     <fieldPermissions><field>Product2.Brand__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>Product2.Product_Specs__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>MessagingSession.Brand__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
 </PermissionSet>

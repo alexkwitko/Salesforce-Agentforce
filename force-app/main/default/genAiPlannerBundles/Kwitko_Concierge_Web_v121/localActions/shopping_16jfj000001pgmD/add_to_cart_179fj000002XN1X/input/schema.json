@@ -1,0 +1,42 @@
+{
+  "required" : [ ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "brand" : {
+      "title" : "Brand",
+      "description" : "The SITE the chat is on. ALWAYS pass @variables.brand ('Kwitko Coffee' or 'Bean & Brew') so the cart link goes to the correct storefront (Kwitko=WooCommerce; Bean & Brew=the D2C store). Never omit it.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "couponCode" : {
+      "title" : "Coupon Code",
+      "description" : "Optional discount coupon code to apply.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "productIdsCsv" : {
+      "title" : "Product Ids CSV",
+      "description" : "Comma-separated Salesforce product ids to add — use primaryProductId/complementaryProductId from build_strategy. If you only have a product NAME, leave this blank and use productNamesCsv.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "productNamesCsv" : {
+      "title" : "Product Names CSV",
+      "description" : "EXACT product name(s) the shopper chose, copied verbatim from the catalog. Use whenever you don't have a real Product2 Id; resolved server-side to the correct product for the current brand so the cart never gets the wrong item.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "verifiedEmail" : {
+      "title" : "Verified Email",
+      "description" : "Pass @variables.loggedInEmail when you have it (may be blank for guests). Add-to-cart works for guests on BOTH stores, so a blank email is fine — never treat blank as a blocker.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

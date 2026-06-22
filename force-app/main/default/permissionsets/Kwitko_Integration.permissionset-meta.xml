@@ -15,6 +15,7 @@
         <enabled>true</enabled>
         <externalCredentialPrincipal>WooCommerce-WooApi</externalCredentialPrincipal>
     </externalCredentialPrincipalAccesses>
+    <classAccesses><apexClass>ProductSpecsService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>PostPurchaseService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>LeadNurtureService</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>AbandonedCartService</apexClass><enabled>true</enabled></classAccesses>
@@ -240,6 +241,7 @@
     <fieldPermissions><field>Customer_Journey__c.Last_Stage__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>Customer_Journey__c.Last_Interaction__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>MessagingSession.Brand__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
+    <fieldPermissions><field>MessagingSession.Brand_Catalog__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>MessagingSession.Customer_Brief__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>MessagingSession.Kwitko_Cart_Token__c</field><readable>true</readable><editable>true</editable></fieldPermissions>
     <fieldPermissions><field>MessagingSession.Kwitko_Logged_In_Email__c</field><readable>true</readable><editable>true</editable></fieldPermissions>

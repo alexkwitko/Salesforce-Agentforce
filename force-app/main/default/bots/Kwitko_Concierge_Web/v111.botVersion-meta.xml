@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BotVersion xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>v111</fullName>
+    <articleAnswersGPTEnabled>false</articleAnswersGPTEnabled>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>Welcome! I can help you find what you&apos;re looking for — or help with an existing order, delivery, return, or your account. What can I do for you?</message>
+                <messageIdentifier>fb504668-7b1f-4d08-9911-459db1650126</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>36e8eb89-17f8-4d67-ba69-9e675ef2138a</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>cbc85273-7536-4665-9f43-a6b9dccdb7f3</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Welcome</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Welcome</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>Sorry, it looks like something has gone wrong.</message>
+                <messageIdentifier>4474c221-69e4-4b23-b176-e6d2261df09c</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>acc3f489-6d2a-4d26-88cf-3416a3d82f3f</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>60644c45-53d6-4784-a99c-f933fdd6d020</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Rich_Content_Error_Handling</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Error Handler</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <botDialogs>
+        <botSteps>
+            <conversationSystemMessage>
+                <type>Transfer</type>
+            </conversationSystemMessage>
+            <stepIdentifier>24d32389-3a1b-4114-825f-9acfc0732d66</stepIdentifier>
+            <type>SystemMessage</type>
+        </botSteps>
+        <developerName>Transfer_To_Agent</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Transfer To Agent</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <citationsEnabled>false</citationsEnabled>
+    <conversationDefinitionPlanners>
+        <genAiPlannerName>Kwitko_Concierge_Web_v111</genAiPlannerName>
+    </conversationDefinitionPlanners>
+    <conversationSystemDialogs>
+        <dialog>Rich_Content_Error_Handling</dialog>
+        <type>ErrorHandling</type>
+    </conversationSystemDialogs>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Real coupon code returned by issue_coupon. Empty means no coupon exists and no discount is applied.</description>
+        <developerName>lastCouponCode</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Last Coupon Code</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The agent instructions</description>
+        <developerName>AgentScriptInternal_agent_instructions</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Agent Instructions</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The email address that received the current OTP code.</description>
+        <developerName>otpEmail</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Otp Email</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>Runtime condition evaluation for if statements</description>
+        <developerName>AgentScriptInternal_condition</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Runtime Condition</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The next topic to be visited</description>
+        <developerName>AgentScriptInternal_next_topic</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Next Topic</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>True once get_agent_context has been called this session. The shared context packet is stable per session, so it is fetched ONCE and reused — never re-fetched per turn (saves a billable action each turn).</description>
+        <developerName>agentContextLoaded</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Agent Context Loaded</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The shared context packet (get_agent_context @outputs.summary) captured on the first call this session. Reuse THIS variable in every subagent instead of re-calling the action — zero extra actions, no object re-query.</description>
+        <developerName>agentContextSummary</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Agent Context Summary</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Opaque proof returned by verify_code after a correct OTP. Pass this as verifiedEmail for gated actions; never display it.</description>
+        <developerName>otpVerifiedEmail</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Otp Verified Email</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The shopper&apos;s email captured in this session.</description>
+        <developerName>shopper_email</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Shopper Email</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <copilotPrimaryLanguage>en_US</copilotPrimaryLanguage>
+    <defaultStdObjForContactIdFltrEnabled>false</defaultStdObjForContactIdFltrEnabled>
+    <entryDialog>Welcome</entryDialog>
+    <intentDisambiguationEnabled>false</intentDisambiguationEnabled>
+    <intentV3Enabled>false</intentV3Enabled>
+    <isScriptCompatibleAgent>true</isScriptCompatibleAgent>
+    <knowledgeActionEnabled>false</knowledgeActionEnabled>
+    <knowledgeFallbackEnabled>false</knowledgeFallbackEnabled>
+    <smallTalkEnabled>false</smallTalkEnabled>
+    <staticPromptsEnabled>false</staticPromptsEnabled>
+    <stopRecPrompts>false</stopRecPrompts>
+    <stopWelcomePrompts>false</stopWelcomePrompts>
+    <surfacesEnabled>false</surfacesEnabled>
+    <toneType>Casual</toneType>
+</BotVersion>

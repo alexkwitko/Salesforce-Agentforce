@@ -1,5 +1,7 @@
 # Multi-turn agent testing — the mandatory certification method
 
+> **Pairs with `scorers-intent-and-observability.md`** — that file is the SCORER side (offline `AiEvaluationDefinition` rubrics = LLM-judge prompts, the per-use-case scorer catalog, running scorers on live sessions, intent tags, observability, and the no-programmatic-purge storage reality). THIS file is the MULTI-TURN harness. Every agent needs **both**: a multi-turn suite (here) **and** a use-case-specific custom scorer (there), each built from the process/outcome matrix.
+
 > **THE RULE: no Agentforce agent is "tested" or "certified" until every use case passes as a MULTI-TURN conversation, run repeatedly (≥10×) to 100%.** Single-turn `aiEvaluationDefinition` / `sf agent test run` tests are necessary but **insufficient** — they routinely pass while the real product is broken, because the agent behaves differently when a user drips information across turns (the normal way people chat). This is the #1 cause of "all tests green but it failed live." Applies to ANY agent in any domain.
 
 ## Why single-turn lies (proven)

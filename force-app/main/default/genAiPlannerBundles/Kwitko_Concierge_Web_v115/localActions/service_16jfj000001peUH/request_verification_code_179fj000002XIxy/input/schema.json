@@ -1,0 +1,21 @@
+{
+  "required" : [ "email" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "chatSummary" : {
+      "title" : "Chat Summary",
+      "description" : "Recent shopper wording around the verification request. Include if they mention whether the account/email/order is theirs.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "email" : {
+      "title" : "Email",
+      "description" : "The account email to send the one-time code to.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}
