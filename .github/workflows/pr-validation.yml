@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -52,7 +52,7 @@ jobs:
       EXPECTED_SALESFORCE_ORG_ID: 00DXX0000000000RED
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v4
