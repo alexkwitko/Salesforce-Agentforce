@@ -15,6 +15,7 @@ export default class CaseServicePanel extends LightningElement {
     }
 
     connectedCallback() {
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
         this._timer = setInterval(() => { this.now = Date.now(); }, 1000);
     }
     disconnectedCallback() {
